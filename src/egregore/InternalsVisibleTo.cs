@@ -10,5 +10,7 @@ namespace egregore
 {
     // ReSharper disable once UnusedMember.Global
     [ExcludeFromCodeCoverage]
-    internal static class InternalsVisibleTo { }
+    internal static class InternalsVisibleTo
+    {
+    }
 }

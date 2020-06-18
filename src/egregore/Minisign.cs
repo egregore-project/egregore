@@ -13,14 +13,16 @@ namespace egregore
 {
     internal sealed class Minisign
     {
-        public static IntPtr VerifyImportResolver(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
+        public static IntPtr VerifyImportResolver(string libraryName, Assembly assembly,
+            DllImportSearchPath? searchPath)
         {
             // https://libsodium.gitbook.io/doc/installation#integrity-checking
             const string publicKeyString = "RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3";
-            return VerifyAndLoad(assembly, libraryName,  NativeMethods.DllName, publicKeyString, searchPath);
+            return VerifyAndLoad(assembly, libraryName, NativeMethods.DllName, publicKeyString, searchPath);
         }
 
-        private static IntPtr VerifyAndLoad(Assembly assembly, string source, string target, string publicKey, DllImportSearchPath? searchPath)
+        private static IntPtr VerifyAndLoad(Assembly assembly, string source, string target, string publicKey,
+            DllImportSearchPath? searchPath)
         {
             var handle = IntPtr.Zero;
             if (source == target)
@@ -29,19 +31,22 @@ namespace egregore
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 {
                     var libraryFileName = $"{target}.dylib";
-                    IntegrityCheckFile(Path.Combine("runtimes", $"osx-{architecture}", "native", libraryFileName), publicKey);
+                    IntegrityCheckFile(Path.Combine("runtimes", $"osx-{architecture}", "native", libraryFileName),
+                        publicKey);
                     NativeLibrary.TryLoad(libraryFileName, assembly, searchPath, out handle);
                 }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
                     var libraryFileName = $"{target}.so";
-                    IntegrityCheckFile(Path.Combine("runtimes", $"linux-{architecture}", "native", libraryFileName), publicKey);
+                    IntegrityCheckFile(Path.Combine("runtimes", $"linux-{architecture}", "native", libraryFileName),
+                        publicKey);
                     NativeLibrary.TryLoad(libraryFileName, assembly, searchPath, out handle);
                 }
                 else
                 {
                     var libraryFileName = $"{target}.dll";
-                    IntegrityCheckFile(Path.Combine("runtimes", $"win-{architecture}", "native", libraryFileName), publicKey);
+                    IntegrityCheckFile(Path.Combine("runtimes", $"win-{architecture}", "native", libraryFileName),
+                        publicKey);
                     NativeLibrary.TryLoad(libraryFileName, assembly, searchPath, out handle);
                 }
             }
