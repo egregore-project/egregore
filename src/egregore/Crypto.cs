@@ -16,6 +16,43 @@ namespace egregore
             NativeLibrary.SetDllImportResolver(typeof(Crypto).Assembly, Minisign.VerifyImportResolver);
         }
 
+        public static byte[] Nonce(uint size)
+        {
+            var buffer = new byte[size];
+            FillNonZeroBytes(buffer, size);
+            return buffer;
+        }
+
+        public static void FillNonZeroBytes(Span<byte> buffer)
+        {
+            unsafe
+            {
+                fixed (byte* b = &buffer.GetPinnableReference())
+                {
+                    NativeMethods.randombytes_buf(b, (uint) buffer.Length);
+                }
+            }
+        }
+
+        public static void FillNonZeroBytes(Span<byte> buffer, uint size)
+        {
+            unsafe
+            {
+                fixed (byte* b = &buffer.GetPinnableReference())
+                {
+                    NativeMethods.randombytes_buf(b, size);
+                }
+            }
+        }
+
+        public static (byte[] publicKey, byte[] secretKey) GenerateKeyPair()
+        {
+            var pk = new byte[PublicKeyBytes];
+            var sk = new byte[SecretKeyBytes];
+            GenerateKeyPair(pk, sk);
+            return (pk, sk);
+        }
+
         public static void GenerateKeyPair(Span<byte> publicKey, Span<byte> secretKey)
         {
             unsafe
