@@ -28,11 +28,13 @@ jobs:
       run: dotnet build --configuration Release --no-restore
       
     - name: Test
-      run: dotnet test --no-restore --verbosity normal /p:CollectCoverage=true /p:CoverletOutputFormat=OpenCover
+      run: dotnet test --no-restore --verbosity normal --collect:"XPlat Code Coverage"
 
     - name: Report
-      run: |
-        export DOTNET_ROOT=/opt/hostedtoolcache/dncs/2.2.204/x64
-        export MSBuildSDKsPath=$DOTNET_ROOT/sdk/$(${DOTNET_ROOT}/dotnet --version)/Sdks
-        export PATH="$PATH:$HOME/.dotnet/tools"
-        ~/.dotnet/tools/reportgenerator "-reports:*Tests/coverage.opencover.xml" "-targetdir:coverage-reports"
+      run: ~/.dotnet/tools/reportgenerator "-reports:test\egregore.Tests\TestResults\**\coverage.cobertura.xml" "-targetdir:coverage-reports"
+        
+    - name: Artifacts
+      uses: actions/upload-artifact@master
+      with:
+        name: Coverage
+        path: coverage-reports
