@@ -29,11 +29,20 @@ jobs:
       
     - name: Test
       run: dotnet test --no-restore --verbosity normal --collect:"XPlat Code Coverage"
+      
+    - name: Publish
+      run: dotnet publish "/home/runner/work/egregore/egregore/src/egregore/egregore.csproj" -o executable-win-x64     
 
     - name: Report
       run: ~/.dotnet/tools/reportgenerator "-reports:/home/runner/work/egregore/egregore/test/egregore.Tests/TestResults/**/coverage.cobertura.xml" "-targetdir:coverage-reports"
         
-    - name: Artifacts
+    - name: Upload win-x64
+      uses: actions/upload-artifact@master
+      with:
+        name: win-x64
+        path: executable-win-x64
+      
+    - name: Upload Coverage
       uses: actions/upload-artifact@master
       with:
         name: Coverage
