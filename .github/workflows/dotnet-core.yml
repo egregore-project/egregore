@@ -9,7 +9,7 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v2
@@ -30,10 +30,10 @@ jobs:
     - name: Test
       run: dotnet test --no-restore --verbosity normal --collect:"XPlat Code Coverage"
       
-    - name: Publish
-      run: dotnet publish "/home/runner/work/egregore/egregore/src/egregore/egregore.csproj" -o executable-win-x64     
+    - name: Publish win-x64
+      run: dotnet publish -c Release "/home/runner/work/egregore/egregore/src/egregore/egregore.csproj" -o executable-win-x64     
 
-    - name: Report
+    - name: Coverage Report
       run: ~/.dotnet/tools/reportgenerator "-reports:/home/runner/work/egregore/egregore/test/egregore.Tests/TestResults/**/coverage.cobertura.xml" "-targetdir:coverage-reports"
         
     - name: Upload win-x64
