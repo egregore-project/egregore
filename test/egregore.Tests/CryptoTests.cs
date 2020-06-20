@@ -46,13 +46,26 @@ namespace egregore.Tests
             Assert.NotEmpty(sk);
         }
 
-        
         [Fact]
         public void Can_generate_hex_string()
         {
             var buffer = Encoding.UTF8.GetBytes("rosebud");
             var hex = Crypto.HexString(buffer);
             Assert.NotEmpty(hex);
+        }
+
+        [Fact]
+        public void Can_swap_signing_key_for_encryption_key()
+        {
+            Crypto.SigningKeyToEncryptionKey(Crypto.GenerateKeyPair().secretKey);
+        }
+
+        [Fact]
+        public void Can_derive_public_key_from_secret_key()
+        {
+            var (pk, sk) = Crypto.GenerateKeyPair();
+            var publicKey = Crypto.PublicKeyFromSecretKey(sk);
+            Assert.True(publicKey.SequenceEqual(pk));
         }
     }
 }

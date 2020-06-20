@@ -68,13 +68,13 @@ namespace egregore
             byte[] nonce;
             if (secretKey != null)
             {
-                nonce = DataEncryption.Nonce();
+                nonce = SecretStream.Nonce();
                 firstSerializeContext.bw.WriteVarBuffer(nonce);
                 using var ems = new MemoryStream();
                 using var ebw = new BinaryWriter(ems);
                 var ec = new LogSerializeContext(ebw, typeProvider, firstSerializeContext.Version);
                 Serialize(ec, false);
-                firstSerializeContext.bw.WriteVarBuffer(DataEncryption.EncryptMessage(ems.ToArray(), nonce, secretKey));
+                firstSerializeContext.bw.WriteVarBuffer(SecretStream.EncryptMessage(ems.ToArray(), nonce, secretKey));
             }
             else
             {
@@ -91,7 +91,7 @@ namespace egregore
             LogEntry deserialized;
             if (nonce != null)
             {
-                using var dms = new MemoryStream(DataEncryption.DecryptMessage(deserializeContext.br.ReadVarBuffer(), nonce, secretKey));
+                using var dms = new MemoryStream(SecretStream.DecryptMessage(deserializeContext.br.ReadVarBuffer(), nonce, secretKey));
                 using var dbr = new BinaryReader(dms);
                 var dc = new LogDeserializeContext(dbr, typeProvider);
                 deserialized = new LogEntry(dc);
@@ -110,7 +110,7 @@ namespace egregore
                 using var ebw = new BinaryWriter(ems);
                 var ec = new LogSerializeContext(ebw, typeProvider, secondSerializeContext.Version);
                 deserialized.Serialize(ec, false);
-                secondSerializeContext.bw.WriteVarBuffer(DataEncryption.EncryptMessage(ems.ToArray(), nonce, secretKey));
+                secondSerializeContext.bw.WriteVarBuffer(SecretStream.EncryptMessage(ems.ToArray(), nonce, secretKey));
             }
             else
             {

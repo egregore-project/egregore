@@ -53,12 +53,6 @@ namespace egregore
             _hashProvider = new HashProvider(_typeProvider);
         }
 
-        internal LogStore(string filePath, ILogObjectTypeProvider typeProvider)
-        {
-            _filePath = filePath;
-            _typeProvider = typeProvider;
-        }
-
         public async Task<ulong> GetLengthAsync()
         {
             await using var db = new SqliteConnection($"Data Source={DataFile}");
@@ -179,7 +173,7 @@ namespace egregore
                 if (secretKey != null)
                 {
                     // Nonce:
-                    var nonce = DataEncryption.Nonce();
+                    var nonce = SecretStream.Nonce();
                     context.bw.WriteVarBuffer(nonce);
 
                     // Data:
@@ -188,7 +182,7 @@ namespace egregore
                     var ec = new LogSerializeContext(ebw, _typeProvider, context.Version);
                     entry.SerializeObjects(ec, false);
                     
-                    var message = DataEncryption.EncryptMessage(ems.ToArray(), nonce, secretKey);
+                    var message = SecretStream.EncryptMessage(ems.ToArray(), nonce, secretKey);
                     context.bw.WriteVarBuffer(message);
                 }
                 else
@@ -216,7 +210,7 @@ namespace egregore
             var nonce = context.br.ReadVarBuffer();
             if(nonce != null)
             {
-                var message = DataEncryption.DecryptMessage(context.br.ReadVarBuffer(), nonce, secretKey);
+                var message = SecretStream.DecryptMessage(context.br.ReadVarBuffer(), nonce, secretKey);
 
                 // Data:
                 using var dms = new MemoryStream(message);

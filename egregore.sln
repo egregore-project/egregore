@@ -14,7 +14,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "egregore", "src\egregore\eg
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "egregore.Tests", "test\egregore.Tests\egregore.Tests.csproj", "{464085BF-C52F-4967-9760-D5E463B1E18E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "egregore.Benchmarks", "..\..\egregore\test\egregore.Benchmarks\egregore.Benchmarks.csproj", "{9184B1B3-ABE5-4B04-9262-1AFEB231535F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "egregore.Benchmarks", "test\egregore.Benchmarks\egregore.Benchmarks.csproj", "{857BDF4F-DF99-49B2-80D1-4A763A5F923B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,10 +30,10 @@ Global
 		{464085BF-C52F-4967-9760-D5E463B1E18E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{464085BF-C52F-4967-9760-D5E463B1E18E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{464085BF-C52F-4967-9760-D5E463B1E18E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9184B1B3-ABE5-4B04-9262-1AFEB231535F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9184B1B3-ABE5-4B04-9262-1AFEB231535F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9184B1B3-ABE5-4B04-9262-1AFEB231535F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9184B1B3-ABE5-4B04-9262-1AFEB231535F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{857BDF4F-DF99-49B2-80D1-4A763A5F923B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{857BDF4F-DF99-49B2-80D1-4A763A5F923B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{857BDF4F-DF99-49B2-80D1-4A763A5F923B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{857BDF4F-DF99-49B2-80D1-4A763A5F923B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -13,12 +13,12 @@ namespace egregore.Schema
             Value = value;
         }
 
+        public string Value { get; set; }
+
         public Namespace(LogDeserializeContext context)
         {
             Value = context.br.ReadString();
         }
-
-        public string Value { get; set; }
 
         public void Serialize(LogSerializeContext context, bool hash)
         {

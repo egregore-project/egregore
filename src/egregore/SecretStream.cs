@@ -5,7 +5,10 @@ using System;
 
 namespace egregore
 {
-    internal static class DataEncryption
+    /// <summary>
+    /// https://libsodium.gitbook.io/doc/secret-key_cryptography/secretstream
+    /// </summary>
+    internal static class SecretStream
     {
         public static byte[] Nonce()
         {

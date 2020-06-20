@@ -20,8 +20,6 @@ namespace egregore.Tests
         [Fact]
         public void Can_rehydrate_ontology_from_log_stream()
         {
-
-
             var ontology = new OntologyLog();
             Assert.Single(ontology.Namespaces);
             Assert.Equal("default", ontology.Namespaces[0], StringComparer.OrdinalIgnoreCase);

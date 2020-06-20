@@ -31,5 +31,23 @@ namespace egregore
         /// </summary>
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
         public static extern unsafe IntPtr sodium_bin2hex(byte* hex, int hexMaxlen, byte* bin, int binLen);
+        
+        /// <summary>
+        ///     <see href="https://libsodium.gitbook.io/doc/advanced/ed25519-curve25519" />
+        /// </summary>
+        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern unsafe int crypto_sign_ed25519_sk_to_curve25519(byte* x25519Sk, byte* ed25519Sk);
+
+        /// <summary>
+        ///     <see href="https://libsodium.gitbook.io/doc/advanced/sha-2_hash_function" />
+        /// </summary>
+        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern unsafe int crypto_hash_sha256(byte* @out, byte* @in, ulong inLen);
+
+        /// <summary>
+        ///     <see href="https://libsodium.gitbook.io/doc/public-key_cryptography/public-key_signatures" />
+        /// </summary>
+        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern unsafe int crypto_sign_ed25519_sk_to_pk(byte* pk, byte* sk);
     }
 }
