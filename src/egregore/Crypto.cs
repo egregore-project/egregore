@@ -64,5 +64,23 @@ namespace egregore
                 }
             }
         }
+
+        public static string HexString(ReadOnlySpan<byte> bin) => HexString(bin, new Span<byte>(new byte[bin.Length * 2 + 1]));
+        public static string HexString(ReadOnlySpan<byte> bin, Span<byte> hex)
+        {
+            var minLength = bin.Length * 2 + 1;
+            if(hex.Length < minLength)
+                throw new ArgumentException($"hex buffer is shorter than {minLength}", nameof(hex));
+
+            unsafe
+            {
+                fixed(byte* h = &hex.GetPinnableReference())
+                fixed(byte* b = &bin.GetPinnableReference())
+                {
+                    var ptr = NativeMethods.sodium_bin2hex(h, hex.Length, b, bin.Length);
+                    return Marshal.PtrToStringAnsi(ptr);
+                }
+            }
+        }
     }
 }

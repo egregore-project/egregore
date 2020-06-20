@@ -15,12 +15,12 @@ namespace egregore.Tests
             HashProvider = new HashProvider(typeProvider);
         }
 
-        public static LogEntry CreateNamespaceEntry(string value)
+        public static LogEntry CreateNamespaceEntry(string value, byte[] previousHash)
         {
-            return WrapObject(Namespace.Type, Namespace.Version, new Namespace(value));
+            return WrapObject(Namespace.Type, Namespace.Version, new Namespace(value), previousHash ?? new byte[0]);
         }
 
-        private static LogEntry WrapObject<T>(ulong type, ulong version, T inner) where T : ILogSerialized
+        private static LogEntry WrapObject<T>(ulong type, ulong version, T inner, byte[] previousHash) where T : ILogSerialized
         {
             var @object = new LogObject
             {
@@ -36,7 +36,7 @@ namespace egregore.Tests
             var entry = new LogEntry
             {
                 Index = 0UL,
-                PreviousHash = new byte[] {0},
+                PreviousHash = previousHash,
                 Timestamp = @object.Timestamp,
                 Nonce = Crypto.Nonce(64U),
                 Objects = new[] {@object}

@@ -3,6 +3,7 @@
 
 // ReSharper disable IdentifierTypo
 
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
@@ -17,12 +18,18 @@ namespace egregore
         ///     <see href="https://libsodium.gitbook.io/doc/generating_random_data" />
         /// </summary>
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern unsafe void randombytes_buf(byte* buffer, uint size);
+        public static extern unsafe void randombytes_buf(byte* buf, uint size);
 
         /// <summary>
         ///     <see href="https://libsodium.gitbook.io/doc/public-key_cryptography/public-key_signatures" />
         /// </summary>
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern unsafe int crypto_sign_keypair(byte* publicKey, byte* secretKey);
+        public static extern unsafe int crypto_sign_keypair(byte* pk, byte* sk);
+
+        /// <summary>
+        ///     <see href="https://libsodium.gitbook.io/doc/helpers#hexadecimal-encoding-decoding" />
+        /// </summary>
+        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern unsafe IntPtr sodium_bin2hex(byte* hex, int hexMaxlen, byte* bin, int binLen);
     }
 }

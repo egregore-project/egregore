@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Linq;
+using System.Text;
 using Xunit;
 
 namespace egregore.Tests
@@ -30,11 +31,28 @@ namespace egregore.Tests
         }
 
         [Fact]
+        public void Can_generate_nonce()
+        {
+            var nonce1 = Crypto.Nonce(64U);
+            var nonce2 = Crypto.Nonce(64U);
+            Assert.False(nonce1.SequenceEqual(nonce2));
+        }
+
+        [Fact]
         public void Can_generate_key_pair()
         {
             var (pk, sk) = Crypto.GenerateKeyPair();
             Assert.NotEmpty(pk);
             Assert.NotEmpty(sk);
+        }
+
+        
+        [Fact]
+        public void Can_generate_hex_string()
+        {
+            var buffer = Encoding.UTF8.GetBytes("rosebud");
+            var hex = Crypto.HexString(buffer);
+            Assert.NotEmpty(hex);
         }
     }
 }

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Dapper;
@@ -35,6 +36,7 @@ namespace egregore
 
         private readonly string _filePath;
         private readonly ILogObjectTypeProvider _typeProvider;
+        private readonly HashProvider _hashProvider;
 
         public string DataFile { get; private set; }
 
@@ -44,7 +46,12 @@ namespace egregore
             MigrateToLatest(_filePath);
         }
 
-        internal LogStore(string filePath) : this(filePath, new LogObjectTypeProvider()) { }
+        internal LogStore(string filePath)
+        {
+            _filePath = filePath;
+            _typeProvider = new LogObjectTypeProvider();
+            _hashProvider = new HashProvider(_typeProvider);
+        }
 
         internal LogStore(string filePath, ILogObjectTypeProvider typeProvider)
         {
@@ -98,11 +105,54 @@ namespace egregore
                                "WHERE e.'Index' >= @startingFrom " +
                                "ORDER BY e.'Index' ASC";
 
-            foreach (var entry in db.Query<LogEntryWithData>(sql, new { startingFrom }, buffered: false))
+            var stream = db.Query<LogEntryWithData>(sql, new { startingFrom }, buffered: false);
+
+            // ReSharper disable once PossibleMultipleEnumeration
+            LogEntryWithData previousEntry = stream?.Take(1).FirstOrDefault();
+            if (previousEntry == default)
+                yield break;
+
+            DeserializeObjects(previousEntry, previousEntry.Data, secretKey);
+            previousEntry.Data = null;
+            yield return previousEntry;
+
+            // ReSharper disable once PossibleMultipleEnumeration
+            foreach (var entry in stream.Skip(1))
             {
                 DeserializeObjects(entry, entry.Data, secretKey);
                 entry.Data = null;
+                EntryCheck(previousEntry, entry);
                 yield return entry;
+                previousEntry = entry;
+            }
+        }
+
+        private void EntryCheck(LogEntry previous, LogEntry current)
+        {
+            if (previous.Index + 1 != current.Index)
+            {
+                var message = $"Invalid index: expected '{previous.Index + 1}' but was '{current.Index}'";
+                throw new LogException(message);
+            }
+
+            if (!previous.Hash.SequenceEqual(current.PreviousHash))
+            {
+                var message = $"Invalid previous hash: expected '{previous.Hash}' but was '{current.PreviousHash}'";
+                throw new LogException(message);
+            }
+
+            var hashRoot = _hashProvider.ComputeHashRootBytes(current);
+            if (!hashRoot.SequenceEqual(current.HashRoot))
+            {
+                var message = $"Invalid hash root: expected '{Crypto.HexString(hashRoot)}' but was '{Crypto.HexString(current.HashRoot)}'";
+                throw new LogException(message);
+            }
+
+            var hash = _hashProvider.ComputeHashBytes(current);
+            if (!hash.SequenceEqual(current.Hash))
+            {
+                var message = $"Invalid hash: expected '{Crypto.HexString(hash)}' but was '{Crypto.HexString(current.Hash)}'";
+                throw new LogException(message);
             }
         }
 

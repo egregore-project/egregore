@@ -25,6 +25,7 @@ namespace egregore
             var ms = new MemoryStream();
             var bw = new BinaryWriter(ms);
             entry.Serialize(new LogSerializeContext(bw, _typeProvider), true);
+            ms.Seek(0, SeekOrigin.Begin);
             return _algorithm.ComputeHash(ms);
         }
 
@@ -33,6 +34,7 @@ namespace egregore
             var ms = new MemoryStream();
             var bw = new BinaryWriter(ms);
             data.Serialize(new LogSerializeContext(bw, _typeProvider), true);
+            ms.Seek(0, SeekOrigin.Begin);
             return _algorithm.ComputeHash(ms);
         }
 
