@@ -8,9 +8,8 @@ on:
 
 jobs:
   build:
-
     runs-on: windows-latest
-
+    
     steps:
     - uses: actions/checkout@v2
     - name: Setup .NET Core
@@ -28,22 +27,23 @@ jobs:
       run: dotnet build --configuration Release --no-restore
       
     - name: Test
-      run: dotnet test --no-restore --verbosity normal --collect:"XPlat Code Coverage"
-      
-    - name: Publish win-x64
-      run: dotnet publish -c Release -o "dist/win-x64"
+      run: dotnet test --no-restore --verbosity normal --collect:"XPlat Code Coverage"     
 
     - name: Coverage Report
       run: ~/.dotnet/tools/reportgenerator "-reports:/home/runner/work/egregore/egregore/test/egregore.Tests/TestResults/**/coverage.cobertura.xml" "-targetdir:coverage-reports"
         
-    - name: Upload win-x64
-      uses: actions/upload-artifact@master
-      with:
-        name: win-x64
-        path: dist/win-x64
-      
     - name: Upload Coverage
       uses: actions/upload-artifact@master
       with:
         name: Coverage
         path: coverage-reports
+        
+    - name: Publish win-x64
+      run: dotnet publish -c Release -o "dist/win-x64"
+    
+    - name: Upload win-x64
+      uses: actions/upload-artifact@master
+      with:
+        name: win-x64
+        path: dist/win-x64
+    
