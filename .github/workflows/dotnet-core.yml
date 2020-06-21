@@ -31,7 +31,7 @@ jobs:
       run: dotnet test --no-restore --verbosity normal --collect:"XPlat Code Coverage"
       
     - name: Publish win-x64
-      run: dotnet publish "/home/runner/work/egregore/egregore/src/egregore.csproj" -c Release -o "dist/win-x64"
+      run: dotnet publish -c Release -o "dist/win-x64"
 
     - name: Coverage Report
       run: ~/.dotnet/tools/reportgenerator "-reports:/home/runner/work/egregore/egregore/test/egregore.Tests/TestResults/**/coverage.cobertura.xml" "-targetdir:coverage-reports"
