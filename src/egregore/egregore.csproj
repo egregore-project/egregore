@@ -8,6 +8,8 @@
     <PublishSingleFile>true</PublishSingleFile>
     <PublishTrimmed>true</PublishTrimmed>
     <PublishReadyToRun>true</PublishReadyToRun>
+    <IsPublishable>true</IsPublishable>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
