@@ -40,7 +40,7 @@ jobs:
       uses: actions/upload-artifact@master
       with:
         name: win-x64
-        path: executable-win-x64
+        path: dist/win-x64
       
     - name: Upload Coverage
       uses: actions/upload-artifact@master
