@@ -3,7 +3,7 @@
 
 using System.Linq;
 using System.Threading.Tasks;
-using egregore.Schema;
+using egregore.Ontology;
 using Xunit;
 
 namespace egregore.Tests
@@ -37,8 +37,8 @@ namespace egregore.Tests
                 {
                     Assert.True(@object.Data is Namespace);
                     Assert.Equal(ns, ((Namespace)@object.Data).Value);
-                    Assert.Equal(Namespace.Type, @object.Type);
-                    Assert.Equal(Namespace.Version, @object.Version);
+                    Assert.Equal(LogEntryFactory.TypeProvider.Get(typeof(Namespace)), @object.Type);
+                    Assert.Equal(LogEntryFactory.LogVersion, @object.Version);
                     items++;
                 }
             }
@@ -75,8 +75,8 @@ namespace egregore.Tests
                 {
                     Assert.True(@object.Data is Namespace);
                     Assert.Equal(ns, ((Namespace)@object.Data).Value);
-                    Assert.Equal(Namespace.Type, @object.Type);
-                    Assert.Equal(Namespace.Version, @object.Version);
+                    Assert.Equal(LogEntryFactory.TypeProvider.Get(typeof(Namespace)), @object.Type);
+                    Assert.Equal(LogEntryFactory.LogVersion, @object.Version);
                     items++;
                 }
             }

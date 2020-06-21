@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Reflection;
-using egregore.Schema;
+using egregore.Ontology;
 
 namespace egregore
 {
@@ -20,9 +20,16 @@ namespace egregore
             _reverseIndex = new ConcurrentDictionary<Type, ulong>();
             _serializers = new ConcurrentDictionary<Type, ConstructorInfo>();
 
-            if(!TryAdd(1, typeof(Namespace)))
-                throw new TypeInitializationException(GetType().FullName, new InvalidOperationException(
-                    $"Unable to add {nameof(Namespace)} to known types"));
+            AddKnownType<Namespace>();
+            AddKnownType<Schema>();
+            AddKnownType<SchemaProperty>();
+        }
+
+        private void AddKnownType<T>() where T : ILogSerialized
+        {
+            if (!TryAdd((ulong) _index.Count, typeof(T)))
+                throw new TypeInitializationException(GetType().FullName,
+                    new InvalidOperationException($"Unable to add {typeof(T).Name} to known types"));
         }
 
         private bool TryAdd(ulong id, Type type)

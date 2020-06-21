@@ -5,6 +5,6 @@ namespace egregore
 {
     internal static class Constants
     {
-        public const string DefaultNamespace = "default";
+        public const string DefaultNamespace = "Default";
     }
 }
