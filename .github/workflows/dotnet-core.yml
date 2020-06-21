@@ -30,7 +30,7 @@ jobs:
       run: dotnet test --no-restore --verbosity normal --collect:"XPlat Code Coverage"     
 
     - name: Coverage Report
-      run: ~/.dotnet/tools/reportgenerator "-reports:/home/runner/work/egregore/egregore/test/egregore.Tests/TestResults/**/coverage.cobertura.xml" "-targetdir:coverage-reports"
+      run: ~/.dotnet/tools/reportgenerator "-reports:**/coverage.cobertura.xml" "-targetdir:coverage-reports"
         
     - name: Upload Coverage
       uses: actions/upload-artifact@master
