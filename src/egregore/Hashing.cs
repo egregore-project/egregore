@@ -5,6 +5,11 @@ using System.Text;
 
 namespace egregore
 {
+    // FIXME: determine if using 128-bit MurmurHash3 is a non-starter 
+    //        see: https://en.wikipedia.org/wiki/MurmurHash:
+    //        "When using 128-bits, the x86 and x64 versions do not produce the same values,
+    //         as the algorithms are optimized for their respective platforms."
+
     public sealed class Hashing
     {
         private const ulong C1 = 0x87c37b91114253d5u;

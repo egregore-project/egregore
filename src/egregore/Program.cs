@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 
 namespace egregore
 {
+    
     internal static class Program
     {
         [ExcludeFromCodeCoverage]
@@ -33,13 +34,12 @@ namespace egregore
                         break;
                     case "--keygen":
                     case "-k":
-                        var defaultPath = Path.Combine(".egregore", "egregore.key");
-                        var keyPath = EndOfSubArguments(arguments) ? defaultPath : arguments.Dequeue();
-                        GenerateKey(keyPath, defaultPath);
+                        var keyPath = EndOfSubArguments(arguments) ? Constants.DefaultKeyPath : arguments.Dequeue();
+                        GenerateKey(keyPath, Constants.DefaultKeyPath);
                         break;
                     case "--egg":
                     case "-e":
-                        var eggPath = EndOfSubArguments(arguments) ? "default.egg" : arguments.Dequeue();
+                        var eggPath = EndOfSubArguments(arguments) ? Constants.DefaultEggPath : arguments.Dequeue();
                         CreateEgg(eggPath);
                         break;
                 }
