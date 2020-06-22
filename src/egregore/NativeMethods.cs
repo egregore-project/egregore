@@ -39,15 +39,27 @@ namespace egregore
         public static extern unsafe int crypto_sign_ed25519_sk_to_curve25519(byte* x25519Sk, byte* ed25519Sk);
 
         /// <summary>
-        ///     <see href="https://libsodium.gitbook.io/doc/advanced/sha-2_hash_function" />
-        /// </summary>
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern unsafe int crypto_hash_sha256(byte* @out, byte* @in, ulong inLen);
-
-        /// <summary>
         ///     <see href="https://libsodium.gitbook.io/doc/public-key_cryptography/public-key_signatures" />
         /// </summary>
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
         internal static extern unsafe int crypto_sign_ed25519_sk_to_pk(byte* pk, byte* sk);
+
+        /// <summary>
+        ///     <see href="https://libsodium.gitbook.io/doc/public-key_cryptography/public-key_signatures#detached-mode" />
+        /// </summary>
+        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern unsafe int crypto_sign_detached(byte* sig, ref ulong siglen, byte* m, ulong mlen, byte* sk);
+
+        /// <summary>
+        ///     <see href="https://libsodium.gitbook.io/doc/public-key_cryptography/public-key_signatures#detached-mode" />
+        /// </summary>
+        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern unsafe int crypto_sign_verify_detached(byte* sig, byte* m, ulong mlen, byte* pk);
+
+        /// <summary>
+        ///     <see href="https://libsodium.gitbook.io/doc/advanced/sha-2_hash_function" />
+        /// </summary>
+        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern unsafe int crypto_hash_sha256(byte* @out, byte* @in, ulong inLen);
     }
 }

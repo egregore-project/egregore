@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace egregore.Ontology
 {
-    public class Schema : ILogSerialized
+    public sealed class Schema : ILogSerialized
     {
         public string Name { get; set; }
         public List<SchemaProperty> Properties { get; set; } = new List<SchemaProperty>();

@@ -8,12 +8,12 @@ namespace egregore
 {
     public sealed class LogSerializeContext
     {
-        public const int FormatVersion = 1;
+        public const ulong FormatVersion = 1UL;
 
         public readonly BinaryWriter bw;
         public ILogObjectTypeProvider typeProvider;
 
-        public LogSerializeContext(BinaryWriter bw, ILogObjectTypeProvider typeProvider, int version = FormatVersion)
+        public LogSerializeContext(BinaryWriter bw, ILogObjectTypeProvider typeProvider, ulong version = FormatVersion)
         {
             this.bw = bw;
             this.typeProvider = typeProvider;
@@ -24,6 +24,6 @@ namespace egregore
             bw.Write(Version);
         }
 
-        public int Version { get; }
+        public ulong Version { get; }
     }
 }

@@ -3,6 +3,8 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Text;
+using Sodium;
 
 namespace egregore
 {
@@ -140,6 +142,61 @@ namespace egregore
                 {
                     if (NativeMethods.crypto_sign_ed25519_sk_to_curve25519(x, e) != 0)
                         throw new InvalidOperationException(nameof(NativeMethods.crypto_sign_ed25519_sk_to_curve25519));
+                }
+            }
+        }
+
+        public static ulong SignDetached(string message, ReadOnlySpan<byte> secretKey, Span<byte> signature)
+        {
+            var buffer = Encoding.UTF8.GetBytes(message);
+            return SignDetached(buffer, secretKey, signature);
+        }
+
+        public static ulong SignDetached(ReadOnlySpan<byte> message, ReadOnlySpan<byte> secretKey, Span<byte> signature) => SignDetached(message, message.Length, secretKey, signature);
+
+        public static ulong SignDetached(ReadOnlySpan<byte> message, int messageLength, ReadOnlySpan<byte> secretKey, Span<byte> signature)
+        {
+            var length = 0UL;
+
+            unsafe
+            {
+                fixed (byte* sig = &signature.GetPinnableReference())
+                fixed (byte* m = &message.GetPinnableReference())
+                fixed (byte* sk = &secretKey.GetPinnableReference())
+                {
+                    if(NativeMethods.crypto_sign_detached(sig, ref length, m, (ulong) message.Length, sk) != 0)
+                        throw new InvalidOperationException(nameof(NativeMethods.crypto_sign_detached));
+                }
+            }
+
+            return length;
+        }
+
+        public static bool VerifyDetached(string message, ReadOnlySpan<byte> signature, ReadOnlySpan<byte> publicKey)
+        {
+            var buffer = Encoding.UTF8.GetBytes(message).AsSpan();
+
+            unsafe
+            {
+                fixed (byte* sig = &signature.GetPinnableReference())
+                fixed (byte* m = &buffer.GetPinnableReference())
+                fixed (byte* pk = &publicKey.GetPinnableReference())
+                {
+                    return NativeMethods.crypto_sign_verify_detached(sig, m, (ulong) message.Length, pk) == 0;
+                }
+            }
+        }
+
+        public static bool VerifyDetached(ReadOnlySpan<byte> message, ReadOnlySpan<byte> signature,
+            ReadOnlySpan<byte> publicKey)
+        {
+            unsafe
+            {
+                fixed (byte* sig = &signature.GetPinnableReference())
+                fixed (byte* m = &message.GetPinnableReference())
+                fixed (byte* pk = &publicKey.GetPinnableReference())
+                {
+                    return NativeMethods.crypto_sign_verify_detached(sig, m, (ulong) message.Length, pk) == 0;
                 }
             }
         }

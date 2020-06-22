@@ -17,12 +17,12 @@ namespace egregore
             this.br = br;
             this.typeProvider = typeProvider;
 
-            Version = br.ReadInt32();
+            Version = br.ReadUInt64();
 
             if (Version > LogSerializeContext.FormatVersion)
                 throw new Exception("Tried to load block with a version that is too new");
         }
 
-        public int Version { get; }
+        public ulong Version { get; }
     }
 }

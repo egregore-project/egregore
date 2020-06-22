@@ -38,7 +38,7 @@ namespace egregore.Tests
                     Assert.True(@object.Data is Namespace);
                     Assert.Equal(ns, ((Namespace)@object.Data).Value);
                     Assert.Equal(LogEntryFactory.TypeProvider.Get(typeof(Namespace)), @object.Type);
-                    Assert.Equal(LogEntryFactory.LogVersion, @object.Version);
+                    Assert.Equal(LogSerializeContext.FormatVersion, @object.Version);
                     items++;
                 }
             }
@@ -76,7 +76,7 @@ namespace egregore.Tests
                     Assert.True(@object.Data is Namespace);
                     Assert.Equal(ns, ((Namespace)@object.Data).Value);
                     Assert.Equal(LogEntryFactory.TypeProvider.Get(typeof(Namespace)), @object.Type);
-                    Assert.Equal(LogEntryFactory.LogVersion, @object.Version);
+                    Assert.Equal(LogSerializeContext.FormatVersion, @object.Version);
                     items++;
                 }
             }

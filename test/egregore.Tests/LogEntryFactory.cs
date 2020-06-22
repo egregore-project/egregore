@@ -7,8 +7,6 @@ namespace egregore.Tests
 {
     internal static class LogEntryFactory
     {
-        public const ulong LogVersion = 1;
-
         public static readonly HashProvider HashProvider;
         public static readonly LogObjectTypeProvider TypeProvider;
 
@@ -20,12 +18,12 @@ namespace egregore.Tests
 
         public static LogEntry CreateNamespaceEntry(string value, byte[] previousHash)
         {
-            return WrapObject(TypeProvider.Get(typeof(Namespace)).GetValueOrDefault(), LogVersion, new Namespace(value), previousHash ?? new byte[0]);
+            return WrapObject(TypeProvider.Get(typeof(Namespace)).GetValueOrDefault(), LogSerializeContext.FormatVersion, new Namespace(value), previousHash ?? new byte[0]);
         }
 
         public static LogEntry CreateSchemaEntry(Schema schema, byte[] previousHash)
         {
-            return WrapObject(TypeProvider.Get(typeof(Schema)).GetValueOrDefault(), LogVersion, schema, previousHash ?? new byte[0]);
+            return WrapObject(TypeProvider.Get(typeof(Schema)).GetValueOrDefault(), LogSerializeContext.FormatVersion, schema, previousHash ?? new byte[0]);
         }
 
         private static LogEntry WrapObject<T>(ulong type, ulong version, T inner, byte[] previousHash) where T : ILogSerialized

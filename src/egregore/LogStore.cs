@@ -102,7 +102,7 @@ namespace egregore
             var stream = db.Query<LogEntryWithData>(sql, new { startingFrom }, buffered: false);
 
             // ReSharper disable once PossibleMultipleEnumeration
-            LogEntryWithData previousEntry = stream?.Take(1).FirstOrDefault();
+            var previousEntry = stream?.Take(1).FirstOrDefault();
             if (previousEntry == default)
                 yield break;
 
@@ -154,7 +154,6 @@ namespace egregore
         {
             public byte[] Data { get; set; }
         }
-
 
         #region Serialization
 
@@ -234,8 +233,6 @@ namespace egregore
             var baseDirectory = Path.GetDirectoryName(filePath);
             if(!string.IsNullOrWhiteSpace(baseDirectory))
                 Directory.CreateDirectory(baseDirectory);
-            if (File.Exists(DataFile))
-                return;
             MigrateToLatest(_filePath);
             DataFile = _filePath;
         }

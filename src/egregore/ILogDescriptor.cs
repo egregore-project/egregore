@@ -5,7 +5,7 @@ namespace egregore
 {
     public interface ILogDescriptor
     {
-        int Version { get; set; }
+        ulong Version { get; set; }
         byte[] PreviousHash { get; set; }
         byte[] HashRoot { get; set; }
         UInt128 Timestamp { get; set; }

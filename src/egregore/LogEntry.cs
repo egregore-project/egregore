@@ -15,7 +15,7 @@ namespace egregore
             Objects = new List<LogObject>();
         }
 
-        public int Version { get; set; }
+        public ulong Version { get; set; }
         public byte[] PreviousHash { get; set; }
         public byte[] HashRoot { get; set; }
         public UInt128 Timestamp { get; set; }

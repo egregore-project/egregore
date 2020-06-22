@@ -23,6 +23,8 @@ namespace egregore
             AddKnownType<Namespace>();
             AddKnownType<Schema>();
             AddKnownType<SchemaProperty>();
+            AddKnownType<GrantRole>();
+            AddKnownType<RevokeRole>();
         }
 
         private void AddKnownType<T>() where T : ILogSerialized

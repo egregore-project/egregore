@@ -7,7 +7,7 @@ namespace egregore
 {
     public struct LogHeader : ILogSerialized, ILogDescriptor
     {
-        public int Version { get; set; }
+        public ulong Version { get; set; }
         public byte[] PreviousHash { get; set; }
         public byte[] HashRoot { get; set; }
         public UInt128 Timestamp { get; set; }
@@ -27,7 +27,7 @@ namespace egregore
 
         internal static void Deserialize(ILogDescriptor descriptor, LogDeserializeContext context)
         {
-            descriptor.Version = context.br.ReadInt32();          // Version
+            descriptor.Version = context.br.ReadUInt64();         // Version
             descriptor.PreviousHash = context.br.ReadVarBuffer(); // PreviousHash
             descriptor.HashRoot = context.br.ReadVarBuffer();     // HashRoot
             descriptor.Timestamp = context.br.ReadUInt128();      // Timestamp
