@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using egregore.Configuration;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
 namespace egregore.Controllers
@@ -17,7 +18,7 @@ namespace egregore.Controllers
         {
             return Ok(new
             {
-                PublicKey = Crypto.HexString(_options.Value.PublicKey)
+                PublicKey = Crypto.ToHexString(_options.Value.PublicKey)
             });
         }
     }

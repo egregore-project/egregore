@@ -138,14 +138,14 @@ namespace egregore
             var hashRoot = _hashProvider.ComputeHashRootBytes(current);
             if (!hashRoot.SequenceEqual(current.HashRoot))
             {
-                var message = $"Invalid hash root: expected '{Crypto.HexString(hashRoot)}' but was '{Crypto.HexString(current.HashRoot)}'";
+                var message = $"Invalid hash root: expected '{Crypto.ToHexString(hashRoot)}' but was '{Crypto.ToHexString(current.HashRoot)}'";
                 throw new LogException(message);
             }
 
             var hash = _hashProvider.ComputeHashBytes(current);
             if (!hash.SequenceEqual(current.Hash))
             {
-                var message = $"Invalid hash: expected '{Crypto.HexString(hash)}' but was '{Crypto.HexString(current.Hash)}'";
+                var message = $"Invalid hash: expected '{Crypto.ToHexString(hash)}' but was '{Crypto.ToHexString(current.Hash)}'";
                 throw new LogException(message);
             }
         }

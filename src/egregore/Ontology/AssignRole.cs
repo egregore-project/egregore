@@ -12,6 +12,13 @@ namespace egregore.Ontology
             Subject = grantee;
         }
 
+        public GrantRole(string role, byte[] grantor, byte[] grantee, byte[] signature) : base("grant_role", signature)
+        {
+            Value = role;
+            Authority = grantor;
+            Subject = grantee;
+        }
+
         public GrantRole(LogDeserializeContext context) : base(context) { }
     }
 }

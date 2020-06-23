@@ -4,6 +4,7 @@
 using System;
 using System.Threading.Tasks;
 using egregore.Ontology;
+using egregore.Ontology.Exceptions;
 using Xunit;
 
 namespace egregore.Tests
@@ -13,7 +14,8 @@ namespace egregore.Tests
         [Fact]
         public void Empty_ontology_has_default_namespace()
         {
-            var ontology = new OntologyLog();
+            var owner = Crypto.GenerateKeyPair();
+            var ontology = new OntologyLog(owner.publicKey);
             Assert.Single(ontology.Namespaces);
             Assert.Equal("default", ontology.Namespaces[0].Value, StringComparer.OrdinalIgnoreCase);
         }
@@ -30,12 +32,32 @@ namespace egregore.Tests
 
             var schema = new Schema { Name = "Customer" };
             schema.Properties.Add(new SchemaProperty { Name = "Name", Type = "string" });
-            await fixture.Store.AddEntryAsync(LogEntryFactory.CreateSchemaEntry(schema, @namespace.Hash));
+            await fixture.Store.AddEntryAsync(LogEntryFactory.CreateEntry(schema, @namespace.Hash));
 
-            var ontology = new OntologyLog(fixture.Store);
+            var owner = Crypto.GenerateKeyPair();
+            var ontology = new OntologyLog(owner.publicKey, fixture.Store);
             Assert.Equal(2, ontology.Namespaces.Count);
             Assert.Equal(Constants.DefaultNamespace, ontology.Namespaces[0].Value, StringComparer.OrdinalIgnoreCase);
             Assert.Equal(ns, ontology.Namespaces[1].Value, StringComparer.OrdinalIgnoreCase);
+
+            Assert.Single(ontology.Roles[Constants.DefaultNamespace]);
+            Assert.Empty(ontology.Roles[ns]);
+        }
+
+        [Fact]
+        public async Task Cannot_revoke_only_owner_grant()
+        {
+            using var fixture = new LogStoreFixture();
+            var (publicKey, secretKey) = Crypto.GenerateKeyPair();
+            
+            var ontology = new OntologyLog(publicKey);
+            Assert.Single(ontology.Roles[Constants.DefaultNamespace]);
+
+            var revoke = new RevokeRole(Constants.OwnerRole, publicKey, publicKey);
+            revoke.Sign(secretKey);
+            
+            await fixture.Store.AddEntryAsync(LogEntryFactory.CreateEntry(revoke));
+            Assert.Throws<CannotRemoveSingleOwnerException>(() => { ontology.Materialize(fixture.Store); });
         }
     }
 }

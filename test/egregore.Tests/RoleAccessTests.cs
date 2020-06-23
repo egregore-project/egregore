@@ -21,7 +21,6 @@ namespace egregore.Tests
             var revoke = new RevokeRole("admin", root.publicKey, user.publicKey);
             revoke.Sign(root.secretKey);
             Assert.True(revoke.Verify());
-
         }
     }
 }

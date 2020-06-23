@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.InteropServices;
+using egregore.Ontology;
 
 namespace egregore
 {
@@ -42,8 +43,74 @@ namespace egregore
                         var eggPath = EndOfSubArguments(arguments) ? Constants.DefaultEggPath : arguments.Dequeue();
                         CreateEgg(eggPath);
                         break;
+                    case "--append":
+                    case "-a":
+                        Append(arguments);
+                        break;
                 }
             }
+        }
+
+        private static void Append(Queue<string> arguments)
+        {
+            if (EndOfSubArguments(arguments))
+            {
+                Console.Error.WriteLine("Missing append command");
+                return;
+            }
+
+            var command = arguments.Dequeue();
+            switch (command)
+            {
+                case "grantrole":
+                    GrantRole(arguments);
+                    break;
+            }
+        }
+
+        private static void GrantRole(Queue<string> arguments)
+        {
+            if (EndOfSubArguments(arguments))
+            {
+                Console.Error.WriteLine("Missing role data");
+                return;
+            }
+
+            var value = arguments.Dequeue();
+            if (EndOfSubArguments(arguments))
+            {
+                Console.Error.WriteLine("Missing privilege");
+                return;
+            }
+
+            var authorityString = arguments.Dequeue();
+            var authority = authorityString.ToBinary();
+
+            if (EndOfSubArguments(arguments))
+            {
+                Console.Error.WriteLine("Missing subject");
+                return;
+            }
+
+            var subjectString = arguments.Dequeue();
+            var subject = subjectString.ToBinary();
+
+            if (EndOfSubArguments(arguments))
+            {
+                Console.Error.WriteLine("Missing signature");
+                return;
+            }
+
+            var signatureString = arguments.Dequeue();
+            var signature = signatureString.ToBinary();
+
+            var grant = new GrantRole(value, authority, subject, signature);
+            if (!grant.Verify())
+            {
+                Console.Error.WriteLine("Invalid signature");
+            }
+
+            Console.WriteLine("TODO: append privilege to ontology");
         }
 
         private static void GenerateKey(string keyPath, string defaultPath)
@@ -71,7 +138,7 @@ namespace egregore
 
             if (File.Exists(keyPath))
             {
-                Console.Error.WriteLine("Key file already exists.");
+                Console.Error.WriteLine("Key file already exists");
                 return;
             }
 

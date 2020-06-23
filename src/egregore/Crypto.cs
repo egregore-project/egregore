@@ -2,9 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
-using Sodium;
+using egregore.Extensions;
 
 namespace egregore
 {
@@ -47,29 +48,40 @@ namespace egregore
             }
         }
 
-        public static (byte[] publicKey, byte[] secretKey) GenerateKeyPair()
+        public static byte[] ToBinary(this string hexString)
         {
-            var pk = new byte[PublicKeyBytes];
-            var sk = new byte[SecretKeyBytes];
-            GenerateKeyPair(pk, sk);
-            return (pk, sk);
+            var buffer = new byte[hexString.Length >> 1];
+            var span = buffer.AsSpan();
+            ToBinary(hexString, ref span);
+            return buffer;
         }
 
-        public static void GenerateKeyPair(Span<byte> publicKey, Span<byte> secretKey)
+        public static void ToBinary(this string hexString, ref Span<byte> buffer)
         {
+            var length = ToBinary(Encoding.UTF8.GetBytes(hexString), buffer);
+            if (length < buffer.Length)
+                buffer = buffer.Slice(0, length);
+        } 
+
+        public static int ToBinary(this ReadOnlySpan<byte> hexString, Span<byte> buffer)
+        {
+            var binMaxLen = buffer.Length;
+            var hexLen = hexString.Length;
             unsafe
             {
-                fixed (byte* pk = &publicKey.GetPinnableReference())
-                fixed (byte* sk = &secretKey.GetPinnableReference())
+                fixed (byte* bin = &buffer.GetPinnableReference())
+                fixed (byte* hex = &hexString.GetPinnableReference())
                 {
-                    if(NativeMethods.crypto_sign_keypair(pk, sk) != 0)
-                        throw new InvalidOperationException();
+                    if(NativeMethods.sodium_hex2bin(bin, binMaxLen, hex, hexLen, null, out var binLen, null) != 0)
+                        throw new InvalidOperationException(nameof(NativeMethods.sodium_hex2bin));
+
+                    return binLen;
                 }
             }
         }
 
-        public static string HexString(ReadOnlySpan<byte> bin) => HexString(bin, new Span<byte>(new byte[bin.Length * 2 + 1]));
-        public static string HexString(ReadOnlySpan<byte> bin, Span<byte> hex)
+        public static string ToHexString(this ReadOnlySpan<byte> bin) => ToHexString(bin, new Span<byte>(new byte[bin.Length * 2 + 1]));
+        public static string ToHexString(this ReadOnlySpan<byte> bin, Span<byte> hex)
         {
             var minLength = bin.Length * 2 + 1;
             if(hex.Length < minLength)
@@ -85,6 +97,8 @@ namespace egregore
                 }
             }
         }
+
+        #region Cryptographic Hashing
 
         public static byte[] Sha256(this ReadOnlySpan<byte> @in)
         {
@@ -102,6 +116,31 @@ namespace egregore
                 {
                     if(NativeMethods.crypto_hash_sha256(o, i, (ulong) @in.Length) != 0)
                         throw new InvalidOperationException(nameof(NativeMethods.crypto_hash_sha256));
+                }
+            }
+        }
+
+        #endregion
+
+        #region Public-key cryptography (Ed25519)
+
+        public static (byte[] publicKey, byte[] secretKey) GenerateKeyPair()
+        {
+            var pk = new byte[PublicKeyBytes];
+            var sk = new byte[SecretKeyBytes];
+            GenerateKeyPair(pk, sk);
+            return (pk, sk);
+        }
+
+        public static void GenerateKeyPair(Span<byte> publicKey, Span<byte> secretKey)
+        {
+            unsafe
+            {
+                fixed (byte* pk = &publicKey.GetPinnableReference())
+                fixed (byte* sk = &secretKey.GetPinnableReference())
+                {
+                    if(NativeMethods.crypto_sign_keypair(pk, sk) != 0)
+                        throw new InvalidOperationException();
                 }
             }
         }
@@ -200,5 +239,7 @@ namespace egregore
                 }
             }
         }
+
+        #endregion
     }
 }

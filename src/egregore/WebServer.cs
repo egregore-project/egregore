@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using egregore.Configuration;
 using egregore.Ontology;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -145,7 +146,9 @@ namespace egregore
                 _logger?.LogInformation("Restoring ontology logs started");
                 var store = new LogStore(_options.CurrentValue.EggPath);
                 store.Init();
-                _ontology = new OntologyLog(store);
+
+                var owner = _options.CurrentValue.PublicKey;
+                _ontology = new OntologyLog(owner);
                 _logger?.LogInformation("Restoring ontology logs completed");
                 return Task.CompletedTask;
             }

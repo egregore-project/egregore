@@ -3,6 +3,7 @@
 
 using System;
 using egregore.Extensions;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
 
 namespace egregore.Ontology
 {
@@ -16,6 +17,12 @@ namespace egregore.Ontology
         protected Privilege(string value)
         {
             Value = value;
+        }
+
+        protected Privilege(string value, byte[] signature)
+        {
+            Value = value;
+            Signature = signature;
         }
 
         public void Sign(byte[] sk, ulong formatVersion = LogSerializeContext.FormatVersion)
@@ -33,9 +40,9 @@ namespace egregore.Ontology
         private string GetMessage(ulong formatVersion = LogSerializeContext.FormatVersion)
         {
             return $"v{formatVersion}_ed25519_" +
-                   $"{Crypto.HexString(Authority)}_" +
+                   $"{Crypto.ToHexString(Authority)}_" +
                    $"{Value}_{Value}_to_" +
-                   $"{Crypto.HexString(Subject)}";
+                   $"{Crypto.ToHexString(Subject)}";
         }
 
         public bool Verify(ulong formatVersion = LogSerializeContext.FormatVersion)
@@ -45,7 +52,7 @@ namespace egregore.Ontology
 
         #region Serialization
 
-        public Privilege(LogDeserializeContext context)
+        protected Privilege(LogDeserializeContext context)
         {
             Subject = context.br.ReadVarBuffer();
             Value = context.br.ReadString();

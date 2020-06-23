@@ -1,6 +1,7 @@
 ﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using System.Text;
 using Xunit;
@@ -47,11 +48,14 @@ namespace egregore.Tests
         }
 
         [Fact]
-        public void Can_generate_hex_string()
+        public void Can_round_trip_binary_to_hex_string()
         {
-            var buffer = Encoding.UTF8.GetBytes("rosebud");
-            var hex = Crypto.HexString(buffer);
-            Assert.NotEmpty(hex);
+            var buffer1 = Encoding.UTF8.GetBytes("rosebud");
+            var hexString = Crypto.ToHexString(buffer1);
+            Assert.NotEmpty(hexString);
+
+            var buffer2 = hexString.ToBinary();
+            Assert.True(buffer1.SequenceEqual(buffer2));
         }
 
         [Fact]
