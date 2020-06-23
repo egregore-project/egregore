@@ -3,10 +3,9 @@
 
 namespace egregore.Configuration
 {
-    public class ServerOptions
+    public class WebServerOptions
     {
         public byte[] PublicKey { get; set; }
-        public byte[] SecretKey { get; set; } // FIX: need to lock memory and prevent paging
         public string EggPath { get; set; }
     }
 }

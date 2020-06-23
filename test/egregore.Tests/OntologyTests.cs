@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using egregore.Ontology;
 using egregore.Ontology.Exceptions;
@@ -14,7 +15,7 @@ namespace egregore.Tests
         [Fact]
         public void Empty_ontology_has_default_namespace()
         {
-            var owner = Crypto.GenerateKeyPair();
+            var owner = Crypto.GenerateKeyPairDangerous();
             var ontology = new OntologyLog(owner.publicKey);
             Assert.Single(ontology.Namespaces);
             Assert.Equal("default", ontology.Namespaces[0].Value, StringComparer.OrdinalIgnoreCase);
@@ -34,7 +35,7 @@ namespace egregore.Tests
             schema.Properties.Add(new SchemaProperty { Name = "Name", Type = "string" });
             await fixture.Store.AddEntryAsync(LogEntryFactory.CreateEntry(schema, @namespace.Hash));
 
-            var owner = Crypto.GenerateKeyPair();
+            var owner = Crypto.GenerateKeyPairDangerous();
             var ontology = new OntologyLog(owner.publicKey, fixture.Store);
             Assert.Equal(2, ontology.Namespaces.Count);
             Assert.Equal(Constants.DefaultNamespace, ontology.Namespaces[0].Value, StringComparer.OrdinalIgnoreCase);
@@ -47,14 +48,15 @@ namespace egregore.Tests
         [Fact]
         public async Task Cannot_revoke_only_owner_grant()
         {
+            var publicKey = CryptoTests.GenerateSecretKeyOnDisk(out var fileName);
+
             using var fixture = new LogStoreFixture();
-            var (publicKey, secretKey) = Crypto.GenerateKeyPair();
-            
+
             var ontology = new OntologyLog(publicKey);
             Assert.Single(ontology.Roles[Constants.DefaultNamespace]);
 
             var revoke = new RevokeRole(Constants.OwnerRole, publicKey, publicKey);
-            revoke.Sign(secretKey);
+            revoke.Sign(File.OpenRead(fileName));
             
             await fixture.Store.AddEntryAsync(LogEntryFactory.CreateEntry(revoke));
             Assert.Throws<CannotRemoveSingleOwnerException>(() => { ontology.Materialize(fixture.Store); });

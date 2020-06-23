@@ -9,6 +9,7 @@ namespace egregore
 {
     /// <summary>
     /// <see href="https://en.bitcoin.it/wiki/Wallet_import_format" />
+    /// <remarks>NEVER use this outside of offline key-pair generation methods or tests.</remarks>
     /// </summary>
     internal static class WifFormatter
     {
@@ -22,7 +23,7 @@ namespace egregore
             // Drop the first byte (it should be 0x80)
             // If the private key corresponded to a compressed public key, also drop the last byte (it should be 0x01)
             var secretKey = decoded.Take(decoded.Length - 5).Skip(1).ToArray();
-            var publicKey = Crypto.PublicKeyFromSecretKey(secretKey);
+            var publicKey = Crypto.PublicKeyFromSecretKeyDangerous(secretKey);
             return (publicKey, secretKey);
         }
 

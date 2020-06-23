@@ -70,5 +70,42 @@ namespace egregore
         /// </summary>
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
         public static extern unsafe int crypto_hash_sha256(byte* @out, byte* @in, ulong inLen);
+
+        /// <summary>
+        ///     <see href="https://libsodium.gitbook.io/doc/memory_management#zeroing-memory" />
+        /// </summary>
+        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern unsafe void sodium_memzero(void* addr, int len);
+
+        /// <summary>
+        ///     <see href="https://libsodium.gitbook.io/doc/memory_management#locking-memory" />
+        /// </summary>
+        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern unsafe int sodium_mlock(void* addr, int len);
+
+        /// <summary>
+        ///     <see href="https://libsodium.gitbook.io/doc/memory_management#locking-memory" />
+        /// </summary>
+        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern unsafe int sodium_munlock(void* addr, int len);
+
+        /// <summary>
+        ///     <see href="https://libsodium.gitbook.io/doc/usage" />
+        /// </summary>
+        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int sodium_init();
+
+        /// <summary>
+        ///     <see href="https://libsodium.gitbook.io/doc/memory_management#guarded-heap-allocations" />
+        /// </summary>
+        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern unsafe void* sodium_malloc(int size);
+
+        /// <summary>
+        ///     <see href="https://libsodium.gitbook.io/doc/memory_management#guarded-heap-allocations" />
+        /// </summary>
+        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern unsafe void sodium_free(void* ptr);
     }
+
 }

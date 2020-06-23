@@ -75,10 +75,9 @@ namespace egregore
                 {
                     webBuilder.ConfigureServices((context, services) =>
                     {
-                        services.Configure<ServerOptions>(o =>
+                        services.Configure<WebServerOptions>(o =>
                         {
                             o.PublicKey = keyPair.Item1;
-                            o.SecretKey = keyPair.Item2;
                             o.EggPath = eggPath;
                         });
                     });
@@ -131,11 +130,11 @@ namespace egregore
 
         internal sealed class ServerStartup : IHostedService
         {
-            private readonly IOptionsMonitor<ServerOptions> _options;
+            private readonly IOptionsMonitor<WebServerOptions> _options;
             private readonly ILogger<ServerStartup> _logger;
             private OntologyLog _ontology;
 
-            public ServerStartup(IOptionsMonitor<ServerOptions> options, ILogger<ServerStartup> logger)
+            public ServerStartup(IOptionsMonitor<WebServerOptions> options, ILogger<ServerStartup> logger)
             {
                 _options = options;
                 _logger = logger;

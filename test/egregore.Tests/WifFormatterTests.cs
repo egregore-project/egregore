@@ -11,7 +11,7 @@ namespace egregore.Tests
         [Fact]
         public static void Can_round_trip_key_pair_with_WIF()
         {
-            var (pk, sk) = Crypto.GenerateKeyPair();
+            var (pk, sk) = Crypto.GenerateKeyPairDangerous();
             Assert.NotEmpty(pk);
             Assert.NotEmpty(sk);
 

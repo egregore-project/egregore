@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.IO;
 using System.Linq;
 using System.Text;
 using Xunit;
@@ -10,6 +11,34 @@ namespace egregore.Tests
 {
     public class CryptoTests
     {
+        [Fact]
+        public void Can_use_guarded_heap_for_secret_key_from_file()
+        {
+            var publicKey = GenerateSecretKeyOnDisk(out var fileName);
+
+            unsafe
+            {
+                using var fs = File.OpenRead(fileName);
+                var sk = Crypto.OpenGuardedHeap(fs, (int) Crypto.SecretKeyBytes);
+                try
+                {
+                    // use the guarded heap in a crypto operation (get pk from sk)
+                    fixed (byte* pk = &new Span<byte>(new byte[32]).GetPinnableReference())
+                    {
+                        if(NativeMethods.crypto_sign_ed25519_sk_to_pk(pk, sk) != 0)
+                            throw new InvalidOperationException(nameof(NativeMethods.crypto_sign_ed25519_sk_to_pk));
+                    }
+
+                    // check that the pk is valid
+                    Assert.True(publicKey.SequenceEqual(publicKey.ToArray()));
+                }
+                finally
+                {
+                    Crypto.CloseGuardedHeap(sk);
+                }
+            }
+        }
+
         [Fact]
         public void Can_fill_buffer_with_random_bytes()
         {
@@ -42,7 +71,7 @@ namespace egregore.Tests
         [Fact]
         public void Can_generate_key_pair()
         {
-            var (pk, sk) = Crypto.GenerateKeyPair();
+            var (pk, sk) = Crypto.GenerateKeyPairDangerous();
             Assert.NotEmpty(pk);
             Assert.NotEmpty(sk);
         }
@@ -61,15 +90,25 @@ namespace egregore.Tests
         [Fact]
         public void Can_swap_signing_key_for_encryption_key()
         {
-            Crypto.SigningKeyToEncryptionKey(Crypto.GenerateKeyPair().secretKey);
+            GenerateSecretKeyOnDisk(out var fileName);
+            Crypto.SigningKeyToEncryptionKeyDangerous(File.OpenRead(fileName));
         }
 
         [Fact]
         public void Can_derive_public_key_from_secret_key()
         {
-            var (pk, sk) = Crypto.GenerateKeyPair();
-            var publicKey = Crypto.PublicKeyFromSecretKey(sk);
+            var (pk, sk) = Crypto.GenerateKeyPairDangerous();
+            var publicKey = Crypto.PublicKeyFromSecretKeyDangerous(sk);
             Assert.True(publicKey.SequenceEqual(pk));
+        }
+
+        internal static byte[] GenerateSecretKeyOnDisk(out string fileName)
+        {
+            // simulate a valid private key on disk
+            var (pk, sk) = Crypto.GenerateKeyPairDangerous();
+            fileName = Path.GetTempFileName();
+            File.WriteAllBytes(fileName, sk);
+            return pk;
         }
     }
 }

@@ -2,8 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.IO;
 using egregore.Extensions;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
 
 namespace egregore.Ontology
 {
@@ -25,12 +25,12 @@ namespace egregore.Ontology
             Signature = signature;
         }
 
-        public void Sign(byte[] sk, ulong formatVersion = LogSerializeContext.FormatVersion)
+        public void Sign(FileStream fs, ulong formatVersion = LogSerializeContext.FormatVersion)
         {
             var message = GetMessage(formatVersion);
 
             var signature = new byte[Crypto.SecretKeyBytes].AsSpan();
-            var signatureLength = Crypto.SignDetached(message, sk, signature);
+            var signatureLength = Crypto.SignDetached(message, fs, signature);
             if (signatureLength < (ulong) signature.Length)
                 signature = signature.Slice(0, (int) signatureLength);
 

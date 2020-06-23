@@ -115,7 +115,7 @@ namespace egregore
 
         private static void GenerateKey(string keyPath, string defaultPath)
         {
-            var (_, sk) = Crypto.GenerateKeyPair();
+            var (_, sk) = Crypto.GenerateKeyPairDangerous();
             Directory.CreateDirectory(".egregore");
             if (keyPath != defaultPath && keyPath.IndexOfAny(Path.GetInvalidFileNameChars()) > -1)
             {

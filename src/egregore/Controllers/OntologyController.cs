@@ -6,9 +6,9 @@ namespace egregore.Controllers
 {
     public class OntologyController : Controller
     {
-        private readonly IOptionsSnapshot<ServerOptions> _options;
+        private readonly IOptionsSnapshot<WebServerOptions> _options;
 
-        public OntologyController(IOptionsSnapshot<ServerOptions> options)
+        public OntologyController(IOptionsSnapshot<WebServerOptions> options)
         {
             _options = options;
         }
