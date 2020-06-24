@@ -11,7 +11,6 @@ using egregore.Ontology;
 
 namespace egregore
 {
-    
     internal static class Program
     {
         [ExcludeFromCodeCoverage]
