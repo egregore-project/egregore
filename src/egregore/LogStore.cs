@@ -131,7 +131,7 @@ namespace egregore
 
             if (!previous.Hash.SequenceEqual(current.PreviousHash))
             {
-                var message = $"Invalid previous hash: expected '{previous.Hash}' but was '{current.PreviousHash}'";
+                var message = $"Invalid previous hash: expected '{Crypto.ToHexString(previous.Hash)}' but was '{Crypto.ToHexString(current.PreviousHash)}'";
                 throw new LogException(message);
             }
 
@@ -139,6 +139,14 @@ namespace egregore
             if (!hashRoot.SequenceEqual(current.HashRoot))
             {
                 var message = $"Invalid hash root: expected '{Crypto.ToHexString(hashRoot)}' but was '{Crypto.ToHexString(current.HashRoot)}'";
+                throw new LogException(message);
+            }
+
+            for (var i = 0; i < current.Objects.Count; i++)
+            {
+                if (current.Objects[i].Index == i)
+                    continue;
+                var message = $"Invalid object index: expected '{i}' but was '{current.Objects[i].Index}'";
                 throw new LogException(message);
             }
 

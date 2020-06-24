@@ -24,7 +24,7 @@ namespace egregore.Tests
             const string ns = "MyApp";
 
             using var fixture = new LogStoreFixture();
-            var entry = LogEntryFactory.CreateNamespaceEntry(ns, default);
+            var entry = LogEntryFactory.CreateEntry(new Namespace(ns));
             
             var count = await fixture.Store.AddEntryAsync(entry);
             Assert.Equal(1UL, count);
@@ -54,8 +54,8 @@ namespace egregore.Tests
 
             using var fixture = new LogStoreFixture();
 
-            var one = LogEntryFactory.CreateNamespaceEntry(ns, default);
-            var two = LogEntryFactory.CreateNamespaceEntry(ns, one.Hash);
+            var one = LogEntryFactory.CreateEntry(new Namespace(ns));
+            var two = LogEntryFactory.CreateEntry(new Namespace(ns), one.Hash);
             Assert.False(one.Hash.SequenceEqual(two.Hash));
             Assert.True(one.Hash.SequenceEqual(two.PreviousHash));
 

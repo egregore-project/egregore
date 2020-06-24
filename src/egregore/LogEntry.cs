@@ -1,8 +1,10 @@
 ﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using egregore.Extensions;
 
 namespace egregore
@@ -48,7 +50,10 @@ namespace egregore
             var count = context.br.ReadInt32();
             Objects = new List<LogObject>(count);
             for (var i = 0; i < count; i++)
-                Objects.Add(new LogObject(context));
+            {
+                var o = new LogObject(context);
+                Objects.Add(o);
+            }
         }
 
         internal void SerializeObjects(LogSerializeContext context, bool hash)
@@ -56,7 +61,7 @@ namespace egregore
             var count = Objects?.Count ?? 0;
             context.bw.Write(count);
             if (Objects != null)
-                foreach (var @object in Objects)
+                foreach (var @object in Objects.OrderBy(x => x.Index))
                     @object.Serialize(context, hash);
         }
 

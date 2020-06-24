@@ -9,7 +9,7 @@ namespace egregore
     {
         internal LogObject() { }
 
-        public ulong Index { get; set; }
+        public int Index { get; set; }
         public ulong? Type { get; set; }
         public ulong Version { get; set; }
         public ILogSerialized Data { get; set; }
@@ -22,7 +22,8 @@ namespace egregore
         {
             Type = context.typeProvider.Get(Data?.GetType());
 
-            context.bw.WriteNullableUInt64(Type);		 // Type
+            context.bw.Write(Index);                 // Index
+            context.bw.WriteNullableUInt64(Type);	 // Type
             context.bw.Write(Version);               // Version
             context.bw.Write(Timestamp);             // Timestamp
             if(!hash)
@@ -35,6 +36,7 @@ namespace egregore
 
         internal LogObject(LogDeserializeContext context)
         {
+            Index = context.br.ReadInt32();             // Index
             Type = context.br.ReadNullableUInt64();		// Type
             Version = context.br.ReadUInt64();			// Version
             Timestamp = context.br.ReadUInt128();		// Timestamp
