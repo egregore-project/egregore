@@ -3,16 +3,15 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using egregore.Generators;
 using Newtonsoft.Json;
 using Xunit;
-using egregore.Generators;
 using Xunit.Abstractions;
 
-namespace egregore.Tests
+namespace egregore.Tests.Data
 {
     public class GenerateTimeZoneMapping
     {

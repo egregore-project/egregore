@@ -5,7 +5,7 @@ using System;
 using egregore.Data;
 using Xunit;
 
-namespace egregore.Tests
+namespace egregore.Tests.Data
 {
     public class IsoTimeZoneStringTests
     {

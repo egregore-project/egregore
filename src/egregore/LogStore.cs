@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -16,18 +15,6 @@ namespace egregore
 {
     internal sealed class LogStore : ILogStore
     {
-        public sealed class UInt64TypeHandler : SqlMapper.TypeHandler<ulong?>
-        {
-            public override void SetValue(IDbDataParameter parameter, ulong? value) => parameter.Value = value;
-            public override ulong? Parse(object value) => value is long v ? (ulong) v : !ulong.TryParse((string) value, out var val) ? default(ulong?) : val;
-        }
-
-        public sealed class UInt128TypeHandler : SqlMapper.TypeHandler<UInt128?>
-        {
-            public override void SetValue(IDbDataParameter parameter, UInt128? value) => parameter.Value = value.GetValueOrDefault().ToString();
-            public override UInt128? Parse(object value) => value is UInt128 v ? v : new UInt128((string)value);
-        }
-
         static LogStore()
         {
             SqlMapper.AddTypeHandler(new UInt64TypeHandler());
