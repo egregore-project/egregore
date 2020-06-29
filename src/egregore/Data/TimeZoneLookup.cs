@@ -43,6 +43,8 @@ namespace egregore.Data
 
                 switch(localTimeZone.StandardName)
                 {
+                    case "Coordinated Universal Time":
+                        return new IsoTimeZoneString(now, "Etc\\UTC");
                     case "Afghanistan Standard Time":
                     {
                         switch(region.TwoLetterISORegionName)

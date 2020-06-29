@@ -72,6 +72,8 @@ namespace egregore.Tests.Data
             sb.AppendLine();
             sb.AppendLine("                switch(localTimeZone.StandardName)");
             sb.AppendLine("                {");
+            sb.AppendLine("                    case \"Coordinated Universal Time\":");
+            sb.AppendLine("                        return new IsoTimeZoneString(now, \"Etc\\UTC\");");
 
             // other, territory, type
             var map = new Dictionary<string, Dictionary<string, string>>();
