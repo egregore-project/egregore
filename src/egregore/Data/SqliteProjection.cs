@@ -7,6 +7,8 @@ using System.Text.RegularExpressions;
 using Dapper;
 using Microsoft.Data.Sqlite;
 
+#pragma warning disable 649
+
 namespace egregore.Data
 {
     public class SqliteProjection
@@ -39,18 +41,22 @@ namespace egregore.Data
 
         public void Visit(Record record)
         {
+            var db = OpenConnection();
+            var t = db.BeginTransaction();
+            Visit(record, db, t);
+            t.Commit();
+        }
+
+        private static void Visit(Record record, IDbConnection db, IDbTransaction t)
+        {
             record.Columns.Sort(RecordColumn.IndexComparer);
 
-            var db = OpenConnection();
-
-            var t = db.BeginTransaction();
-
             var tableInfoList = db.Query<TableInfo>(
-                    $"SELECT * " +
-                    $"FROM sqlite_master " +
-                    $"WHERE type='table' " +
-                    $"AND name LIKE :name " +
-                    $"ORDER BY name DESC ", new {name = $"{record.Type}%",}, t)
+                    "SELECT * " +
+                    "FROM sqlite_master " +
+                    "WHERE type='table' " +
+                    "AND name LIKE :name " +
+                    "ORDER BY name DESC ", new {name = $"{record.Type}%",}, t)
                 .AsList();
 
             int revision;
@@ -71,8 +77,21 @@ namespace egregore.Data
 
                 db.Execute(CreateTableSql(record, revision), transaction: t);
 
-                RebuildView(record, db, t, tableInfo, tableInfoList, revision);
+                RebuildView(record, db, t, tableInfoList, revision);
             }
+
+            InsertRecord(record, revision, db, t);
+        }
+
+        private static void InsertRecord(Record record, int revision, IDbConnection db, IDbTransaction t)
+        {
+            var previous = revision == 1 ? 1 : revision - 1;
+
+            var sequence =
+                db.QuerySingleOrDefault<long?>($"SELECT MAX(\"Sequence\") FROM \"{record.Type}_V{previous}\"", transaction: t)
+                    .GetValueOrDefault(0);
+
+            sequence++;
 
             if (record.Uuid == default)
             {
@@ -93,7 +112,8 @@ namespace egregore.Data
                     insert.Append(column.Name);
                     insert.Append("\"");
                 }
-                insert.Append(") VALUES (");
+
+                insert.Append(", \"Sequence\") VALUES (");
                 for (var i = 0; i < record.Columns.Count; i++)
                 {
                     if (i != 0)
@@ -102,28 +122,26 @@ namespace egregore.Data
                     insert.Append(":");
                     insert.Append(column.Name);
                 }
-                insert.Append(')');
+                insert.Append(", :Sequence)");
 
-                var hash = new Dictionary<string, object>();
+                var hash = new Dictionary<string, object> {{"Sequence", sequence}};
                 foreach (var column in record.Columns)
                 {
                     hash.Add(column.Name, column.Value);
                 }
 
                 var insertSql = insert.ToString();
-                db.Execute(insertSql, hash, t); 
+                db.Execute(insertSql, hash, t);
             }
             else
             {
                 throw new NotImplementedException("when the row may already exist");
             }
-            
-            t.Commit();
         }
 
-        private static void RebuildView(Record record, IDbConnection db, IDbTransaction t, TableInfo tableInfo, List<TableInfo> tableInfoList, int revision)
+        private static void RebuildView(Record record, IDbConnection db, IDbTransaction t, IEnumerable<TableInfo> tableInfoList, int revision)
         {
-            db.Execute("DROP VIEW IF EXISTS \"" + record.Type + "\"");
+            db.Execute($"DROP VIEW IF EXISTS \"{record.Type}\"");
             
             var view = new StringBuilder();
             view.Append("CREATE VIEW \"");
@@ -139,7 +157,7 @@ namespace egregore.Data
                 view.Append("\"");
             }
 
-            view.Append(") AS SELECT ");
+            view.Append(", \"Sequence\") AS SELECT ");
             for (var i = 0; i < record.Columns.Count; i++)
             {
                 if (i != 0)
@@ -149,15 +167,14 @@ namespace egregore.Data
                 view.Append(column.Name);
                 view.Append("\"");
             }
-            view.Append(" FROM \"");
+            view.Append(", \"Sequence\" FROM \"");
             view.Append(record.Type);
             view.Append("_V");
             view.Append(revision);
             view.Append("\" ");
 
-            for (var i = 0; i < tableInfoList.Count; i++)
+            foreach (var entry in tableInfoList)
             {
-                var entry = tableInfoList[i];
                 var hash = BuildSqlHash(entry);
 
                 view.Append("UNION SELECT ");
@@ -183,11 +200,12 @@ namespace egregore.Data
                     j++;
                 }
 
-                view.Append(" FROM \"");
+                view.Append(", \"Sequence\" FROM \"");
                 view.Append(entry.name);
                 view.Append("\" ");
             }
 
+            view.Append(" ORDER BY \"Sequence\" ASC ");
             var viewSql = view.ToString(); 
             db.Execute(viewSql, transaction: t);
         }
@@ -233,7 +251,11 @@ namespace egregore.Data
                 create.Append(" DEFAULT ");
                 create.Append(ResolveColumnDefaultValue(column));
             }
-            create.Append(")");
+
+            // See: https://www.sqlite.org/lang_createtable.html#rowid
+            // - "INTEGER PRIMARY KEY" is faster when explicit
+            // - don't use ROWID, as our sequence spans multiple tables, and ROWID uses AUTO INCREMENT
+            create.Append(", \"Sequence\" INTEGER PRIMARY KEY) WITHOUT ROWID"); 
             var createSql = create.ToString();
             return createSql;
         }

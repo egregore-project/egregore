@@ -93,8 +93,8 @@ namespace egregore.Tests.Data
             var v3 = db.Query<CustomerV3>("SELECT * FROM 'Customer'").AsList();
             Assert.Equal(3, v3.Count);
             Assert.Equal("ABC", v3[0].Name);
-            Assert.Equal("Bobby Fables", v3[1].Name);
-            Assert.Equal("Bobby Tables", v3[2].Name);
+            Assert.Equal("Bobby Tables", v3[1].Name);
+            Assert.Equal("Bobby Fables", v3[2].Name);
         }
 
         private class CustomerV3
@@ -121,14 +121,14 @@ namespace egregore.Tests.Data
             Assert.Equal("ABC", v4[0].Name);
             Assert.Equal("123", v4[0].Order);
 
-            Assert.Equal("Bobby Cables", v4[1].Name);
-            Assert.Equal("ABC123", v4[1].Order);
+            Assert.Equal("Bobby Tables", v4[1].Name);
+            Assert.Equal("456", v4[1].Order);
 
             Assert.Equal("Bobby Fables", v4[2].Name);
             Assert.Equal("XYZ000", v4[2].Order);
-
-            Assert.Equal("Bobby Tables", v4[3].Name);
-            Assert.Equal("456", v4[3].Order);
+            
+            Assert.Equal("Bobby Cables", v4[3].Name);
+            Assert.Equal("ABC123", v4[3].Order);
         }
 
         private class CustomerV4
