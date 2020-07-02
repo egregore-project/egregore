@@ -144,17 +144,23 @@
   <data name="InvalidDecryptionPassword" xml:space="preserve">
     <value>Wrong password for that key</value>
   </data>
-  <data name="InvalidFileBuffer" xml:space="preserve">
-    <value>Invalid file buffer</value>
-  </data>
   <data name="InvalidKeyDerivationFunction" xml:space="preserve">
     <value>Invalid key derivation function</value>
+  </data>
+  <data name="InvalidKeyFileBuffer" xml:space="preserve">
+    <value>Invalid file buffer</value>
   </data>
   <data name="InvalidKeyFileChecksum" xml:space="preserve">
     <value>Invalid key file checksum</value>
   </data>
+  <data name="InvalidKeyFileKeyNumber" xml:space="preserve">
+    <value>Invalid key file key number</value>
+  </data>
   <data name="InvalidKeyFilePath" xml:space="preserve">
     <value>Invalid key file path</value>
+  </data>
+  <data name="InvalidPasswordLength" xml:space="preserve">
+    <value>Invalid password length</value>
   </data>
   <data name="InvalidSignatureAlgorithm" xml:space="preserve">
     <value>Invalid signature algorithm</value>

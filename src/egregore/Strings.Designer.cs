@@ -142,20 +142,20 @@ namespace egregore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid file buffer.
-        /// </summary>
-        internal static string InvalidFileBuffer {
-            get {
-                return ResourceManager.GetString("InvalidFileBuffer", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Invalid key derivation function.
         /// </summary>
         internal static string InvalidKeyDerivationFunction {
             get {
                 return ResourceManager.GetString("InvalidKeyDerivationFunction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid file buffer.
+        /// </summary>
+        internal static string InvalidKeyFileBuffer {
+            get {
+                return ResourceManager.GetString("InvalidKeyFileBuffer", resourceCulture);
             }
         }
         
@@ -169,11 +169,29 @@ namespace egregore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid key file key number.
+        /// </summary>
+        internal static string InvalidKeyFileKeyNumber {
+            get {
+                return ResourceManager.GetString("InvalidKeyFileKeyNumber", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid key file path.
         /// </summary>
         internal static string InvalidKeyFilePath {
             get {
                 return ResourceManager.GetString("InvalidKeyFilePath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid password length.
+        /// </summary>
+        internal static string InvalidPasswordLength {
+            get {
+                return ResourceManager.GetString("InvalidPasswordLength", resourceCulture);
             }
         }
         

@@ -9,10 +9,9 @@ namespace egregore.Tests
     internal sealed class TestKeyCapture : IKeyCapture
     {
         private const char EnterKeyChar = '\u0000';
+        internal static readonly ConsoleKeyInfo EnterKey = new ConsoleKeyInfo(EnterKeyChar, ConsoleKey.Enter, false, false, false);
 
         private readonly string _value;
-        private int _iterations;
-
         private int _index;
 
         public TestKeyCapture(params string[] values)
@@ -24,30 +23,17 @@ namespace egregore.Tests
                 sb.Append(EnterKeyChar);
             }
             _value = sb.ToString();
-            _iterations = 1;
-            _index = 0;
-        }
-
-        public TestKeyCapture(string value, int iterations)
-        {
-            _value = value;
-            _iterations = iterations;
             _index = 0;
         }
 
         public ConsoleKeyInfo ReadKey()
         {
             if (_index == _value.Length)
-            {
-                _iterations--;
-                if (_iterations > 2)
-                    _index = 0;
-                return new ConsoleKeyInfo(EnterKeyChar, ConsoleKey.Enter, false, false, false);
-            }
+                return EnterKey;
 
             var keyChar = _value[_index++];
-            if(keyChar == EnterKeyChar)
-                return new ConsoleKeyInfo(keyChar, ConsoleKey.Enter, false, false, false);
+            if (keyChar == EnterKeyChar)
+                return EnterKey;
 
             Enum.TryParse<ConsoleKey>(keyChar.ToString().ToUpper(), out var consoleKey);
             return new ConsoleKeyInfo(keyChar, consoleKey, false, false, false);

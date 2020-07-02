@@ -17,32 +17,65 @@ namespace egregore.Tests
             _output = output;
         }
 
-        [Fact]
-        public void Succeeds_password_capture_when_password_is_confirmed_correctly()
+        [Theory]
+        [InlineData("rosebud")]
+        public void Succeeds_password_capture_when_password_is_confirmed_correctly(string plaintext)
         {
-            var capture = new TestKeyCapture("rosebud", 2);
+            var capture = new TestKeyCapture(plaintext, plaintext);
             unsafe
             {
-                var result = PasswordStorage.TryCapturePassword("test", capture, Console.Out, Console.Error, out var password, out _);
-                Assert.True(result);    
+                var result = PasswordStorage.TryCapturePassword("test", capture, Console.Out, Console.Error, out var password, out var passwordLength);
+                Assert.True(result);
+                Assert.Equal(plaintext.Length, passwordLength);
                 NativeMethods.sodium_free(password);
             }
         }
 
-        [Fact]
-        public void Fails_password_capture_when_confirm_password_is_incorrect()
+        [Theory]
+        [InlineData("rosebud")]
+        public void Cannot_pass_password_capture_with_empty_password(string plaintext)
         {
-            var capture = new TestKeyCapture("rosebud", "rosary");
+            var capture = new TestKeyCapture(string.Empty, plaintext);
             unsafe
             {
-                var result = PasswordStorage.TryCapturePassword("test", capture, Console.Out, Console.Error, out var password, out _);
-                Assert.False(result);    
+                var result = PasswordStorage.TryCapturePassword("test", capture, Console.Out, Console.Error, out var password, out var passwordLength);
+                Assert.False(result);
+                Assert.NotEqual(plaintext.Length, passwordLength);
+                NativeMethods.sodium_free(password);
+            }
+        }
+
+        [Theory]
+        [InlineData("rosebud")]
+        public void Cannot_pass_password_capture_with_empty_confirm_password(string plaintext)
+        {
+            var capture = new TestKeyCapture(plaintext, string.Empty);
+            unsafe
+            {
+                var result = PasswordStorage.TryCapturePassword("test", capture, Console.Out, Console.Error, out var password, out var passwordLength);
+                Assert.False(result);
+                Assert.NotEqual(plaintext.Length, passwordLength);
+                NativeMethods.sodium_free(password);
+            }
+        }
+
+        [Theory]
+        [InlineData("rosebud")]
+        public void Fails_password_capture_when_confirm_password_is_incorrect(string plaintext)
+        {
+            var capture = new TestKeyCapture(plaintext, $"{plaintext}wrong");
+            unsafe
+            {
+                var result = PasswordStorage.TryCapturePassword("test", capture, Console.Out, Console.Error, out var password, out var passwordLength);
+                Assert.False(result);
+                Assert.NotEqual(plaintext.Length, passwordLength);
                 Assert.True(password == default(byte*));
             }
         }
 
-        [Fact]
-        public void Can_save_and_load_key_file()
+        [Theory]
+        [InlineData("rosebud")]
+        public void Can_save_and_load_key_file_with_correct_password(string plaintext)
         {
             unsafe
             {
@@ -51,12 +84,32 @@ namespace egregore.Tests
                 var @out = new XunitDuplexTextWriter(_output, Console.Out);
                 var error = new XunitDuplexTextWriter(_output, Console.Error);
                 
-                var generatedKeyFile = PasswordStorage.TryGenerateKeyFile(keyPath, @out, error, new TestKeyCapture("rosebud", 2));
+                var generatedKeyFile = PasswordStorage.TryGenerateKeyFile(keyPath, @out, error, new TestKeyCapture(plaintext, plaintext));
                 Assert.True(generatedKeyFile);
 
-                var loadedKeyFile = PasswordStorage.TryLoadKeyFile(keyPath, @out, error, out var secretKey, new TestKeyCapture("rosebud", 2));
+                var loadedKeyFile = PasswordStorage.TryLoadKeyFile(keyPath, @out, error, out var secretKey, new TestKeyCapture(plaintext, plaintext));
                 Assert.True(loadedKeyFile);
                 NativeMethods.sodium_free(secretKey);
+            }
+        }
+
+        [Theory]
+        [InlineData("rosebud")]
+        public void Cannot_load_saved_key_file_with_incorrect_password(string plaintext)
+        {
+            unsafe
+            {
+                var keyPath = Path.GetTempFileName();
+
+                var @out = new XunitDuplexTextWriter(_output, Console.Out);
+                var error = new XunitDuplexTextWriter(_output, Console.Error);
+                
+                var generatedKeyFile = PasswordStorage.TryGenerateKeyFile(keyPath, @out, error, new TestKeyCapture(plaintext, plaintext));
+                Assert.True(generatedKeyFile, nameof(generatedKeyFile));
+
+                var loadedKeyFile = PasswordStorage.TryLoadKeyFile(keyPath, @out, error, out var secretKey, new TestKeyCapture($"{plaintext}wrong", $"{plaintext}wrong"));
+                Assert.False(loadedKeyFile, nameof(loadedKeyFile));
+                Assert.True(secretKey == default(byte*), nameof(secretKey));
             }
         }
     }
