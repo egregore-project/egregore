@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "egregore": {
+      "commandName": "Project",
+      "commandLineArgs": "-s"
+    }
+  }
+}

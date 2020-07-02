@@ -280,7 +280,8 @@ namespace egregore
         #endregion
 
         #region Guarded Heap 
-        public static unsafe byte* OpenGuardedHeap(FileStream fs, int size) 
+
+        public static unsafe byte* OpenGuardedHeap(FileStream fs, uint size) 
         {
             var ptr = (byte*) NativeMethods.sodium_malloc(size);
             try

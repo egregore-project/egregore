@@ -99,13 +99,30 @@ namespace egregore
         ///     <see href="https://libsodium.gitbook.io/doc/memory_management#guarded-heap-allocations" />
         /// </summary>
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern unsafe void* sodium_malloc(int size);
+        public static extern unsafe void* sodium_malloc(ulong size);
 
         /// <summary>
         ///     <see href="https://libsodium.gitbook.io/doc/memory_management#guarded-heap-allocations" />
         /// </summary>
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
         public static extern unsafe void sodium_free(void* ptr);
-    }
 
+        /// <summary>
+        ///     <see href="https://libsodium.gitbook.io/doc/advanced/scrypt" />
+        /// </summary>
+        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern unsafe int crypto_pwhash_scryptsalsa208sha256(byte* @out, ulong outlen, byte* passwd, ulong passwdlen, byte* salt, ulong opslimit, int memlimit);
+
+        /// <summary>
+        ///     <see href="https://libsodium.gitbook.io/doc/helpers#constant-time-test-for-equality" />
+        /// </summary>
+        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern unsafe int sodium_memcmp(void* b1, void* b2, int len);
+
+        /// <summary>
+        ///     <see href="https://libsodium.gitbook.io/doc/hashing/generic_hashing" />
+        /// </summary>
+        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern unsafe int crypto_generichash(byte* @out, int outlen, byte* @in, ulong inlen, char* key, int keylen);
+    }
 }

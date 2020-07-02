@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.InteropServices;
+using egregore.Extensions;
 using egregore.Ontology;
 
 namespace egregore
@@ -30,16 +31,30 @@ namespace egregore
                 {
                     case "--server":
                     case "-s":
-                        WebServer.Run(args);
-                        break;
+                    {
+                        unsafe
+                        {
+                            if (!TryResolveKeyPath(arguments, out var keyPath, false))
+                                return;
+                            if (!PasswordStorage.TryLoadKeyFile(keyPath, Console.Out, Console.Error, out var secretKey))
+                                return;
+                            NativeMethods.sodium_free(secretKey);
+                            WebServer.Run(args);
+                            break;
+                        }
+                    }
                     case "--keygen":
                     case "-k":
-                        var keyPath = EndOfSubArguments(arguments) ? Constants.DefaultKeyPath : arguments.Dequeue();
-                        GenerateKey(keyPath, Constants.DefaultKeyPath);
-                        break;
+                    {
+                        if (!TryResolveKeyPath(arguments, out var keyPath, true))
+                            return;
+                        if (!PasswordStorage.TryGenerateKeyFile(keyPath, Console.Out, Console.Error))
+                            return;
+                    }
+                    break;
                     case "--egg":
                     case "-e":
-                        var eggPath = EndOfSubArguments(arguments) ? Constants.DefaultEggPath : arguments.Dequeue();
+                        var eggPath = arguments.EndOfSubArguments() ? Constants.DefaultEggPath : arguments.Dequeue();
                         CreateEgg(eggPath);
                         break;
                     case "--append":
@@ -50,9 +65,46 @@ namespace egregore
             }
         }
 
+        public static bool TryResolveKeyPath(Queue<string> arguments, out string fullKeyPath, bool warnIfExists)
+        {
+            fullKeyPath = default;
+            var keyPath = arguments.EndOfSubArguments() ? Constants.DefaultKeyPath : arguments.Dequeue();
+            
+            Directory.CreateDirectory(".egregore");
+            if (keyPath != Constants.DefaultKeyPath && keyPath.IndexOfAny(Path.GetInvalidFileNameChars()) > -1)
+            {
+                Console.Error.WriteLine(Strings.InvalidCharactersInPath);
+                return false;
+            }
+
+            try
+            {
+                fullKeyPath = Path.GetFullPath(keyPath);
+                if (!Path.HasExtension(fullKeyPath))
+                    fullKeyPath = Path.ChangeExtension(keyPath, ".key");
+            }
+            catch (Exception e)
+            {
+                Trace.TraceError(e.ToString());
+                Console.Error.WriteLine(Strings.InvalidKeyFilePath);
+                return false;
+            }
+
+            if (warnIfExists && File.Exists(fullKeyPath))
+            {
+                Console.Error.WriteLine(Strings.KeyFileAlreadyExists);
+            }
+            else if (!File.Exists(fullKeyPath))
+            {
+                Console.Error.WriteLine();
+            }
+
+            return true;
+        }
+
         private static void Append(Queue<string> arguments)
         {
-            if (EndOfSubArguments(arguments))
+            if (arguments.EndOfSubArguments())
             {
                 Console.Error.WriteLine("Missing append command");
                 return;
@@ -69,14 +121,14 @@ namespace egregore
 
         private static void GrantRole(Queue<string> arguments)
         {
-            if (EndOfSubArguments(arguments))
+            if (arguments.EndOfSubArguments())
             {
                 Console.Error.WriteLine("Missing role data");
                 return;
             }
 
             var value = arguments.Dequeue();
-            if (EndOfSubArguments(arguments))
+            if (arguments.EndOfSubArguments())
             {
                 Console.Error.WriteLine("Missing privilege");
                 return;
@@ -85,7 +137,7 @@ namespace egregore
             var authorityString = arguments.Dequeue();
             var authority = authorityString.ToBinary();
 
-            if (EndOfSubArguments(arguments))
+            if (arguments.EndOfSubArguments())
             {
                 Console.Error.WriteLine("Missing subject");
                 return;
@@ -94,7 +146,7 @@ namespace egregore
             var subjectString = arguments.Dequeue();
             var subject = subjectString.ToBinary();
 
-            if (EndOfSubArguments(arguments))
+            if (arguments.EndOfSubArguments())
             {
                 Console.Error.WriteLine("Missing signature");
                 return;
@@ -110,48 +162,6 @@ namespace egregore
             }
 
             Console.WriteLine("TODO: append privilege to ontology");
-        }
-
-        private static void GenerateKey(string keyPath, string defaultPath)
-        {
-            var (_, sk) = Crypto.GenerateKeyPairDangerous();
-            Directory.CreateDirectory(".egregore");
-            if (keyPath != defaultPath && keyPath.IndexOfAny(Path.GetInvalidFileNameChars()) > -1)
-            {
-                Console.Error.WriteLine("Invalid characters in path");
-                return;
-            }
-
-            try
-            {
-                keyPath = Path.GetFullPath(keyPath);
-                if (!Path.HasExtension(keyPath))
-                    keyPath = Path.ChangeExtension(keyPath, ".key");
-            }
-            catch (Exception e)
-            {
-                Trace.TraceError(e.ToString());
-                Console.Error.WriteLine("Invalid path");
-                return;
-            }
-
-            if (File.Exists(keyPath))
-            {
-                Console.Error.WriteLine("Key file already exists");
-                return;
-            }
-
-            try
-            {
-                File.WriteAllText(keyPath, WifFormatter.Serialize(sk));
-                Console.WriteLine("Generated new key pair '{0}'", Path.GetFileName(keyPath));
-            }
-            catch (Exception e)
-            {
-                Trace.TraceError(e.ToString());
-                Console.WriteLine("Failed to generated key");
-                throw;
-            }
         }
 
         private static void CreateEgg(string eggPath)
@@ -187,7 +197,5 @@ namespace egregore
                 Console.Error.WriteLine("Failed to create egg file at '{0}'", eggPath);
             }
         }
-
-        private static bool EndOfSubArguments(Queue<string> arguments) => arguments.Count == 0 || arguments.Peek().StartsWith("-");
     }
 }
