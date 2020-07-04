@@ -23,7 +23,7 @@ namespace egregore.Tests
                 try
                 {
                     // use the guarded heap in a crypto operation (get pk from sk)
-                    fixed (byte* pk = &new Span<byte>(new byte[32]).GetPinnableReference())
+                    fixed (byte* pk = &new Span<byte>(new byte[Crypto.PublicKeyBytes]).GetPinnableReference())
                     {
                         if(NativeMethods.crypto_sign_ed25519_sk_to_pk(pk, sk) != 0)
                             throw new InvalidOperationException(nameof(NativeMethods.crypto_sign_ed25519_sk_to_pk));

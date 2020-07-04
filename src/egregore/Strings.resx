@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="ConfirmPasswordPrompt" xml:space="preserve">
-    <value>Confirm password:</value>
+    <value>Confirm password: </value>
   </data>
   <data name="DecryptionCompleteMessage" xml:space="preserve">
     <value>done</value>
@@ -193,6 +193,6 @@
     <value>Passwords don't match</value>
   </data>
   <data name="PasswordPrompt" xml:space="preserve">
-    <value>Password:</value>
+    <value>Password: </value>
   </data>
 </root>

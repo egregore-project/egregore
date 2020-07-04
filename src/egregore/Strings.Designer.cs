@@ -61,7 +61,7 @@ namespace egregore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Confirm password:.
+        ///   Looks up a localized string similar to Confirm password: .
         /// </summary>
         internal static string ConfirmPasswordPrompt {
             get {
@@ -286,7 +286,7 @@ namespace egregore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Password:.
+        ///   Looks up a localized string similar to Password: .
         /// </summary>
         internal static string PasswordPrompt {
             get {

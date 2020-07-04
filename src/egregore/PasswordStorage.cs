@@ -24,6 +24,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.MemoryMappedFiles;
+using System.Reflection.Metadata.Ecma335;
 
 namespace egregore
 {
@@ -34,6 +35,9 @@ namespace egregore
     /// </summary>
     internal static class PasswordStorage
     {
+        private static readonly IKeyCapture ConsoleKeyCapture = new ConsoleKeyCapture();
+        private static string BackspaceSpaceBackspace = "\b \b";
+
         public const byte SigAlgBytes = 2;
         public const byte KdfAlgBytes = 2;
         public const byte ChkAlgBytes = 2;
@@ -75,13 +79,25 @@ namespace egregore
                 do
                 {
                     key = @in.ReadKey();
-                    if ((int) key.Key < 65 || (int) key.Key > 90)
+                    if (key.Key == ConsoleKey.Enter)
+                        break;
+                    if (key.Key == ConsoleKey.Backspace)
+                    {
+                        if (initPwdLength > 0)
+                        {
+                            initPwd.Position--;
+                            initPwd.WriteByte(0);
+                            initPwd.Position--;
+                            initPwdLength--;
+                            Console.Write(BackspaceSpaceBackspace);
+                        }
                         continue;
+                    }
                     initPwd.WriteByte((byte) key.KeyChar);
                     key = default;
                     @out.Write(Strings.PasswordMask);
                     initPwdLength++;
-                } while (key.Key != ConsoleKey.Enter && passwordLength < passwordMaxBytes);
+                } while (key.Key != ConsoleKey.Enter && initPwdLength < passwordMaxBytes);
 
                 var confirmPwdLength = 0;
                 using var confirmPwd = new UnmanagedMemoryStream((byte*) passwordConfirm, 0, passwordMaxBytes, FileAccess.Write);
@@ -91,13 +107,25 @@ namespace egregore
                 do
                 {
                     key = @in.ReadKey();
-                    if ((int) key.Key < 65 || (int) key.Key > 90)
+                    if (key.Key == ConsoleKey.Enter)
+                        break;
+                    if (key.Key == ConsoleKey.Backspace)
+                    {
+                        if (confirmPwdLength > 0)
+                        {
+                            confirmPwd.Position--;
+                            confirmPwd.WriteByte(0);
+                            confirmPwd.Position--;
+                            confirmPwdLength--;
+                            Console.Write(BackspaceSpaceBackspace);
+                        }
                         continue;
+                    }
                     confirmPwd.WriteByte((byte) key.KeyChar);
                     key = default;
                     @out.Write(Strings.PasswordMask);
                     confirmPwdLength++;
-                } while (key.Key != ConsoleKey.Enter && passwordLength < passwordMaxBytes);
+                } while (key.Key != ConsoleKey.Enter && confirmPwdLength < passwordMaxBytes);
 
                 @out.WriteLine();
 
@@ -155,8 +183,6 @@ namespace egregore
             }
             return xor;
         }
-
-        private static readonly IKeyCapture ConsoleKeyCapture = new ConsoleKeyCapture();
 
         public static unsafe bool TryGenerateKeyFile(string keyPath, TextWriter @out, TextWriter error, IKeyCapture keyCapture = null)
         {

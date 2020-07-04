@@ -18,7 +18,7 @@ namespace egregore.Tests
         }
 
         [Theory]
-        [InlineData("rosebud")]
+        [InlineData("purple monkey dishwasher")]
         public void Succeeds_password_capture_when_password_is_confirmed_correctly(string plaintext)
         {
             var capture = new TestKeyCapture(plaintext, plaintext);
