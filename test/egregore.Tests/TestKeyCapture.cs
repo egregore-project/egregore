@@ -9,7 +9,9 @@ namespace egregore.Tests
     internal sealed class TestKeyCapture : IKeyCapture
     {
         private const char EnterKeyChar = '\u0000';
+        private const char BackspaceKeyChar = '\b';
         internal static readonly ConsoleKeyInfo EnterKey = new ConsoleKeyInfo(EnterKeyChar, ConsoleKey.Enter, false, false, false);
+        internal static readonly ConsoleKeyInfo BackspaceKey = new ConsoleKeyInfo(BackspaceKeyChar, ConsoleKey.Backspace, false, false, false);
 
         private readonly string _value;
         private int _index;
@@ -34,6 +36,9 @@ namespace egregore.Tests
             var keyChar = _value[_index++];
             if (keyChar == EnterKeyChar)
                 return EnterKey;
+
+            if (keyChar == BackspaceKeyChar)
+                return BackspaceKey;
 
             Enum.TryParse<ConsoleKey>(keyChar.ToString().ToUpper(), out var consoleKey);
             return new ConsoleKeyInfo(keyChar, consoleKey, false, false, false);

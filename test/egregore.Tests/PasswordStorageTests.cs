@@ -18,10 +18,11 @@ namespace egregore.Tests
         }
 
         [Theory]
+        [InlineData("rosebud", "rot\bsebud")]
         [InlineData("@purple monkey dishwasher!")]
-        public void Succeeds_password_capture_when_password_is_confirmed_correctly(string plaintext)
+        public void Succeeds_password_capture_when_password_is_confirmed_correctly(string plaintext, string plaintextConfirm = null)
         {
-            var capture = new TestKeyCapture(plaintext, plaintext);
+            var capture = new TestKeyCapture(plaintext, plaintextConfirm ?? plaintext);
             unsafe
             {
                 var result = PasswordStorage.TryCapturePassword("test", capture, Console.Out, Console.Error, out var password, out var passwordLength);
@@ -33,21 +34,21 @@ namespace egregore.Tests
 
         [Theory]
         [InlineData("rosebud")]
-        public void Cannot_pass_password_capture_with_empty_password(string plaintext)
+        public void Fails_password_capture_with_empty_password(string plaintextConfirm)
         {
-            var capture = new TestKeyCapture(string.Empty, plaintext);
+            var capture = new TestKeyCapture(string.Empty, plaintextConfirm);
             unsafe
             {
                 var result = PasswordStorage.TryCapturePassword("test", capture, Console.Out, Console.Error, out var password, out var passwordLength);
                 Assert.False(result);
-                Assert.NotEqual(plaintext.Length, passwordLength);
+                Assert.NotEqual(plaintextConfirm.Length, passwordLength);
                 NativeMethods.sodium_free(password);
             }
         }
 
         [Theory]
         [InlineData("rosebud")]
-        public void Cannot_pass_password_capture_with_empty_confirm_password(string plaintext)
+        public void Fails_password_capture_with_empty_confirm_password(string plaintext)
         {
             var capture = new TestKeyCapture(plaintext, string.Empty);
             unsafe
@@ -61,14 +62,14 @@ namespace egregore.Tests
 
         [Theory]
         [InlineData("rosebud")]
-        public void Fails_password_capture_when_confirm_password_is_incorrect(string plaintext)
+        [InlineData("rosebud", "rosebud\bt")]
+        public void Fails_password_capture_when_confirm_password_is_incorrect(string plaintext, string plaintextConfirm = null)
         {
-            var capture = new TestKeyCapture(plaintext, $"{plaintext}wrong");
+            var capture = new TestKeyCapture(plaintext, plaintextConfirm ?? $"{plaintext}wrong");
             unsafe
             {
                 var result = PasswordStorage.TryCapturePassword("test", capture, Console.Out, Console.Error, out var password, out var passwordLength);
                 Assert.False(result);
-                Assert.NotEqual(plaintext.Length, passwordLength);
                 Assert.True(password == default(byte*));
             }
         }
