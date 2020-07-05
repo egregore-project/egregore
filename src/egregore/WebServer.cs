@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,10 +21,10 @@ namespace egregore
     {
         public static void Run(string[] args)
         {
-            var keyPath = Constants.DefaultKeyPath;
-            if (!File.Exists(keyPath))
+            var keyFilePath = Constants.DefaultKeyFilePath;
+            if (!File.Exists(keyFilePath))
             {
-                Console.Error.WriteLine("Cannot start server without a key");
+                Console.Error.WriteLine("Cannot start server without a key file");
                 return;
             }
 
@@ -36,19 +35,6 @@ namespace egregore
                 return;
             }
 
-            (byte[], byte[]) keyPair;
-            try
-            {
-                var wif = File.ReadAllText(keyPath);
-                keyPair = WifFormatter.Deserialize(wif);
-            }
-            catch (Exception e)
-            {
-                Trace.WriteLine(e.ToString());
-                Console.Error.WriteLine("Invalid key");
-                return;
-            }
-            
             #region Masthead 
 
             Console.WriteLine(@"                                        
@@ -70,6 +56,8 @@ namespace egregore
 ");
             #endregion
 
+            var pk= Crypto.PublicKeyFromSecretKey(keyFilePath);
+
             var builder = Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
@@ -77,7 +65,7 @@ namespace egregore
                     {
                         services.Configure<WebServerOptions>(o =>
                         {
-                            o.PublicKey = keyPair.Item1;
+                            o.PublicKey = pk;
                             o.EggPath = eggPath;
                         });
                     });

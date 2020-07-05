@@ -10,6 +10,7 @@ namespace egregore.Tests
     {
         private const char EnterKeyChar = '\u0000';
         private const char BackspaceKeyChar = '\b';
+
         internal static readonly ConsoleKeyInfo EnterKey = new ConsoleKeyInfo(EnterKeyChar, ConsoleKey.Enter, false, false, false);
         internal static readonly ConsoleKeyInfo BackspaceKey = new ConsoleKeyInfo(BackspaceKeyChar, ConsoleKey.Backspace, false, false, false);
 

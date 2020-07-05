@@ -34,16 +34,10 @@ namespace egregore
                     case "--server":
                     case "-s":
                     {
-                        unsafe
-                        {
-                            if (!TryResolveKeyPath(arguments, out KeyFilePath, false))
-                                return;
-                            if (!PasswordStorage.TryLoadKeyFile(KeyFilePath, Console.Out, Console.Error, out var secretKey))
-                                return;
-                            NativeMethods.sodium_free(secretKey);
-                            WebServer.Run(args);
-                            break;
-                        }
+                        if (!TryResolveKeyPath(arguments, out KeyFilePath, false))
+                            return;
+                        WebServer.Run(args);
+                        break;
                     }
                     case "--keygen":
                     case "-k":
@@ -70,10 +64,10 @@ namespace egregore
         public static bool TryResolveKeyPath(Queue<string> arguments, out string fullKeyPath, bool warnIfExists)
         {
             fullKeyPath = default;
-            var keyPath = arguments.EndOfSubArguments() ? Constants.DefaultKeyPath : arguments.Dequeue();
+            var keyPath = arguments.EndOfSubArguments() ? Constants.DefaultKeyFilePath : arguments.Dequeue();
             
             Directory.CreateDirectory(".egregore");
-            if (keyPath != Constants.DefaultKeyPath && keyPath.IndexOfAny(Path.GetInvalidFileNameChars()) > -1)
+            if (keyPath != Constants.DefaultKeyFilePath && keyPath.IndexOfAny(Path.GetInvalidFileNameChars()) > -1)
             {
                 Console.Error.WriteLine(Strings.InvalidCharactersInPath);
                 return false;

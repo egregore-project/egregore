@@ -8,7 +8,7 @@ namespace egregore
     internal static class Constants
     {
         public static readonly string DefaultNamespace = "Default";
-        public static readonly string DefaultKeyPath = Path.Combine(".egregore", "egregore.key");
+        public static readonly string DefaultKeyFilePath = Path.Combine(".egregore", "egregore.key");
         public static readonly string DefaultEggPath = "default.egg";
         public static readonly string OwnerRole = "owner";
 
