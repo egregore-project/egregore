@@ -9,18 +9,19 @@ namespace egregore.Ontology
     public abstract class Privilege : ILogSerialized
     {
         public byte[] Subject { get; set; }
+        public string Type { get; set; }
         public string Value { get; set; }
         public byte[] Authority { get; set; }
         public byte[] Signature { get; private set; }
 
-        protected Privilege(string value)
+        protected Privilege(string type)
         {
-            Value = value;
+            Type = type;
         }
 
-        protected Privilege(string value, byte[] signature)
+        protected Privilege(string type, byte[] signature)
         {
-            Value = value;
+            Type = type;
             Signature = signature;
         }
 
@@ -44,7 +45,7 @@ namespace egregore.Ontology
         {
             return $"v{formatVersion}_ed25519_" +
                    $"{Crypto.ToHexString(Authority)}_" +
-                   $"{Value}_to_" +
+                   $"{Type}_{Value}_to_" +
                    $"{Crypto.ToHexString(Subject)}";
         }
 
