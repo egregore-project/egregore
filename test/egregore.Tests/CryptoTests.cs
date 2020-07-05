@@ -6,15 +6,24 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace egregore.Tests
 {
     public class CryptoTests
     {
+        private readonly ITestOutputHelper _output;
+
+        public CryptoTests(ITestOutputHelper output)
+        {
+            _output = output;
+        }
+
         [Fact]
         public void Can_use_guarded_heap_for_secret_key_from_file()
         {
-            var publicKey = GenerateSecretKeyOnDisk(out var fileName);
+            var capture = new TestKeyCapture("rosebud", "rosebud");
+            var publicKey = CryptoTestHarness.GenerateSecretKeyOnDisk(_output, capture, out var fileName);
 
             unsafe
             {
@@ -90,8 +99,14 @@ namespace egregore.Tests
         [Fact]
         public void Can_swap_signing_key_for_encryption_key()
         {
-            GenerateSecretKeyOnDisk(out var fileName);
-            Crypto.SigningKeyToEncryptionKeyDangerous(File.OpenRead(fileName));
+            unsafe
+            {
+                var capture = new TestKeyCapture("rosebud", "rosebud");
+                CryptoTestHarness.GenerateSecretKeyOnDisk(_output, capture, out var keyFilePath);
+                capture.Reset();
+                var sk = Crypto.SigningKeyToEncryptionKey(keyFilePath, capture);
+                Assert.True(sk != default(byte*));
+            }
         }
 
         [Fact]
@@ -100,15 +115,6 @@ namespace egregore.Tests
             var (pk, sk) = Crypto.GenerateKeyPairDangerous();
             var publicKey = Crypto.PublicKeyFromSecretKeyDangerous(sk);
             Assert.True(publicKey.SequenceEqual(pk));
-        }
-
-        internal static byte[] GenerateSecretKeyOnDisk(out string fileName)
-        {
-            // simulate a valid private key on disk
-            var (pk, sk) = Crypto.GenerateKeyPairDangerous();
-            fileName = Path.GetTempFileName();
-            File.WriteAllBytes(fileName, sk);
-            return pk;
         }
     }
 }

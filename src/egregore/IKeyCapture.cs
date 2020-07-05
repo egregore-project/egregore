@@ -2,8 +2,9 @@
 
 namespace egregore
 {
-    internal interface IKeyCapture
+    public interface IKeyCapture
     {
         ConsoleKeyInfo ReadKey();
+        void Reset();
     }
 }

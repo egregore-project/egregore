@@ -11,5 +11,7 @@ namespace egregore
         public static readonly string DefaultKeyPath = Path.Combine(".egregore", "egregore.key");
         public static readonly string DefaultEggPath = "default.egg";
         public static readonly string OwnerRole = "owner";
+
+        public static readonly IKeyCapture ConsoleKeyCapture = new ConsoleKeyCapture();
     }
 }

@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.IO;
 using egregore.Extensions;
 
 namespace egregore.Ontology
@@ -25,16 +24,20 @@ namespace egregore.Ontology
             Signature = signature;
         }
 
-        public void Sign(FileStream fs, ulong formatVersion = LogSerializeContext.FormatVersion)
+        public void Sign(string keyFilePath, IKeyCapture capture = null, ulong formatVersion = LogSerializeContext.FormatVersion)
         {
-            var message = GetMessage(formatVersion);
+            unsafe
+            {
+                var sk = Crypto.GetSecretKeyPointer(keyFilePath, capture);
+                var message = GetMessage(formatVersion);
 
-            var signature = new byte[Crypto.SecretKeyBytes].AsSpan();
-            var signatureLength = Crypto.SignDetached(message, fs, signature);
-            if (signatureLength < (ulong) signature.Length)
-                signature = signature.Slice(0, (int) signatureLength);
+                var signature = new byte[Crypto.SecretKeyBytes].AsSpan();
+                var signatureLength = Crypto.SignDetached(message, sk, signature);
+                if (signatureLength < (ulong) signature.Length)
+                    signature = signature.Slice(0, (int) signatureLength);
 
-            Signature = signature.ToArray();
+                Signature = signature.ToArray();
+            }
         }
 
         private string GetMessage(ulong formatVersion = LogSerializeContext.FormatVersion)

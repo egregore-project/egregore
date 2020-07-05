@@ -2,16 +2,23 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.IO;
 using System.Threading.Tasks;
 using egregore.Ontology;
 using egregore.Ontology.Exceptions;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace egregore.Tests
 {
     public class OntologyTests
     {
+        private readonly ITestOutputHelper _output;
+
+        public OntologyTests(ITestOutputHelper output)
+        {
+            _output = output;
+        }
+        
         [Fact]
         public void Empty_ontology_has_default_namespace()
         {
@@ -48,15 +55,17 @@ namespace egregore.Tests
         [Fact]
         public async Task Cannot_revoke_only_owner_grant()
         {
-            var publicKey = CryptoTests.GenerateSecretKeyOnDisk(out var fileName);
-
+            var capture = new TestKeyCapture("rosebud", "rosebud");
+            var publicKey = CryptoTestHarness.GenerateSecretKeyOnDisk(_output, capture, out var keyFilePath);
+            
             using var fixture = new LogStoreFixture();
 
             var ontology = new OntologyLog(publicKey);
             Assert.Single(ontology.Roles[Constants.DefaultNamespace]);
 
+            capture.Reset();
             var revoke = new RevokeRole(Constants.OwnerRole, publicKey, publicKey);
-            revoke.Sign(File.OpenRead(fileName));
+            revoke.Sign(keyFilePath, capture);
             
             await fixture.Store.AddEntryAsync(LogEntryFactory.CreateEntry(revoke));
             Assert.Throws<CannotRemoveSingleOwnerException>(() => { ontology.Materialize(fixture.Store); });

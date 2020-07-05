@@ -100,6 +100,7 @@ namespace egregore
         {
             services.AddControllersWithViews();
             services.AddHostedService<ServerStartup>();
+            services.AddSingleton<KeyFileService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

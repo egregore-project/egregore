@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.MemoryMappedFiles;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -177,86 +178,72 @@ namespace egregore
             return ed25519PublicKey;
         }
 
-        public static byte[] PublicKeyFromSecretKey(FileStream fs)
-        {
-            var ed25519PublicKey = new byte[PublicKeyBytes];
-            PublicKeyFromSecretKey(fs, ed25519PublicKey);
-            return ed25519PublicKey;
-        }
-
-        public static void PublicKeyFromSecretKey(FileStream fs, Span<byte> ed25519PublicKey)
+        public static byte[] PublicKeyFromSecretKey(string keyFilePath, IKeyCapture capture = null)
         {
             unsafe
             {
-                var sk = OpenGuardedHeap(fs, (int) SecretKeyBytes);
-                try
-                {
-                    fixed(byte* pk = &ed25519PublicKey.GetPinnableReference())
-                    {
-                        if (NativeMethods.crypto_sign_ed25519_sk_to_pk(pk, sk) != 0)
-                            throw new InvalidOperationException(nameof(NativeMethods.crypto_sign_ed25519_sk_to_pk));
-                    }
-                }
-                finally
-                {
-                    CloseGuardedHeap(sk);
-                }
+                var sk = GetSecretKeyPointer(keyFilePath, capture);
+                var ed25519PublicKey = new byte[PublicKeyBytes];
+                PublicKeyFromSecretKey(sk, ed25519PublicKey);
+                return ed25519PublicKey;
             }
         }
 
-        /// <summary>
-        /// <remarks>NEVER use this outside of tests.</remarks>
-        /// </summary>
-        public static byte[] SigningKeyToEncryptionKeyDangerous(FileStream fs)
+        internal static unsafe byte* GetSecretKeyPointer(string keyFilePath, IKeyCapture capture = null, [CallerMemberName] string callerMemberName = null)
         {
-            var curve25519Sk = new byte[SecretKeyBytes];
-            SigningKeyToEncryptionKeyDangerous(fs, curve25519Sk);
-            return curve25519Sk;
+            if (!PasswordStorage.TryLoadKeyFile(keyFilePath, Console.Out, Console.Error, out var sk, capture ?? Constants.ConsoleKeyCapture))
+                throw new InvalidOperationException($"{callerMemberName}: Cannot load key file at path '{keyFilePath}'");
+            return sk;
         }
 
-        /// <summary>
-        /// <remarks>NEVER use this outside of tests.</remarks>
-        /// </summary>
-        public static void SigningKeyToEncryptionKeyDangerous(FileStream fs, Span<byte> x25519Sk)
+        public static unsafe void PublicKeyFromSecretKey(byte* sk, Span<byte> ed25519PublicKey)
         {
-            unsafe
+            try
             {
-                var e = OpenGuardedHeap(fs, (int) SecretKeyBytes);
-                try
+                fixed(byte* pk = &ed25519PublicKey.GetPinnableReference())
                 {
-                    fixed (byte* x = &x25519Sk.GetPinnableReference())
-                    {
-                        if (NativeMethods.crypto_sign_ed25519_sk_to_curve25519(x, e) != 0)
-                            throw new InvalidOperationException(nameof(NativeMethods.crypto_sign_ed25519_sk_to_curve25519));
-                    }
+                    if (NativeMethods.crypto_sign_ed25519_sk_to_pk(pk, sk) != 0)
+                        throw new InvalidOperationException(nameof(NativeMethods.crypto_sign_ed25519_sk_to_pk));
                 }
-                finally
-                {
-                    CloseGuardedHeap(e);
-                }
+            }
+            finally
+            {
+                NativeMethods.sodium_free(sk);
             }
         }
 
-        public static ulong SignDetached(string message, FileStream fs, Span<byte> signature) => SignDetached(Encoding.UTF8.GetBytes(message), fs, signature);
-        public static ulong SignDetached(ReadOnlySpan<byte> message, FileStream fs, Span<byte> signature)
+        public static unsafe byte* SigningKeyToEncryptionKey(string keyFilePath, IKeyCapture capture = null) => SigningKeyToEncryptionKey(GetSecretKeyPointer(keyFilePath, capture));
+        public static unsafe byte* SigningKeyToEncryptionKey(byte* ed25519Sk)
+        {
+            try
+            {
+                var x25519Sk = (byte*) NativeMethods.sodium_malloc(SecretKeyBytes);
+                if (NativeMethods.crypto_sign_ed25519_sk_to_curve25519(x25519Sk, ed25519Sk) != 0)
+                    throw new InvalidOperationException(nameof(NativeMethods.crypto_sign_ed25519_sk_to_curve25519));
+                return x25519Sk;
+            }
+            finally
+            {
+                NativeMethods.sodium_free(ed25519Sk);
+            }
+        }
+
+        public static unsafe ulong SignDetached(string message, byte* sk, Span<byte> signature) => SignDetached(Encoding.UTF8.GetBytes(message), sk, signature);
+        public static unsafe ulong SignDetached(ReadOnlySpan<byte> message, byte* sk, Span<byte> signature)
         {
             var length = 0UL;
 
-            unsafe
+            fixed (byte* sig = &signature.GetPinnableReference())
+            fixed (byte* m = &message.GetPinnableReference())
             {
-                fixed (byte* sig = &signature.GetPinnableReference())
-                fixed (byte* m = &message.GetPinnableReference())
+                try
                 {
-                    var sk = OpenGuardedHeap(fs, (int) SecretKeyBytes);
-                    try
-                    {
-                        if(NativeMethods.crypto_sign_detached(sig, ref length, m, (ulong) message.Length, sk) != 0)
-                            throw new InvalidOperationException(nameof(NativeMethods.crypto_sign_detached));
-                    }
-                    finally
-                    {
-                        CloseGuardedHeap(sk);
-                    }
+                    if(NativeMethods.crypto_sign_detached(sig, ref length, m, (ulong) message.Length, sk) != 0)
+                        throw new InvalidOperationException(nameof(NativeMethods.crypto_sign_detached));
+                }
+                finally
+                {
+                    NativeMethods.sodium_free(sk);
                 }
             }
 

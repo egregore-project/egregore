@@ -34,14 +34,22 @@ namespace egregore.Tests
                 return EnterKey;
 
             var keyChar = _value[_index++];
-            if (keyChar == EnterKeyChar)
-                return EnterKey;
+            
+            switch (keyChar)
+            {
+                case EnterKeyChar:
+                    return EnterKey;
+                case BackspaceKeyChar:
+                    return BackspaceKey;
+                default:
+                    Enum.TryParse<ConsoleKey>(keyChar.ToString().ToUpper(), out var consoleKey);
+                    return new ConsoleKeyInfo(keyChar, consoleKey, false, false, false);
+            }
+        }
 
-            if (keyChar == BackspaceKeyChar)
-                return BackspaceKey;
-
-            Enum.TryParse<ConsoleKey>(keyChar.ToString().ToUpper(), out var consoleKey);
-            return new ConsoleKeyInfo(keyChar, consoleKey, false, false, false);
+        public void Reset()
+        {
+            _index = 0;
         }
     }
 }

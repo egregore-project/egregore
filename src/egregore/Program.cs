@@ -14,6 +14,8 @@ namespace egregore
 {
     internal static class Program
     {
+        internal static string KeyFilePath;
+
         [ExcludeFromCodeCoverage]
         public static void Main(params string[] args)
         {
@@ -34,9 +36,9 @@ namespace egregore
                     {
                         unsafe
                         {
-                            if (!TryResolveKeyPath(arguments, out var keyPath, false))
+                            if (!TryResolveKeyPath(arguments, out KeyFilePath, false))
                                 return;
-                            if (!PasswordStorage.TryLoadKeyFile(keyPath, Console.Out, Console.Error, out var secretKey))
+                            if (!PasswordStorage.TryLoadKeyFile(KeyFilePath, Console.Out, Console.Error, out var secretKey))
                                 return;
                             NativeMethods.sodium_free(secretKey);
                             WebServer.Run(args);
@@ -46,9 +48,9 @@ namespace egregore
                     case "--keygen":
                     case "-k":
                     {
-                        if (!TryResolveKeyPath(arguments, out var keyPath, true))
+                        if (!TryResolveKeyPath(arguments, out KeyFilePath, true))
                             return;
-                        if (!PasswordStorage.TryGenerateKeyFile(keyPath, Console.Out, Console.Error))
+                        if (!PasswordStorage.TryGenerateKeyFile(KeyFilePath, Console.Out, Console.Error))
                             return;
                     }
                     break;

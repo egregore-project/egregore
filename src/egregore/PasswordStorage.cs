@@ -24,7 +24,6 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.MemoryMappedFiles;
-using System.Reflection.Metadata.Ecma335;
 
 namespace egregore
 {
@@ -35,8 +34,7 @@ namespace egregore
     /// </summary>
     internal static class PasswordStorage
     {
-        private static readonly IKeyCapture ConsoleKeyCapture = new ConsoleKeyCapture();
-        private static string BackspaceSpaceBackspace = "\b \b";
+        private static readonly string BackspaceSpaceBackspace = "\b \b";
 
         public const byte SigAlgBytes = 2;
         public const byte KdfAlgBytes = 2;
@@ -186,7 +184,7 @@ namespace egregore
 
         public static unsafe bool TryGenerateKeyFile(string keyPath, TextWriter @out, TextWriter error, IKeyCapture keyCapture = null)
         {
-            keyCapture ??= ConsoleKeyCapture;
+            keyCapture ??= Constants.ConsoleKeyCapture;
 
             if (!TryCapturePassword(Strings.GenerateKeyInstructions, keyCapture, @out, error, out var password, out var passwordLength))
                 return false;
@@ -357,9 +355,9 @@ namespace egregore
             }
         }
 
-        public static unsafe bool TryLoadKeyFile(string keyPath,TextWriter @out, TextWriter error, out byte* secretKey, IKeyCapture keyCapture = null)
+        public static unsafe bool TryLoadKeyFile(string keyFilePath, TextWriter @out, TextWriter error, out byte* secretKey, IKeyCapture keyCapture = null)
         {
-            keyCapture ??= ConsoleKeyCapture;
+            keyCapture ??= Constants.ConsoleKeyCapture;
 
             secretKey = default;
 
@@ -370,7 +368,7 @@ namespace egregore
             // Read key file: (SigAlg || KdfAlg || ChkAlg || KeyNum || KdfSalt || OpsLimit || MemLimit || Cipher || Checksum)
             try
             {
-                using var fs = File.Open(keyPath, FileMode.Open, FileAccess.Read);
+                using var fs = File.Open(keyFilePath, FileMode.Open, FileAccess.Read);
                 using var mmf = MemoryMappedFile.CreateFromFile(fs, null, KeyFileBytes, MemoryMappedFileAccess.Read, HandleInheritability.None, false);
                 using var uvs = mmf.CreateViewStream(0, KeyFileBytes, MemoryMappedFileAccess.Read);
 
