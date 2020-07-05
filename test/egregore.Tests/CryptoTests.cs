@@ -20,35 +20,6 @@ namespace egregore.Tests
         }
 
         [Fact]
-        public void Can_use_guarded_heap_for_secret_key_from_file()
-        {
-            var capture = new TestKeyCapture("rosebud", "rosebud");
-            var publicKey = CryptoTestHarness.GenerateSecretKeyOnDisk(_output, capture, out var fileName);
-
-            unsafe
-            {
-                using var fs = File.OpenRead(fileName);
-                var sk = Crypto.OpenGuardedHeap(fs, (int) Crypto.SecretKeyBytes);
-                try
-                {
-                    // use the guarded heap in a crypto operation (get pk from sk)
-                    fixed (byte* pk = &new Span<byte>(new byte[Crypto.PublicKeyBytes]).GetPinnableReference())
-                    {
-                        if(NativeMethods.crypto_sign_ed25519_sk_to_pk(pk, sk) != 0)
-                            throw new InvalidOperationException(nameof(NativeMethods.crypto_sign_ed25519_sk_to_pk));
-                    }
-
-                    // check that the pk is valid
-                    Assert.True(publicKey.SequenceEqual(publicKey.ToArray()));
-                }
-                finally
-                {
-                    Crypto.CloseGuardedHeap(sk);
-                }
-            }
-        }
-
-        [Fact]
         public void Can_fill_buffer_with_random_bytes()
         {
             var target = new byte[256U];
@@ -80,9 +51,12 @@ namespace egregore.Tests
         [Fact]
         public void Can_generate_key_pair()
         {
-            var (pk, sk) = Crypto.GenerateKeyPairDangerous();
-            Assert.NotEmpty(pk);
-            Assert.NotEmpty(sk);
+            unsafe
+            {
+                Crypto.GenerateKeyPair(out var pk, out var sk);
+                Assert.NotEmpty(pk);
+                Assert.False(sk == default(byte*));    
+            }
         }
 
         [Fact]
@@ -102,9 +76,10 @@ namespace egregore.Tests
             unsafe
             {
                 var capture = new TestKeyCapture("rosebud", "rosebud");
-                CryptoTestHarness.GenerateSecretKeyOnDisk(_output, capture, out var keyFilePath);
+                var service = new TestKeyFileService();
+                CryptoTestHarness.GenerateKeyFile(_output, capture, service);
                 capture.Reset();
-                var sk = Crypto.SigningKeyToEncryptionKey(keyFilePath, capture);
+                var sk = Crypto.SigningKeyToEncryptionKey(service, capture);
                 Assert.True(sk != default(byte*));
             }
         }
@@ -112,9 +87,29 @@ namespace egregore.Tests
         [Fact]
         public void Can_derive_public_key_from_secret_key()
         {
-            var (pk, sk) = Crypto.GenerateKeyPairDangerous();
-            var publicKey = Crypto.PublicKeyFromSecretKeyDangerous(sk);
-            Assert.True(publicKey.SequenceEqual(pk));
+            unsafe
+            {
+                Crypto.GenerateKeyPair(out var pk, out var sk);
+                var publicKey = new byte[Crypto.PublicKeyBytes];
+                Crypto.PublicKeyFromSecretKey(sk, publicKey);
+                Assert.True(publicKey.SequenceEqual(pk));
+            }
+        }
+
+        [Fact]
+        public void Can_sign_and_verify_detached_message()
+        {
+            const string message = "Hello, world!";
+            
+            unsafe
+            {
+                Crypto.GenerateKeyPair(out var pk, out var sk);
+
+                var signature = new byte[Crypto.SecretKeyBytes];
+                Crypto.SignDetached(message, sk, signature);
+
+                Assert.True(Crypto.VerifyDetached(message, signature, pk));
+            }
         }
     }
 }

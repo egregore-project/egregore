@@ -14,50 +14,62 @@ namespace egregore
 {
     internal static class Program
     {
-        internal static string KeyFilePath;
+        internal static string keyFilePath;
+        internal static FileStream keyFileStream;
 
         [ExcludeFromCodeCoverage]
         public static void Main(params string[] args)
         {
-            AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+            try
             {
-                if(!Debugger.IsAttached)
-                    Environment.Exit(Marshal.GetHRForException((Exception) e.ExceptionObject));
-            };
-
-            var arguments = new Queue<string>(args);
-            while (arguments.Count > 0)
-            {
-                var arg = arguments.Dequeue();
-                switch (arg.ToLower())
+                AppDomain.CurrentDomain.UnhandledException += (s, e) =>
                 {
-                    case "--server":
-                    case "-s":
+                    if (!Debugger.IsAttached)
                     {
-                        if (!TryResolveKeyPath(arguments, out KeyFilePath, false))
-                            return;
-                        WebServer.Run(args);
-                        break;
+                        Environment.Exit(Marshal.GetHRForException((Exception) e.ExceptionObject));
                     }
-                    case "--keygen":
-                    case "-k":
+                };
+
+                var arguments = new Queue<string>(args);
+                while (arguments.Count > 0)
+                {
+                    var arg = arguments.Dequeue();
+                    switch (arg.ToLower())
                     {
-                        if (!TryResolveKeyPath(arguments, out KeyFilePath, true))
-                            return;
-                        if (!PasswordStorage.TryGenerateKeyFile(KeyFilePath, Console.Out, Console.Error))
-                            return;
+                        case "--server":
+                        case "-s":
+                        {
+                            if (!TryResolveKeyPath(arguments, out keyFilePath, false))
+                                return;
+                            keyFileStream = new FileStream(keyFilePath, FileMode.Open, FileAccess.Read, FileShare.None);
+                            WebServer.Run(args);
+                            break;
+                        }
+                        case "--keygen":
+                        case "-k":
+                        {
+                            if (!TryResolveKeyPath(arguments, out keyFilePath, true))
+                                return;
+                            keyFileStream = new FileStream(keyFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+                            if (!PasswordStorage.TryGenerateKeyFile(keyFileStream, Console.Out, Console.Error))
+                                return;
+                            break;
+                        }
+                        case "--egg":
+                        case "-e":
+                            var eggPath = arguments.EndOfSubArguments() ? Constants.DefaultEggPath : arguments.Dequeue();
+                            CreateEgg(eggPath);
+                            break;
+                        case "--append":
+                        case "-a":
+                            Append(arguments);
+                            break;
                     }
-                    break;
-                    case "--egg":
-                    case "-e":
-                        var eggPath = arguments.EndOfSubArguments() ? Constants.DefaultEggPath : arguments.Dequeue();
-                        CreateEgg(eggPath);
-                        break;
-                    case "--append":
-                    case "-a":
-                        Append(arguments);
-                        break;
                 }
+            }
+            finally
+            {
+                keyFileStream?.Dispose();
             }
         }
 
@@ -164,7 +176,7 @@ namespace egregore
         {
             if (eggPath.IndexOfAny(Path.GetInvalidFileNameChars()) > -1)
             {
-                Console.Error.WriteLine("Invalid characters in path");
+                Console.Error.WriteLine(Strings.InvalidCharactersInPath);
                 return;
             }
 

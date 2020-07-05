@@ -2,12 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
 using System.IO;
-using System.IO.MemoryMappedFiles;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using egregore.Ontology;
 
 namespace egregore
 {
@@ -92,7 +91,7 @@ namespace egregore
         {
             var minLength = bin.Length * 2 + 1;
             if(hex.Length < minLength)
-                throw new ArgumentOutOfRangeException(nameof(hex), hex.Length, $"hex buffer is shorter than {minLength}");
+                throw new ArgumentOutOfRangeException(nameof(hex), hex.Length, $"Hex buffer is shorter than {minLength}");
 
             unsafe
             {
@@ -133,18 +132,17 @@ namespace egregore
 
         #region Public-key cryptography (Ed25519)
 
-        /// <summary>
-        /// Generate a new key pair for offline purposes only.
-        /// <remarks>
-        /// NEVER use the secret key outside of tests. 
-        /// </remarks>
-        /// </summary>
-        public static (byte[] publicKey, byte[] secretKey) GenerateKeyPairDangerous()
+        public static unsafe void GenerateKeyPair(out byte[] publicKey, out byte* secretKey)
         {
-            var pk = new byte[PublicKeyBytes];
-            var sk = new byte[SecretKeyBytes];
-            GenerateKeyPairDangerous(pk, sk);
-            return (pk, sk);
+            publicKey = new byte[PublicKeyBytes];
+            var sk = (byte*) NativeMethods.sodium_malloc(SecretKeyBytes);
+            fixed (byte* pk = publicKey)
+            {
+                if(NativeMethods.crypto_sign_keypair(pk, sk) != 0)
+                    throw new InvalidOperationException(nameof(NativeMethods.crypto_sign_keypair));
+                
+                secretKey = sk;
+            }
         }
 
         /// <summary>
@@ -158,7 +156,7 @@ namespace egregore
                 fixed (byte* sk = &secretKey.GetPinnableReference())
                 {
                     if(NativeMethods.crypto_sign_keypair(pk, sk) != 0)
-                        throw new InvalidOperationException();
+                        throw new InvalidOperationException(nameof(NativeMethods.crypto_sign_keypair));
                 }
             }
         }
@@ -178,21 +176,25 @@ namespace egregore
             return ed25519PublicKey;
         }
 
-        public static byte[] PublicKeyFromSecretKey(string keyFilePath, IKeyCapture capture = null)
+        public static byte[] PublicKeyFromSecretKey(IKeyFileService keyFileService, IKeyCapture capture = null)
         {
             unsafe
             {
-                var sk = GetSecretKeyPointer(keyFilePath, capture);
+                var sk = GetSecretKeyPointer(keyFileService, capture);
                 var ed25519PublicKey = new byte[PublicKeyBytes];
                 PublicKeyFromSecretKey(sk, ed25519PublicKey);
                 return ed25519PublicKey;
             }
         }
 
-        internal static unsafe byte* GetSecretKeyPointer(string keyFilePath, IKeyCapture capture = null, [CallerMemberName] string callerMemberName = null)
+        internal static unsafe byte* GetSecretKeyPointer(IKeyFileService keyFileService, IKeyCapture capture = null, [CallerMemberName] string callerMemberName = null)
         {
-            if (!PasswordStorage.TryLoadKeyFile(keyFilePath, Console.Out, Console.Error, out var sk, capture ?? Constants.ConsoleKeyCapture))
-                throw new InvalidOperationException($"{callerMemberName}: Cannot load key file at path '{keyFilePath}'");
+            var fs = keyFileService.GetKeyFileStream();
+            if (fs.CanSeek)
+                fs.Seek(0, SeekOrigin.Begin);
+
+            if (!PasswordStorage.TryLoadKeyFile(fs, Console.Out, Console.Error, out var sk, capture ?? Constants.ConsoleKeyCapture))
+                throw new InvalidOperationException($"{callerMemberName}: Cannot load key file at path '{keyFileService.GetKeyFilePath()}'");
             return sk;
         }
 
@@ -212,7 +214,7 @@ namespace egregore
             }
         }
 
-        public static unsafe byte* SigningKeyToEncryptionKey(string keyFilePath, IKeyCapture capture = null) => SigningKeyToEncryptionKey(GetSecretKeyPointer(keyFilePath, capture));
+        public static unsafe byte* SigningKeyToEncryptionKey(IKeyFileService keyFileService, IKeyCapture capture = null) => SigningKeyToEncryptionKey(GetSecretKeyPointer(keyFileService, capture));
         public static unsafe byte* SigningKeyToEncryptionKey(byte* ed25519Sk)
         {
             try
@@ -259,43 +261,11 @@ namespace egregore
                 fixed (byte* m = &message.GetPinnableReference())
                 fixed (byte* pk = &publicKey.GetPinnableReference())
                 {
-                    return NativeMethods.crypto_sign_verify_detached(sig, m, (ulong) message.Length, pk) == 0;
+                    var result = NativeMethods.crypto_sign_verify_detached(sig, m, (ulong) message.Length, pk);
+                    return result == 0;
                 }
             }
         }
-
-        #endregion
-
-        #region Guarded Heap 
-
-        public static unsafe byte* OpenGuardedHeap(FileStream fs, uint size) 
-        {
-            var ptr = (byte*) NativeMethods.sodium_malloc(size);
-            try
-            {
-                // open an unmanaged view stream
-                using var mmf = MemoryMappedFile.CreateFromFile(fs, null, 0, MemoryMappedFileAccess.Read, HandleInheritability.None, false);
-                using var uvs = mmf.CreateViewStream(0, size, MemoryMappedFileAccess.Read);
-                
-                // get a writable stream to the guarded heap
-                using var ums = new UnmanagedMemoryStream(ptr, size, size, FileAccess.Write);
-                for (var i = 0; i < size; i++)
-                {
-                    var @byte = (byte) uvs.ReadByte();
-                    ums.WriteByte(@byte);
-                }
-
-                return ptr;
-            }
-            catch(Exception ex)
-            {
-                Trace.TraceError(ex.ToString());
-                NativeMethods.sodium_free(ptr);
-                throw;
-            }
-        }
-
-        public static unsafe void CloseGuardedHeap(byte* sk) => NativeMethods.sodium_free(sk);
 
         #endregion
     }

@@ -182,7 +182,7 @@ namespace egregore
             return xor;
         }
 
-        public static unsafe bool TryGenerateKeyFile(string keyPath, TextWriter @out, TextWriter error, IKeyCapture keyCapture = null)
+        public static unsafe bool TryGenerateKeyFile(FileStream keyFileStream, TextWriter @out, TextWriter error, IKeyCapture keyCapture = null)
         {
             keyCapture ??= Constants.ConsoleKeyCapture;
 
@@ -331,14 +331,15 @@ namespace egregore
 
                 try
                 {
-                    File.WriteAllBytes(keyPath, new byte[KeyFileBytes]);
+                    keyFileStream.Seek(0, SeekOrigin.Begin);
+                    for (var i = 0; i < KeyFileBytes; i++)
+                        keyFileStream.WriteByte(0);
 
-                    using var fs = File.Open(keyPath, FileMode.OpenOrCreate, FileAccess.ReadWrite);
-                    using var mmf = MemoryMappedFile.CreateFromFile(fs, null, KeyFileBytes, MemoryMappedFileAccess.ReadWrite, HandleInheritability.None, false);
+                    using var mmf = MemoryMappedFile.CreateFromFile(keyFileStream, null, KeyFileBytes, MemoryMappedFileAccess.ReadWrite, HandleInheritability.None, true);
                     using var uvs = mmf.CreateViewStream(0, KeyFileBytes, MemoryMappedFileAccess.ReadWrite);
                     for (var i = 0; i < (int) KeyFileBytes; i++)
                         uvs.WriteByte(file[i]);
-                    fs.Flush();
+                    keyFileStream.Flush();
                 }
                 finally
                 {
@@ -355,7 +356,7 @@ namespace egregore
             }
         }
 
-        public static unsafe bool TryLoadKeyFile(string keyFilePath, TextWriter @out, TextWriter error, out byte* secretKey, IKeyCapture keyCapture = null)
+        public static unsafe bool TryLoadKeyFile(FileStream keyFileStream, TextWriter @out, TextWriter error, out byte* secretKey, IKeyCapture keyCapture = null)
         {
             keyCapture ??= Constants.ConsoleKeyCapture;
 
@@ -368,8 +369,7 @@ namespace egregore
             // Read key file: (SigAlg || KdfAlg || ChkAlg || KeyNum || KdfSalt || OpsLimit || MemLimit || Cipher || Checksum)
             try
             {
-                using var fs = File.Open(keyFilePath, FileMode.Open, FileAccess.Read);
-                using var mmf = MemoryMappedFile.CreateFromFile(fs, null, KeyFileBytes, MemoryMappedFileAccess.Read, HandleInheritability.None, false);
+                using var mmf = MemoryMappedFile.CreateFromFile(keyFileStream, null, KeyFileBytes, MemoryMappedFileAccess.Read, HandleInheritability.None, true);
                 using var uvs = mmf.CreateViewStream(0, KeyFileBytes, MemoryMappedFileAccess.Read);
 
                 var sigAlg = NativeMethods.sodium_malloc(SigAlgBytes);

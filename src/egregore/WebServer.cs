@@ -56,13 +56,13 @@ namespace egregore
 ");
             #endregion
 
-            var pk= Crypto.PublicKeyFromSecretKey(keyFilePath);
-
             var builder = Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.ConfigureServices((context, services) =>
                     {
+                        var pk= Crypto.PublicKeyFromSecretKey(new ProgramKeyFileService());
+
                         services.Configure<WebServerOptions>(o =>
                         {
                             o.PublicKey = pk;
@@ -88,7 +88,7 @@ namespace egregore
         {
             services.AddControllersWithViews();
             services.AddHostedService<ServerStartup>();
-            services.AddSingleton<KeyFileService>();
+            services.AddSingleton<ProgramKeyFileService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

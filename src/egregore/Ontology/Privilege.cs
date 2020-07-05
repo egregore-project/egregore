@@ -24,11 +24,11 @@ namespace egregore.Ontology
             Signature = signature;
         }
 
-        public void Sign(string keyFilePath, IKeyCapture capture = null, ulong formatVersion = LogSerializeContext.FormatVersion)
+        public void Sign(IKeyFileService keyFileService, IKeyCapture capture = null, ulong formatVersion = LogSerializeContext.FormatVersion)
         {
             unsafe
             {
-                var sk = Crypto.GetSecretKeyPointer(keyFilePath, capture);
+                var sk = Crypto.GetSecretKeyPointer(keyFileService, capture);
                 var message = GetMessage(formatVersion);
 
                 var signature = new byte[Crypto.SecretKeyBytes].AsSpan();
@@ -44,7 +44,7 @@ namespace egregore.Ontology
         {
             return $"v{formatVersion}_ed25519_" +
                    $"{Crypto.ToHexString(Authority)}_" +
-                   $"{Value}_{Value}_to_" +
+                   $"{Value}_to_" +
                    $"{Crypto.ToHexString(Subject)}";
         }
 

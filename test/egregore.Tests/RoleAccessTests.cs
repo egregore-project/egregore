@@ -1,6 +1,7 @@
 ﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Linq;
 using egregore.Ontology;
 using Xunit;
 using Xunit.Abstractions;
@@ -17,25 +18,32 @@ namespace egregore.Tests
         }
 
         [Fact]
-        public void Can_grant_and_assign_roles_between_users()
+        public void Can_grant_roles_between_users()
         {
             var capture = new TestKeyCapture("rosebud", "rosebud");
+            var service = new TestKeyFileService();
             
-            var rootPubKey = CryptoTestHarness.GenerateSecretKeyOnDisk(_output, capture, out var rootFile);
+            var rootPubKey = CryptoTestHarness.GenerateKeyFile(_output, capture, service);
             capture.Reset();
 
-            var userPubKey = CryptoTestHarness.GenerateSecretKeyOnDisk(_output, capture, out _);
+            var userPubKey = CryptoTestHarness.GenerateKeyFile(_output, capture, new TestKeyFileService());
             capture.Reset();
 
             var grant = new GrantRole("admin", rootPubKey, userPubKey);
-            grant.Sign(rootFile, capture);
-            Assert.True(grant.Verify());
+            grant.Sign(service, capture);
+
+            Assert.True(grant.Authority.SequenceEqual(rootPubKey));
+            Assert.True(grant.Subject.SequenceEqual(userPubKey));
+            Assert.True(grant.Verify(), "grant was not verified");
 
             capture.Reset();
 
             var revoke = new RevokeRole("admin", rootPubKey, userPubKey);
-            revoke.Sign(rootFile, capture);
-            Assert.True(revoke.Verify());
+            revoke.Sign(service, capture);
+
+            Assert.True(revoke.Authority.SequenceEqual(rootPubKey));
+            Assert.True(revoke.Subject.SequenceEqual(userPubKey));
+            Assert.True(revoke.Verify(), "revoke was not verified");
         }
     }
 }

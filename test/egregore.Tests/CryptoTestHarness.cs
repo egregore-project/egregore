@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.IO;
+using egregore.Ontology;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -10,17 +10,15 @@ namespace egregore.Tests
 {
     public static class CryptoTestHarness
     {
-        internal static byte[] GenerateSecretKeyOnDisk(ITestOutputHelper output, IKeyCapture capture, out string keyFilePath)
+        internal static byte[] GenerateKeyFile(ITestOutputHelper output, IKeyCapture capture, IKeyFileService service)
         {
-            keyFilePath = Path.GetTempFileName();
-
             var @out = new XunitDuplexTextWriter(output, Console.Out);
             var error = new XunitDuplexTextWriter(output, Console.Error);
 
-            Assert.True(PasswordStorage.TryGenerateKeyFile(keyFilePath, @out, error, capture));
+            Assert.True(PasswordStorage.TryGenerateKeyFile(service.GetKeyFileStream(), @out, error, capture));
 
             capture.Reset();
-            return Crypto.PublicKeyFromSecretKey(keyFilePath, capture);
+            return Crypto.PublicKeyFromSecretKey(service, capture);
         }
     }
 }

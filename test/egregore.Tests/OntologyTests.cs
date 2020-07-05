@@ -22,10 +22,13 @@ namespace egregore.Tests
         [Fact]
         public void Empty_ontology_has_default_namespace()
         {
-            var owner = Crypto.GenerateKeyPairDangerous();
-            var ontology = new OntologyLog(owner.publicKey);
-            Assert.Single(ontology.Namespaces);
-            Assert.Equal("default", ontology.Namespaces[0].Value, StringComparer.OrdinalIgnoreCase);
+            unsafe
+            {
+                Crypto.GenerateKeyPair(out var pk, out _);
+                var ontology = new OntologyLog(pk);
+                Assert.Single(ontology.Namespaces);
+                Assert.Equal("default", ontology.Namespaces[0].Value, StringComparer.OrdinalIgnoreCase);
+            }
         }
 
         [Fact]
@@ -42,21 +45,25 @@ namespace egregore.Tests
             schema.Properties.Add(new SchemaProperty { Name = "Name", Type = "string" });
             await fixture.Store.AddEntryAsync(LogEntryFactory.CreateEntry(schema, @namespace.Hash));
 
-            var owner = Crypto.GenerateKeyPairDangerous();
-            var ontology = new OntologyLog(owner.publicKey, fixture.Store);
-            Assert.Equal(2, ontology.Namespaces.Count);
-            Assert.Equal(Constants.DefaultNamespace, ontology.Namespaces[0].Value, StringComparer.OrdinalIgnoreCase);
-            Assert.Equal(ns, ontology.Namespaces[1].Value, StringComparer.OrdinalIgnoreCase);
+            unsafe
+            {
+                Crypto.GenerateKeyPair(out var pk, out _);
+                var ontology = new OntologyLog(pk, fixture.Store);
+                Assert.Equal(2, ontology.Namespaces.Count);
+                Assert.Equal(Constants.DefaultNamespace, ontology.Namespaces[0].Value, StringComparer.OrdinalIgnoreCase);
+                Assert.Equal(ns, ontology.Namespaces[1].Value, StringComparer.OrdinalIgnoreCase);
 
-            Assert.Single(ontology.Roles[Constants.DefaultNamespace]);
-            Assert.Empty(ontology.Roles[ns]);
+                Assert.Single(ontology.Roles[Constants.DefaultNamespace]);
+                Assert.Empty(ontology.Roles[ns]);
+            }
         }
 
         [Fact]
         public async Task Cannot_revoke_only_owner_grant()
         {
             var capture = new TestKeyCapture("rosebud", "rosebud");
-            var publicKey = CryptoTestHarness.GenerateSecretKeyOnDisk(_output, capture, out var keyFilePath);
+            var service = new TestKeyFileService();
+            var publicKey = CryptoTestHarness.GenerateKeyFile(_output, capture, service);
             
             using var fixture = new LogStoreFixture();
 
@@ -65,7 +72,7 @@ namespace egregore.Tests
 
             capture.Reset();
             var revoke = new RevokeRole(Constants.OwnerRole, publicKey, publicKey);
-            revoke.Sign(keyFilePath, capture);
+            revoke.Sign(service, capture);
             
             await fixture.Store.AddEntryAsync(LogEntryFactory.CreateEntry(revoke));
             Assert.Throws<CannotRemoveSingleOwnerException>(() => { ontology.Materialize(fixture.Store); });
