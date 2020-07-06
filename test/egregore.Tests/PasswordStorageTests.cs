@@ -3,6 +3,7 @@
 
 using System;
 using System.IO;
+using egregore.IO;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -25,7 +26,7 @@ namespace egregore.Tests
             var capture = new TestKeyCapture(plaintext, plaintextConfirm ?? plaintext);
             unsafe
             {
-                var result = PasswordStorage.TryCapturePassword("test", capture, Console.Out, Console.Error, out var password, out var passwordLength);
+                var result = KeyFileManager.TryCapturePassword("test", capture, Console.Out, Console.Error, out var password, out var passwordLength);
                 Assert.True(result);
                 Assert.Equal(plaintext.Length, passwordLength);
                 NativeMethods.sodium_free(password);
@@ -39,7 +40,7 @@ namespace egregore.Tests
             var capture = new TestKeyCapture(string.Empty, plaintextConfirm);
             unsafe
             {
-                var result = PasswordStorage.TryCapturePassword("test", capture, Console.Out, Console.Error, out var password, out var passwordLength);
+                var result = KeyFileManager.TryCapturePassword("test", capture, Console.Out, Console.Error, out var password, out var passwordLength);
                 Assert.False(result);
                 Assert.NotEqual(plaintextConfirm.Length, passwordLength);
                 NativeMethods.sodium_free(password);
@@ -53,7 +54,7 @@ namespace egregore.Tests
             var capture = new TestKeyCapture(plaintext, string.Empty);
             unsafe
             {
-                var result = PasswordStorage.TryCapturePassword("test", capture, Console.Out, Console.Error, out var password, out var passwordLength);
+                var result = KeyFileManager.TryCapturePassword("test", capture, Console.Out, Console.Error, out var password, out var passwordLength);
                 Assert.False(result);
                 Assert.NotEqual(plaintext.Length, passwordLength);
                 NativeMethods.sodium_free(password);
@@ -68,7 +69,7 @@ namespace egregore.Tests
             var capture = new TestKeyCapture(plaintext, plaintextConfirm ?? $"{plaintext}wrong");
             unsafe
             {
-                var result = PasswordStorage.TryCapturePassword("test", capture, Console.Out, Console.Error, out var password, out var passwordLength);
+                var result = KeyFileManager.TryCapturePassword("test", capture, Console.Out, Console.Error, out var password, out var passwordLength);
                 Assert.False(result);
                 Assert.True(password == default(byte*));
             }
@@ -86,13 +87,13 @@ namespace egregore.Tests
                 var @out = new XunitDuplexTextWriter(_output, Console.Out);
                 var error = new XunitDuplexTextWriter(_output, Console.Error);
                 
-                var generatedKeyFile = PasswordStorage.TryGenerateKeyFile(keyFileStream, @out, error, new TestKeyCapture(plaintext, plaintext));
+                var generatedKeyFile = KeyFileManager.TryGenerateKeyFile(keyFileStream, @out, error, new TestKeyCapture(plaintext, plaintext));
                 Assert.True(generatedKeyFile);
 
                 keyFileStream.Dispose();
                 keyFileStream = File.OpenRead(keyFilePath);
 
-                var loadedKeyFile = PasswordStorage.TryLoadKeyFile(keyFileStream, @out, error, out var secretKey, new TestKeyCapture(plaintext, plaintext));
+                var loadedKeyFile = KeyFileManager.TryLoadKeyFile(keyFileStream, @out, error, out var secretKey, new TestKeyCapture(plaintext, plaintext));
                 Assert.True(loadedKeyFile);
                 NativeMethods.sodium_free(secretKey);
             }
@@ -110,13 +111,13 @@ namespace egregore.Tests
                 var @out = new XunitDuplexTextWriter(_output, Console.Out);
                 var error = new XunitDuplexTextWriter(_output, Console.Error);
                 
-                var generatedKeyFile = PasswordStorage.TryGenerateKeyFile(keyFileStream, @out, error, new TestKeyCapture(plaintext, plaintext));
+                var generatedKeyFile = KeyFileManager.TryGenerateKeyFile(keyFileStream, @out, error, new TestKeyCapture(plaintext, plaintext));
                 Assert.True(generatedKeyFile, nameof(generatedKeyFile));
 
                 keyFileStream.Dispose();
                 keyFileStream = File.OpenRead(keyFilePath);
 
-                var loadedKeyFile = PasswordStorage.TryLoadKeyFile(keyFileStream, @out, error, out var secretKey, new TestKeyCapture($"{plaintext}wrong", $"{plaintext}wrong"));
+                var loadedKeyFile = KeyFileManager.TryLoadKeyFile(keyFileStream, @out, error, out var secretKey, new TestKeyCapture($"{plaintext}wrong", $"{plaintext}wrong"));
                 Assert.False(loadedKeyFile, nameof(loadedKeyFile));
                 Assert.True(secretKey == default(byte*), nameof(secretKey));
             }

@@ -6,6 +6,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using egregore.IO;
 
 namespace egregore
 {
@@ -263,7 +264,7 @@ namespace egregore
         {
             if (keyFileStream.CanSeek)
                 keyFileStream.Seek(0, SeekOrigin.Begin);
-            if (!PasswordStorage.TryLoadKeyFile(keyFileStream, Console.Out, Console.Error, out var sk, capture))
+            if (!KeyFileManager.TryLoadKeyFile(keyFileStream, Console.Out, Console.Error, out var sk, capture))
                 throw new InvalidOperationException($"{callerMemberName}: Cannot load key file at path '{keyFilePath}'");
             return sk;
         }
@@ -272,7 +273,7 @@ namespace egregore
         {
             if (keyFileStream.CanSeek)
                 keyFileStream.Seek(0, SeekOrigin.Begin);
-            if (!PasswordStorage.TryLoadKeyFile(keyFileStream, Console.Out, Console.Error, out var sk, capture))
+            if (!KeyFileManager.TryLoadKeyFile(keyFileStream, Console.Out, Console.Error, out var sk, capture))
                 throw new InvalidOperationException($"{callerMemberName}: Cannot load key file at path '{keyFilePath}'");
             return sk;
         }

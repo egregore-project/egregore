@@ -21,19 +21,20 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.MemoryMappedFiles;
 using egregore.Extensions;
 
-namespace egregore
+namespace egregore.IO
 {
     /// <summary>
     /// Encrypts secret keys by deriving another key from a password and mixing.
     /// This is based largely on Frank Denis' minisign: https://github.com/jedisct1/minisign/blob/master/src/minisign.c although the file format is NOT compatible.
     /// <remarks>Checksum function currently uses SCrypt, but if compatibility with Minisign and other tools is not a goal, then Argon2 is a better choice.</remarks>
     /// </summary>
-    internal static class PasswordStorage
+    internal static class KeyFileManager
     {
         private static readonly string BackspaceSpaceBackspace = "\b \b";
 
@@ -59,6 +60,18 @@ namespace egregore
         public const ulong ChecksumInputBytes = SigAlgBytes + KeyNumBytes + Crypto.SecretKeyBytes;
 
         public const long KeyFileBytes = SigAlgBytes + KdfAlgBytes + ChkAlgBytes + KeyNumBytes + KdfSaltBytes + KdfOpsLimitBytes + KdfMemLimitBytes + CipherBytes + ChecksumBytes;
+
+        public static bool Create(Queue<string> arguments, bool warnIfExists, bool allowMissing)
+        {
+            if (!TryResolveKeyPath(arguments, out Program.keyFilePath, warnIfExists, allowMissing))
+                return false;
+            Program.keyFileStream = new FileStream(Program.keyFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+            if (!TryGenerateKeyFile(Program.keyFileStream, Console.Out, Console.Error, Constants.ConsoleKeyCapture))
+                return false;
+            Program.keyFileStream?.Dispose();
+            Console.Out.WriteLine(Strings.KeyFileSuccess);
+            return true;
+        }
 
         public static unsafe bool TryCapturePassword(string instructions, IPersistedKeyCapture @in, TextWriter @out,
             TextWriter error, out byte* password, out int passwordLength)
@@ -597,6 +610,44 @@ namespace egregore
                 error.WriteErrorLine(Strings.KeyFileLoadFailure);
                 return false;
             }
+        }
+
+        public static bool TryResolveKeyPath(Queue<string> arguments, out string fullKeyPath, bool warnIfExists, bool allowMissing)
+        {
+            fullKeyPath = default;
+            var keyPath = arguments.EndOfSubArguments() ? Constants.DefaultKeyFilePath : arguments.Dequeue();
+            
+            Directory.CreateDirectory(".egregore");
+            if (keyPath != Constants.DefaultKeyFilePath && keyPath.IndexOfAny(Path.GetInvalidFileNameChars()) > -1)
+            {
+                Console.Error.WriteErrorLine(Strings.InvalidCharactersInPath);
+                return false;
+            }
+
+            try
+            {
+                fullKeyPath = Path.GetFullPath(keyPath);
+                if (!Path.HasExtension(fullKeyPath))
+                    fullKeyPath = Path.ChangeExtension(keyPath, ".key");
+            }
+            catch (Exception e)
+            {
+                Trace.TraceError(e.ToString());
+                Console.Error.WriteErrorLine(Strings.InvalidKeyFilePath);
+                return false;
+            }
+
+            if (warnIfExists && File.Exists(fullKeyPath))
+            {
+                Console.Error.WriteWarningLine(Strings.KeyFileAlreadyExists);
+            }
+            else if (!allowMissing && !File.Exists(fullKeyPath))
+            {
+                Console.Error.WriteErrorLine(Strings.KeyFileIsMissing);
+                return false;
+            }
+
+            return true;
         }
     }
 }

@@ -2,14 +2,15 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.IO;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using egregore.Configuration;
-using egregore.Extensions;
+using egregore.IO;
 using egregore.Ontology;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -20,24 +21,10 @@ namespace egregore
 {
     internal sealed class WebServer
     {
-        public static void Run(string[] args)
+        public static void Run(string eggPath, params string[] args)
         {
             Console.ResetColor();
-
-            var keyFilePath = Constants.DefaultKeyFilePath;
-            if (!File.Exists(keyFilePath))
-            {
-                Console.Error.WriteErrorLine("Cannot start server without a key file");
-                return;
-            }
-
-            var eggPath = Constants.DefaultEggPath;
-            if (!File.Exists(eggPath))
-            {
-                Console.Error.WriteErrorLine("Cannot start server without an egg");
-                return;
-            }
-
+            
             #region Masthead
 
             Console.ForegroundColor = ConsoleColor.Magenta;
@@ -64,8 +51,25 @@ namespace egregore
             var builder = Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
+                    Activity.DefaultIdFormat = ActivityIdFormat.W3C;
+
+                    webBuilder.ConfigureKestrel((context, options) => { });
+                    webBuilder.ConfigureLogging((context, loggingBuilder) => { });
+                    webBuilder.ConfigureAppConfiguration((context, configBuilder) =>
+                    {
+                        if (context.HostingEnvironment.IsDevelopment())
+                        {
+                            StaticWebAssetsLoader.UseStaticWebAssets(context.HostingEnvironment, context.Configuration);
+                        }
+                    });
                     webBuilder.ConfigureServices((context, services) =>
                     {
+                        services.AddCors(o => o.AddDefaultPolicy(b =>
+                        {
+                            b.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+                            b.DisallowCredentials();
+                        }));
+
                         var keyFileService = new ServerKeyFileService();
                         services.AddSingleton<IKeyFileService>(keyFileService);
 
@@ -77,7 +81,7 @@ namespace egregore
 
                         unsafe
                         {
-                            if (!PasswordStorage.TryLoadKeyFile(keyFileService.GetKeyFileStream(), Console.Out, Console.Error, out var _, capture))
+                            if (!KeyFileManager.TryLoadKeyFile(keyFileService.GetKeyFileStream(), Console.Out, Console.Error, out var _, capture))
                                 Environment.Exit(-1);
 
                             var sk = Crypto.LoadSecretKeyPointerFromFileStream(keyFileService.GetKeyFilePath(),
@@ -91,6 +95,10 @@ namespace egregore
                             o.PublicKey = publicKey;
                             o.EggPath = eggPath;
                         });
+                    });
+                    webBuilder.Configure((context, appBuilder) =>
+                    {
+                        appBuilder.UseCors();
                     });
                     webBuilder.UseStartup<WebServer>();
                 });

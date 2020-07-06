@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using egregore.IO;
 using egregore.Ontology;
 using Xunit;
 using Xunit.Abstractions;
@@ -15,7 +16,7 @@ namespace egregore.Tests
             var @out = new XunitDuplexTextWriter(output, Console.Out);
             var error = new XunitDuplexTextWriter(output, Console.Error);
 
-            Assert.True(PasswordStorage.TryGenerateKeyFile(service.GetKeyFileStream(), @out, error, capture));
+            Assert.True(KeyFileManager.TryGenerateKeyFile(service.GetKeyFileStream(), @out, error, capture));
 
             capture.Reset();
             return Crypto.PublicKeyFromSecretKey(service, capture);

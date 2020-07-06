@@ -4,7 +4,7 @@
 using System.Data;
 using Dapper;
 
-namespace egregore
+namespace egregore.Data
 {
     internal sealed class UInt64TypeHandler : SqlMapper.TypeHandler<ulong?>
     {

@@ -9,7 +9,7 @@ namespace egregore
     {
         public static readonly string DefaultNamespace = "Default";
         public static readonly string DefaultKeyFilePath = Path.Combine(".egregore", "egregore.key");
-        public static readonly string DefaultEggPath = "default.egg";
+        public static readonly string DefaultEggPath = Path.Combine(".egregore", "default.egg");
         public static readonly string OwnerRole = "owner";
 
         public static readonly IKeyCapture ConsoleKeyCapture = new ConsoleKeyCapture();

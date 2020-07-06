@@ -8,6 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.InteropServices;
 using egregore.Extensions;
+using egregore.IO;
 using egregore.Ontology;
 
 namespace egregore
@@ -37,8 +38,14 @@ namespace egregore
                         case "--server":
                         case "-s":
                         {
-                            if (!TryResolveKeyPath(arguments, out keyFilePath, false))
+                            if (!KeyFileManager.TryResolveKeyPath(arguments, out keyFilePath, false, true))
                                 return;
+
+                            if (!File.Exists(keyFilePath) && !KeyFileManager.Create(arguments, false, true))
+                            {
+                                Console.Error.WriteErrorLine("Cannot start server without a key file");
+                                return;
+                            }
 
                             try
                             {
@@ -49,26 +56,31 @@ namespace egregore
                                 Console.Error.WriteErrorLine("Could not obtain exclusive lock on key file");
                                 break;
                             }
+
+                            var eggPath = Constants.DefaultEggPath;
+                            if (!File.Exists(eggPath) && !EggFileManager.Create(eggPath))
+                            {
+                                Console.Error.WriteErrorLine("Cannot start server without an egg");
+                                return;
+                            }
                             
-                            WebServer.Run(args);
+                            WebServer.Run(eggPath, args);
                             break;
                         }
                         case "--keygen":
                         case "-k":
                         {
-                            if (!TryResolveKeyPath(arguments, out keyFilePath, true))
+                            if (KeyFileManager.Create(arguments, true, false))
                                 return;
-                            keyFileStream = new FileStream(keyFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
-                            if (!PasswordStorage.TryGenerateKeyFile(keyFileStream, Console.Out, Console.Error, Constants.ConsoleKeyCapture))
-                                return;
-                            Console.Out.WriteLine(Strings.KeyFileSuccess);
                             break;
                         }
                         case "--egg":
                         case "-e":
+                        {
                             var eggPath = arguments.EndOfSubArguments() ? Constants.DefaultEggPath : arguments.Dequeue();
-                            CreateEgg(eggPath);
+                            EggFileManager.Create(eggPath);
                             break;
+                        }
                         case "--append":
                         case "-a":
                             Append(arguments);
@@ -80,44 +92,6 @@ namespace egregore
             {
                 keyFileStream?.Dispose();
             }
-        }
-
-        public static bool TryResolveKeyPath(Queue<string> arguments, out string fullKeyPath, bool warnIfExists)
-        {
-            fullKeyPath = default;
-            var keyPath = arguments.EndOfSubArguments() ? Constants.DefaultKeyFilePath : arguments.Dequeue();
-            
-            Directory.CreateDirectory(".egregore");
-            if (keyPath != Constants.DefaultKeyFilePath && keyPath.IndexOfAny(Path.GetInvalidFileNameChars()) > -1)
-            {
-                Console.Error.WriteErrorLine(Strings.InvalidCharactersInPath);
-                return false;
-            }
-
-            try
-            {
-                fullKeyPath = Path.GetFullPath(keyPath);
-                if (!Path.HasExtension(fullKeyPath))
-                    fullKeyPath = Path.ChangeExtension(keyPath, ".key");
-            }
-            catch (Exception e)
-            {
-                Trace.TraceError(e.ToString());
-                Console.Error.WriteErrorLine(Strings.InvalidKeyFilePath);
-                return false;
-            }
-
-            if (warnIfExists && File.Exists(fullKeyPath))
-            {
-                Console.Error.WriteWarningLine(Strings.KeyFileAlreadyExists);
-            }
-            else if (!warnIfExists && !File.Exists(fullKeyPath))
-            {
-                Console.Error.WriteErrorLine(Strings.KeyFileIsMissing);
-                return false;
-            }
-
-            return true;
         }
 
         private static void Append(Queue<string> arguments)
@@ -180,40 +154,6 @@ namespace egregore
             }
 
             Console.WriteLine("TODO: append privilege to ontology");
-        }
-
-        private static void CreateEgg(string eggPath)
-        {
-            if (eggPath.IndexOfAny(Path.GetInvalidFileNameChars()) > -1)
-            {
-                Console.Error.WriteErrorLine(Strings.InvalidCharactersInPath);
-                return;
-            }
-
-            try
-            {
-                eggPath = Path.GetFullPath(eggPath);
-                if (!Path.HasExtension(eggPath))
-                    eggPath = Path.ChangeExtension(eggPath, ".egg");
-            }
-            catch (Exception e)
-            {
-                Trace.TraceError(e.ToString());
-                Console.Error.WriteErrorLine("Invalid path");
-                return;
-            }
-
-            try
-            {
-                var store = new LogStore(eggPath);
-                store.Init();
-                Console.WriteLine("Created egg file '{0}'", Path.GetFileName(eggPath));
-            }
-            catch (Exception e)
-            {
-                Trace.TraceError(e.ToString());
-                Console.Error.WriteErrorLine("Failed to create egg file at '{0}'", eggPath);
-            }
         }
     }
 }
