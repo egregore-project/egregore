@@ -25,9 +25,7 @@ namespace egregore
                 AppDomain.CurrentDomain.UnhandledException += (s, e) =>
                 {
                     if (!Debugger.IsAttached)
-                    {
                         Environment.Exit(Marshal.GetHRForException((Exception) e.ExceptionObject));
-                    }
                 };
 
                 var arguments = new Queue<string>(args);
@@ -41,7 +39,17 @@ namespace egregore
                         {
                             if (!TryResolveKeyPath(arguments, out keyFilePath, false))
                                 return;
-                            keyFileStream = new FileStream(keyFilePath, FileMode.Open, FileAccess.Read, FileShare.None);
+
+                            try
+                            {
+                                keyFileStream = new FileStream(keyFilePath, FileMode.Open, FileAccess.Read, FileShare.None);
+                            }
+                            catch (IOException)
+                            {
+                                Console.Error.WriteErrorLine("Could not obtain exclusive lock on key file");
+                                break;
+                            }
+                            
                             WebServer.Run(args);
                             break;
                         }
@@ -51,8 +59,9 @@ namespace egregore
                             if (!TryResolveKeyPath(arguments, out keyFilePath, true))
                                 return;
                             keyFileStream = new FileStream(keyFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
-                            if (!PasswordStorage.TryGenerateKeyFile(keyFileStream, Console.Out, Console.Error))
+                            if (!PasswordStorage.TryGenerateKeyFile(keyFileStream, Console.Out, Console.Error, Constants.ConsoleKeyCapture))
                                 return;
+                            Console.Out.WriteLine(Strings.KeyFileSuccess);
                             break;
                         }
                         case "--egg":
@@ -81,7 +90,7 @@ namespace egregore
             Directory.CreateDirectory(".egregore");
             if (keyPath != Constants.DefaultKeyFilePath && keyPath.IndexOfAny(Path.GetInvalidFileNameChars()) > -1)
             {
-                Console.Error.WriteLine(Strings.InvalidCharactersInPath);
+                Console.Error.WriteErrorLine(Strings.InvalidCharactersInPath);
                 return false;
             }
 
@@ -94,17 +103,18 @@ namespace egregore
             catch (Exception e)
             {
                 Trace.TraceError(e.ToString());
-                Console.Error.WriteLine(Strings.InvalidKeyFilePath);
+                Console.Error.WriteErrorLine(Strings.InvalidKeyFilePath);
                 return false;
             }
 
             if (warnIfExists && File.Exists(fullKeyPath))
             {
-                Console.Error.WriteLine(Strings.KeyFileAlreadyExists);
+                Console.Error.WriteWarningLine(Strings.KeyFileAlreadyExists);
             }
-            else if (!File.Exists(fullKeyPath))
+            else if (!warnIfExists && !File.Exists(fullKeyPath))
             {
-                Console.Error.WriteLine();
+                Console.Error.WriteErrorLine(Strings.KeyFileIsMissing);
+                return false;
             }
 
             return true;
@@ -114,7 +124,7 @@ namespace egregore
         {
             if (arguments.EndOfSubArguments())
             {
-                Console.Error.WriteLine("Missing append command");
+                Console.Error.WriteErrorLine("Missing append command");
                 return;
             }
 
@@ -131,14 +141,14 @@ namespace egregore
         {
             if (arguments.EndOfSubArguments())
             {
-                Console.Error.WriteLine("Missing role data");
+                Console.Error.WriteErrorLine("Missing role data");
                 return;
             }
 
             var value = arguments.Dequeue();
             if (arguments.EndOfSubArguments())
             {
-                Console.Error.WriteLine("Missing privilege");
+                Console.Error.WriteErrorLine("Missing privilege");
                 return;
             }
 
@@ -147,7 +157,7 @@ namespace egregore
 
             if (arguments.EndOfSubArguments())
             {
-                Console.Error.WriteLine("Missing subject");
+                Console.Error.WriteErrorLine("Missing subject");
                 return;
             }
 
@@ -156,7 +166,7 @@ namespace egregore
 
             if (arguments.EndOfSubArguments())
             {
-                Console.Error.WriteLine("Missing signature");
+                Console.Error.WriteErrorLine("Missing signature");
                 return;
             }
 
@@ -166,7 +176,7 @@ namespace egregore
             var grant = new GrantRole(value, authority, subject, signature);
             if (!grant.Verify())
             {
-                Console.Error.WriteLine("Invalid signature");
+                Console.Error.WriteErrorLine("Invalid signature");
             }
 
             Console.WriteLine("TODO: append privilege to ontology");
@@ -176,7 +186,7 @@ namespace egregore
         {
             if (eggPath.IndexOfAny(Path.GetInvalidFileNameChars()) > -1)
             {
-                Console.Error.WriteLine(Strings.InvalidCharactersInPath);
+                Console.Error.WriteErrorLine(Strings.InvalidCharactersInPath);
                 return;
             }
 
@@ -189,7 +199,7 @@ namespace egregore
             catch (Exception e)
             {
                 Trace.TraceError(e.ToString());
-                Console.Error.WriteLine("Invalid path");
+                Console.Error.WriteErrorLine("Invalid path");
                 return;
             }
 
@@ -202,7 +212,7 @@ namespace egregore
             catch (Exception e)
             {
                 Trace.TraceError(e.ToString());
-                Console.Error.WriteLine("Failed to create egg file at '{0}'", eggPath);
+                Console.Error.WriteErrorLine("Failed to create egg file at '{0}'", eggPath);
             }
         }
     }

@@ -6,7 +6,6 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
-using egregore.Ontology;
 
 namespace egregore
 {
@@ -176,26 +175,15 @@ namespace egregore
             return ed25519PublicKey;
         }
 
-        public static byte[] PublicKeyFromSecretKey(IKeyFileService keyFileService, IKeyCapture capture = null)
+        public static byte[] PublicKeyFromSecretKey(IKeyFileService keyFileService, IKeyCapture capture)
         {
             unsafe
             {
-                var sk = GetSecretKeyPointer(keyFileService, capture);
+                var sk = keyFileService.GetSecretKeyPointer(capture);
                 var ed25519PublicKey = new byte[PublicKeyBytes];
                 PublicKeyFromSecretKey(sk, ed25519PublicKey);
                 return ed25519PublicKey;
             }
-        }
-
-        internal static unsafe byte* GetSecretKeyPointer(IKeyFileService keyFileService, IKeyCapture capture = null, [CallerMemberName] string callerMemberName = null)
-        {
-            var fs = keyFileService.GetKeyFileStream();
-            if (fs.CanSeek)
-                fs.Seek(0, SeekOrigin.Begin);
-
-            if (!PasswordStorage.TryLoadKeyFile(fs, Console.Out, Console.Error, out var sk, capture ?? Constants.ConsoleKeyCapture))
-                throw new InvalidOperationException($"{callerMemberName}: Cannot load key file at path '{keyFileService.GetKeyFilePath()}'");
-            return sk;
         }
 
         public static unsafe void PublicKeyFromSecretKey(byte* sk, Span<byte> ed25519PublicKey)
@@ -214,7 +202,7 @@ namespace egregore
             }
         }
 
-        public static unsafe byte* SigningKeyToEncryptionKey(IKeyFileService keyFileService, IKeyCapture capture = null) => SigningKeyToEncryptionKey(GetSecretKeyPointer(keyFileService, capture));
+        public static unsafe byte* SigningKeyToEncryptionKey(IKeyFileService keyFileService, IKeyCapture capture) => SigningKeyToEncryptionKey(keyFileService.GetSecretKeyPointer(capture));
         public static unsafe byte* SigningKeyToEncryptionKey(byte* ed25519Sk)
         {
             try
@@ -265,6 +253,28 @@ namespace egregore
                     return result == 0;
                 }
             }
+        }
+
+        #endregion
+
+        #region File operations
+
+        public static unsafe byte* LoadSecretKeyPointerFromFileStream(string keyFilePath, FileStream keyFileStream, IPersistedKeyCapture capture, [CallerMemberName] string callerMemberName = null)
+        {
+            if (keyFileStream.CanSeek)
+                keyFileStream.Seek(0, SeekOrigin.Begin);
+            if (!PasswordStorage.TryLoadKeyFile(keyFileStream, Console.Out, Console.Error, out var sk, capture))
+                throw new InvalidOperationException($"{callerMemberName}: Cannot load key file at path '{keyFilePath}'");
+            return sk;
+        }
+
+        public static unsafe byte* LoadSecretKeyPointerFromFileStream(string keyFilePath, FileStream keyFileStream, IKeyCapture capture, [CallerMemberName] string callerMemberName = null)
+        {
+            if (keyFileStream.CanSeek)
+                keyFileStream.Seek(0, SeekOrigin.Begin);
+            if (!PasswordStorage.TryLoadKeyFile(keyFileStream, Console.Out, Console.Error, out var sk, capture))
+                throw new InvalidOperationException($"{callerMemberName}: Cannot load key file at path '{keyFilePath}'");
+            return sk;
         }
 
         #endregion

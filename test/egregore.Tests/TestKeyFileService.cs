@@ -2,15 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using egregore.Ontology;
-using Xunit;
+using System.Runtime.CompilerServices;
 
 namespace egregore.Tests
 {
-    internal sealed class TestKeyFileService : IKeyFileService, IDisposable
+    internal sealed class TestKeyFileService : IKeyFileService
     {
         private readonly string _filePath;
         private readonly FileStream _fileStream;
@@ -28,6 +26,8 @@ namespace egregore.Tests
             _fileStream.Seek(0, SeekOrigin.Begin);
             return _fileStream;
         }
+
+        public unsafe byte* GetSecretKeyPointer(IKeyCapture capture, [CallerMemberName] string callerMemberName = null) => Crypto.LoadSecretKeyPointerFromFileStream(GetKeyFilePath(), GetKeyFileStream(), capture, callerMemberName);
 
         public void Dispose()
         {

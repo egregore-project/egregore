@@ -142,6 +142,15 @@ namespace egregore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid key capture.
+        /// </summary>
+        internal static string InvalidKeyCapture {
+            get {
+                return ResourceManager.GetString("InvalidKeyCapture", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid key derivation function.
         /// </summary>
         internal static string InvalidKeyDerivationFunction {
@@ -246,6 +255,15 @@ namespace egregore {
         internal static string KeyFileLoadFailure {
             get {
                 return ResourceManager.GetString("KeyFileLoadFailure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generated key file..
+        /// </summary>
+        internal static string KeyFileSuccess {
+            get {
+                return ResourceManager.GetString("KeyFileSuccess", resourceCulture);
             }
         }
         

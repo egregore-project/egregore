@@ -144,6 +144,9 @@
   <data name="InvalidDecryptionPassword" xml:space="preserve">
     <value>Wrong password for that key</value>
   </data>
+  <data name="InvalidKeyCapture" xml:space="preserve">
+    <value>Invalid key capture</value>
+  </data>
   <data name="InvalidKeyDerivationFunction" xml:space="preserve">
     <value>Invalid key derivation function</value>
   </data>
@@ -179,6 +182,9 @@
   </data>
   <data name="KeyFileLoadFailure" xml:space="preserve">
     <value>Failed to read key file</value>
+  </data>
+  <data name="KeyFileSuccess" xml:space="preserve">
+    <value>Generated key file.</value>
   </data>
   <data name="LoadKeyInstructions" xml:space="preserve">
     <value>Please enter the password to unlock the secret key.</value>

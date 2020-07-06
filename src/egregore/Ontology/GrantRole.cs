@@ -21,9 +21,6 @@ namespace egregore.Ontology
             Subject = grantee;
         }
 
-        public GrantRole(LogDeserializeContext context) : base(context)
-        {
-            throw new NotImplementedException();
-        }
+        public GrantRole(LogDeserializeContext context) : base(context) { }
     }
 }

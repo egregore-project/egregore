@@ -92,7 +92,7 @@ namespace egregore.Ontology
                         case RevokeRole revokeRole:
                         {
                             if (!revokeRole.Verify())
-                                throw new InvalidOperationException("invalid grant role");
+                                throw new InvalidOperationException("invalid revoke role");
 
                             if (RoleGrants.TryGetValue(_namespace.Value, out var lookup) &&
                                 lookup.Count == 1 && 

@@ -6,6 +6,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using egregore.Configuration;
+using egregore.Extensions;
 using egregore.Ontology;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -21,22 +22,25 @@ namespace egregore
     {
         public static void Run(string[] args)
         {
+            Console.ResetColor();
+
             var keyFilePath = Constants.DefaultKeyFilePath;
             if (!File.Exists(keyFilePath))
             {
-                Console.Error.WriteLine("Cannot start server without a key file");
+                Console.Error.WriteErrorLine("Cannot start server without a key file");
                 return;
             }
 
             var eggPath = Constants.DefaultEggPath;
             if (!File.Exists(eggPath))
             {
-                Console.Error.WriteLine("Cannot start server without an egg");
+                Console.Error.WriteErrorLine("Cannot start server without an egg");
                 return;
             }
 
-            #region Masthead 
+            #region Masthead
 
+            Console.ForegroundColor = ConsoleColor.Magenta;
             Console.WriteLine(@"                                        
                        @@@@             
                   @   @@@@@@            
@@ -54,6 +58,7 @@ namespace egregore
       @@@@@@@@@@@@@@@      @@@@@@       
          @@@@@@@@@@                     
 ");
+            Console.ResetColor();
             #endregion
 
             var builder = Host.CreateDefaultBuilder(args)
@@ -61,11 +66,29 @@ namespace egregore
                 {
                     webBuilder.ConfigureServices((context, services) =>
                     {
-                        var pk= Crypto.PublicKeyFromSecretKey(new ProgramKeyFileService());
+                        var keyFileService = new ServerKeyFileService();
+                        services.AddSingleton<IKeyFileService>(keyFileService);
+
+                        var capture = new ServerConsoleKeyCapture();
+                        services.AddSingleton<IKeyCapture>(capture);
+                        services.AddSingleton<IPersistedKeyCapture>(capture);
+
+                        var publicKey = new byte[Crypto.PublicKeyBytes];
+
+                        unsafe
+                        {
+                            if (!PasswordStorage.TryLoadKeyFile(keyFileService.GetKeyFileStream(), Console.Out, Console.Error, out var _, capture))
+                                Environment.Exit(-1);
+
+                            var sk = Crypto.LoadSecretKeyPointerFromFileStream(keyFileService.GetKeyFilePath(),
+                                keyFileService.GetKeyFileStream(), capture);
+
+                            Crypto.PublicKeyFromSecretKey(sk, publicKey);
+                        }
 
                         services.Configure<WebServerOptions>(o =>
                         {
-                            o.PublicKey = pk;
+                            o.PublicKey = publicKey;
                             o.EggPath = eggPath;
                         });
                     });
@@ -88,11 +111,14 @@ namespace egregore
         {
             services.AddControllersWithViews();
             services.AddHostedService<ServerStartup>();
-            services.AddSingleton<ProgramKeyFileService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            // self-created singletons are not cleaned up by DI on application exit
+            app.ApplicationServices.GetRequiredService<IHostApplicationLifetime>().ApplicationStopping.Register(() =>
+                app.ApplicationServices.GetRequiredService<IPersistedKeyCapture>().Dispose());
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

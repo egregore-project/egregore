@@ -1,16 +1,10 @@
 ﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.IO;
 
 namespace egregore.Extensions
 {
-    internal static class QueueExtensions
-    {
-        public static bool EndOfSubArguments(this Queue<string> arguments) => arguments.Count == 0 || arguments.Peek().StartsWith("-");
-    }
-
     internal static class BufferExtensions
     {
         #region Sugar 
