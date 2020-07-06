@@ -64,16 +64,17 @@ namespace egregore.Tests
             var capture = new TestKeyCapture("rosebud", "rosebud");
             var service = new TestKeyFileService();
             var publicKey = CryptoTestHarness.GenerateKeyFile(_output, capture, service);
-            
+            capture.Reset();
+
+            var revoke = new RevokeRole(Constants.OwnerRole, publicKey, publicKey);
+            revoke.Sign(service, capture);
+            Assert.True(revoke.Verify(), "revocation did not verify");
+
             using var fixture = new LogStoreFixture();
 
             var ontology = new OntologyLog(publicKey);
             Assert.Single(ontology.Roles[Constants.DefaultNamespace]);
 
-            capture.Reset();
-            var revoke = new RevokeRole(Constants.OwnerRole, publicKey, publicKey);
-            revoke.Sign(service, capture);
-            
             await fixture.Store.AddEntryAsync(LogEntryFactory.CreateEntry(revoke));
             Assert.Throws<CannotRemoveSingleOwnerException>(() => { ontology.Materialize(fixture.Store); });
         }

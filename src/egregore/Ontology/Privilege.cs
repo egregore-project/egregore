@@ -59,6 +59,7 @@ namespace egregore.Ontology
         protected Privilege(LogDeserializeContext context)
         {
             Subject = context.br.ReadVarBuffer();
+            Type = context.br.ReadString();
             Value = context.br.ReadString();
             Authority = context.br.ReadVarBuffer();
             Signature = context.br.ReadVarBuffer();
@@ -67,6 +68,7 @@ namespace egregore.Ontology
         public void Serialize(LogSerializeContext context, bool hash)
         {
             context.bw.WriteVarBuffer(Subject);
+            context.bw.Write(Type);
             context.bw.Write(Value);
             context.bw.WriteVarBuffer(Authority);
             context.bw.WriteVarBuffer(Signature);

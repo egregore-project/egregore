@@ -49,7 +49,8 @@ namespace egregore.Tests
 
         public static LogEntry CreateEntry<T>(T data, byte[] previousHash = default, ulong formatVersion = LogSerializeContext.FormatVersion) where T : ILogSerialized
         {
-            return WrapObject(TypeProvider.Get(data.GetType()).GetValueOrDefault(), formatVersion, data, previousHash ?? new byte[0]);
+            var type = TypeProvider.Get(data.GetType()).GetValueOrDefault();
+            return WrapObject(type, formatVersion, data, previousHash ?? new byte[0]);
         }
     }
 }

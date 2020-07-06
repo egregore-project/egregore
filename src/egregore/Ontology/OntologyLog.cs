@@ -92,12 +92,12 @@ namespace egregore.Ontology
                         case RevokeRole revokeRole:
                         {
                             if (!revokeRole.Verify())
-                                throw new InvalidOperationException("invalid revoke role");
+                                throw new InvalidOperationException($"invalid {revokeRole.Type}");
 
                             if (RoleGrants.TryGetValue(_namespace.Value, out var lookup) &&
                                 lookup.Count == 1 && 
                                 lookup[Constants.OwnerRole].Count == 1)
-                                throw new CannotRemoveSingleOwnerException("cannot remove only owner");
+                                throw new CannotRemoveSingleOwnerException("cannot revoke admin rights of only owner");
 
                             break;
                         }

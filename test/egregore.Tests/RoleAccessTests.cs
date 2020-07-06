@@ -18,7 +18,7 @@ namespace egregore.Tests
         }
 
         [Fact]
-        public void Can_grant_roles_between_users()
+        public void Can_grant_and_revoke_roles_between_users()
         {
             var capture = new TestKeyCapture("rosebud", "rosebud");
             var service = new TestKeyFileService();
@@ -37,8 +37,7 @@ namespace egregore.Tests
             Assert.True(grant.Verify(), "grant was not verified");
 
             capture.Reset();
-
-            var revoke = new RevokeRole("admin", rootPubKey, userPubKey);
+            var revoke = new RevokeRole(Constants.OwnerRole, rootPubKey, userPubKey);
             revoke.Sign(service, capture);
 
             Assert.True(revoke.Authority.SequenceEqual(rootPubKey));
