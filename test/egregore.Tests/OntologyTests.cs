@@ -61,7 +61,7 @@ namespace egregore.Tests
         [Fact]
         public async Task Cannot_revoke_only_owner_grant()
         {
-            var capture = new TestKeyCapture("rosebud", "rosebud");
+            var capture = new PlaintextKeyCapture("rosebud", "rosebud");
             var service = new TestKeyFileService();
             var publicKey = CryptoTestHarness.GenerateKeyFile(_output, capture, service);
             capture.Reset();

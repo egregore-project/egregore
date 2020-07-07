@@ -1,8 +1,6 @@
 ﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
-using System.IO;
 using System.Linq;
 using System.Text;
 using Xunit;
@@ -75,7 +73,7 @@ namespace egregore.Tests
         {
             unsafe
             {
-                var capture = new TestKeyCapture("rosebud", "rosebud");
+                var capture = new PlaintextKeyCapture("rosebud", "rosebud");
                 var service = new TestKeyFileService();
                 CryptoTestHarness.GenerateKeyFile(_output, capture, service);
                 capture.Reset();

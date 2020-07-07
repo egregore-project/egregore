@@ -20,7 +20,7 @@ namespace egregore.Tests
         [Fact]
         public void Can_grant_and_revoke_roles_between_users()
         {
-            var capture = new TestKeyCapture("rosebud", "rosebud");
+            var capture = new PlaintextKeyCapture("rosebud", "rosebud");
             var service = new TestKeyFileService();
             
             var rootPubKey = CryptoTestHarness.GenerateKeyFile(_output, capture, service);

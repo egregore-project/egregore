@@ -6,7 +6,7 @@ using System.Text;
 
 namespace egregore.Tests
 {
-    internal sealed class TestKeyCapture : IKeyCapture
+    internal sealed class PlaintextKeyCapture : IKeyCapture
     {
         private const char EnterKeyChar = '\u0000';
         private const char BackspaceKeyChar = '\b';
@@ -17,7 +17,7 @@ namespace egregore.Tests
         private readonly string _value;
         private int _index;
 
-        public TestKeyCapture(params string[] values)
+        public PlaintextKeyCapture(params string[] values)
         {
             var sb = new StringBuilder();
             foreach (var value in values)

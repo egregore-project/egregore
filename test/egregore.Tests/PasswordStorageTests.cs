@@ -23,7 +23,7 @@ namespace egregore.Tests
         [InlineData("@purple monkey dishwasher!")]
         public void Succeeds_password_capture_when_password_is_confirmed_correctly(string plaintext, string plaintextConfirm = null)
         {
-            var capture = new TestKeyCapture(plaintext, plaintextConfirm ?? plaintext);
+            var capture = new PlaintextKeyCapture(plaintext, plaintextConfirm ?? plaintext);
             unsafe
             {
                 var result = KeyFileManager.TryCapturePassword("test", capture, Console.Out, Console.Error, out var password, out var passwordLength);
@@ -37,7 +37,7 @@ namespace egregore.Tests
         [InlineData("rosebud")]
         public void Fails_password_capture_with_empty_password(string plaintextConfirm)
         {
-            var capture = new TestKeyCapture(string.Empty, plaintextConfirm);
+            var capture = new PlaintextKeyCapture(string.Empty, plaintextConfirm);
             unsafe
             {
                 var result = KeyFileManager.TryCapturePassword("test", capture, Console.Out, Console.Error, out var password, out var passwordLength);
@@ -51,7 +51,7 @@ namespace egregore.Tests
         [InlineData("rosebud")]
         public void Fails_password_capture_with_empty_confirm_password(string plaintext)
         {
-            var capture = new TestKeyCapture(plaintext, string.Empty);
+            var capture = new PlaintextKeyCapture(plaintext, string.Empty);
             unsafe
             {
                 var result = KeyFileManager.TryCapturePassword("test", capture, Console.Out, Console.Error, out var password, out var passwordLength);
@@ -66,7 +66,7 @@ namespace egregore.Tests
         [InlineData("rosebud", "rosebud\bt")]
         public void Fails_password_capture_when_confirm_password_is_incorrect(string plaintext, string plaintextConfirm = null)
         {
-            var capture = new TestKeyCapture(plaintext, plaintextConfirm ?? $"{plaintext}wrong");
+            var capture = new PlaintextKeyCapture(plaintext, plaintextConfirm ?? $"{plaintext}wrong");
             unsafe
             {
                 var result = KeyFileManager.TryCapturePassword("test", capture, Console.Out, Console.Error, out var password, out var passwordLength);
@@ -87,13 +87,13 @@ namespace egregore.Tests
                 var @out = new XunitDuplexTextWriter(_output, Console.Out);
                 var error = new XunitDuplexTextWriter(_output, Console.Error);
                 
-                var generatedKeyFile = KeyFileManager.TryGenerateKeyFile(keyFileStream, @out, error, new TestKeyCapture(plaintext, plaintext));
+                var generatedKeyFile = KeyFileManager.TryGenerateKeyFile(keyFileStream, @out, error, new PlaintextKeyCapture(plaintext, plaintext));
                 Assert.True(generatedKeyFile);
 
                 keyFileStream.Dispose();
                 keyFileStream = File.OpenRead(keyFilePath);
 
-                var loadedKeyFile = KeyFileManager.TryLoadKeyFile(keyFileStream, @out, error, out var secretKey, new TestKeyCapture(plaintext, plaintext));
+                var loadedKeyFile = KeyFileManager.TryLoadKeyFile(keyFileStream, @out, error, out var secretKey, new PlaintextKeyCapture(plaintext, plaintext));
                 Assert.True(loadedKeyFile);
                 NativeMethods.sodium_free(secretKey);
             }
@@ -111,13 +111,13 @@ namespace egregore.Tests
                 var @out = new XunitDuplexTextWriter(_output, Console.Out);
                 var error = new XunitDuplexTextWriter(_output, Console.Error);
                 
-                var generatedKeyFile = KeyFileManager.TryGenerateKeyFile(keyFileStream, @out, error, new TestKeyCapture(plaintext, plaintext));
+                var generatedKeyFile = KeyFileManager.TryGenerateKeyFile(keyFileStream, @out, error, new PlaintextKeyCapture(plaintext, plaintext));
                 Assert.True(generatedKeyFile, nameof(generatedKeyFile));
 
                 keyFileStream.Dispose();
                 keyFileStream = File.OpenRead(keyFilePath);
 
-                var loadedKeyFile = KeyFileManager.TryLoadKeyFile(keyFileStream, @out, error, out var secretKey, new TestKeyCapture($"{plaintext}wrong", $"{plaintext}wrong"));
+                var loadedKeyFile = KeyFileManager.TryLoadKeyFile(keyFileStream, @out, error, out var secretKey, new PlaintextKeyCapture($"{plaintext}wrong", $"{plaintext}wrong"));
                 Assert.False(loadedKeyFile, nameof(loadedKeyFile));
                 Assert.True(secretKey == default(byte*), nameof(secretKey));
             }
