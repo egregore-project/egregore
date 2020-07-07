@@ -61,20 +61,19 @@ namespace egregore.IO
 
         public const long KeyFileBytes = SigAlgBytes + KdfAlgBytes + ChkAlgBytes + KeyNumBytes + KdfSaltBytes + KdfOpsLimitBytes + KdfMemLimitBytes + CipherBytes + ChecksumBytes;
 
-        public static bool Create(Queue<string> arguments, bool warnIfExists, bool allowMissing)
+        public static bool Create(Queue<string> arguments, bool warnIfExists, bool allowMissing, IKeyCapture capture)
         {
             if (!TryResolveKeyPath(arguments, out Program.keyFilePath, warnIfExists, allowMissing))
                 return false;
             Program.keyFileStream = new FileStream(Program.keyFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
-            if (!TryGenerateKeyFile(Program.keyFileStream, Console.Out, Console.Error, Constants.ConsoleKeyCapture))
+            if (!TryGenerateKeyFile(Program.keyFileStream, Console.Out, Console.Error, capture))
                 return false;
             Program.keyFileStream?.Dispose();
             Console.Out.WriteLine(Strings.KeyFileSuccess);
             return true;
         }
 
-        public static unsafe bool TryCapturePassword(string instructions, IPersistedKeyCapture @in, TextWriter @out,
-            TextWriter error, out byte* password, out int passwordLength)
+        public static unsafe bool TryCapturePassword(string instructions, IPersistedKeyCapture @in, TextWriter @out, TextWriter error, out byte* password, out int passwordLength)
         {
             if (@in.TryReadPersisted(out password, out passwordLength))
                 return true;

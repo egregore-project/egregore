@@ -10,7 +10,6 @@ using egregore.IO;
 using egregore.Ontology;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -21,7 +20,7 @@ namespace egregore
 {
     internal sealed class WebServer
     {
-        public static void Run(string eggPath, params string[] args)
+        public static void Run(string eggPath, IKeyCapture capture, params string[] args)
         {
             Console.ResetColor();
             
@@ -55,13 +54,7 @@ namespace egregore
 
                     webBuilder.ConfigureKestrel((context, options) => { });
                     webBuilder.ConfigureLogging((context, loggingBuilder) => { });
-                    webBuilder.ConfigureAppConfiguration((context, configBuilder) =>
-                    {
-                        if (context.HostingEnvironment.IsDevelopment())
-                        {
-                            StaticWebAssetsLoader.UseStaticWebAssets(context.HostingEnvironment, context.Configuration);
-                        }
-                    });
+                    webBuilder.ConfigureAppConfiguration((context, configBuilder) => { });
                     webBuilder.ConfigureServices((context, services) =>
                     {
                         services.AddCors(o => o.AddDefaultPolicy(b =>
@@ -73,17 +66,20 @@ namespace egregore
                         var keyFileService = new ServerKeyFileService();
                         services.AddSingleton<IKeyFileService>(keyFileService);
 
-                        var capture = new ServerConsoleKeyCapture();
-                        services.AddSingleton<IKeyCapture>(capture);
-                        services.AddSingleton<IPersistedKeyCapture>(capture);
+                        capture ??= new ServerConsoleKeyCapture();
+                        services.AddSingleton(capture);
+
+                        if(capture is IPersistedKeyCapture persisted)
+                            services.AddSingleton(persisted);
 
                         var publicKey = new byte[Crypto.PublicKeyBytes];
 
                         unsafe
                         {
-                            if (!KeyFileManager.TryLoadKeyFile(keyFileService.GetKeyFileStream(), Console.Out, Console.Error, out var _, capture))
+                            if (!KeyFileManager.TryLoadKeyFile(keyFileService.GetKeyFileStream(), Console.Out, Console.Error, out _, capture))
                                 Environment.Exit(-1);
 
+                            capture.Reset();
                             var sk = Crypto.LoadSecretKeyPointerFromFileStream(keyFileService.GetKeyFilePath(),
                                 keyFileService.GetKeyFileStream(), capture);
 
@@ -123,7 +119,7 @@ namespace egregore
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            // self-created singletons are not cleaned up by DI on application exit
+            // manually instanced singletons are not cleaned up by DI on application exit
             app.ApplicationServices.GetRequiredService<IHostApplicationLifetime>().ApplicationStopping.Register(() =>
                 app.ApplicationServices.GetRequiredService<IPersistedKeyCapture>().Dispose());
 
@@ -133,7 +129,7 @@ namespace egregore
             }
             else
             {
-                app.UseExceptionHandler("/Home/Error");
+                app.UseExceptionHandler("/error");
                 app.UseHsts();
             }
 

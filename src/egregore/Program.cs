@@ -30,68 +30,100 @@ namespace egregore
                 };
 
                 var arguments = new Queue<string>(args);
-                while (arguments.Count > 0)
+                switch (arguments.Count)
                 {
-                    var arg = arguments.Dequeue();
-                    switch (arg.ToLower())
-                    {
-                        case "--server":
-                        case "-s":
+                    case 0:
+                        Console.Out.WriteInfoLine("Starting server in non-interactive mode.");
+                        var password = Environment.GetEnvironmentVariable(EnvVars.KeyFilePassword);
+                        if (string.IsNullOrWhiteSpace(password))
                         {
-                            if (!KeyFileManager.TryResolveKeyPath(arguments, out keyFilePath, false, true))
-                                return;
-
-                            if (!File.Exists(keyFilePath) && !KeyFileManager.Create(arguments, false, true))
-                            {
-                                Console.Error.WriteErrorLine("Cannot start server without a key file");
-                                return;
-                            }
-
-                            try
-                            {
-                                keyFileStream = new FileStream(keyFilePath, FileMode.Open, FileAccess.Read, FileShare.None);
-                            }
-                            catch (IOException)
-                            {
-                                Console.Error.WriteErrorLine("Could not obtain exclusive lock on key file");
-                                break;
-                            }
-
-                            var eggPath = Constants.DefaultEggPath;
-                            if (!File.Exists(eggPath) && !EggFileManager.Create(eggPath))
-                            {
-                                Console.Error.WriteErrorLine("Cannot start server without an egg");
-                                return;
-                            }
-                            
-                            WebServer.Run(eggPath, args);
-                            break;
+                            Console.Error.WriteErrorLine($"Could not locate '{EnvVars.KeyFilePassword}' variable for container deployment.");
+                            Console.Out.WriteInfoLine("To run the server interactively to input a password, use the --server argument.");
+                            Environment.Exit(-1);
                         }
-                        case "--keygen":
-                        case "-k":
+                        else
                         {
-                            if (KeyFileManager.Create(arguments, true, false))
-                                return;
-                            break;
+                            RunAsServer(args, arguments, new PlaintextKeyCapture(password, password));
                         }
-                        case "--egg":
-                        case "-e":
-                        {
-                            var eggPath = arguments.EndOfSubArguments() ? Constants.DefaultEggPath : arguments.Dequeue();
-                            EggFileManager.Create(eggPath);
-                            break;
-                        }
-                        case "--append":
-                        case "-a":
-                            Append(arguments);
-                            break;
-                    }
+                        break;
+                    default:
+                        ProcessCommandLineArguments(args, arguments);
+                        break;
                 }
             }
             finally
             {
                 keyFileStream?.Dispose();
             }
+        }
+
+        private static void ProcessCommandLineArguments(string[] args, Queue<string> arguments)
+        {
+            while (arguments.Count > 0)
+            {
+                var arg = arguments.Dequeue();
+                switch (arg.ToLower())
+                {
+                    case "--server":
+                    case "-s":
+                    {
+                        if (!RunAsServer(args, arguments, null))
+                            return;
+                        break;
+                    }
+                    case "--keygen":
+                    case "-k":
+                    {
+                        if (KeyFileManager.Create(arguments, true, false, Constants.ConsoleKeyCapture))
+                            return;
+                        break;
+                    }
+                    case "--egg":
+                    case "-e":
+                    {
+                        var eggPath = arguments.EndOfSubArguments() ? Constants.DefaultEggPath : arguments.Dequeue();
+                        EggFileManager.Create(eggPath);
+                        break;
+                    }
+                    case "--append":
+                    case "-a":
+                        Append(arguments);
+                        break;
+                }
+            }
+        }
+
+        private static bool RunAsServer(string[] args, Queue<string> arguments, IKeyCapture capture)
+        {
+            if (!KeyFileManager.TryResolveKeyPath(arguments, out keyFilePath, false, true))
+                return false;
+
+            if (!File.Exists(keyFilePath) && !KeyFileManager.Create(arguments, false, true, capture ?? Constants.ConsoleKeyCapture))
+            {
+                Console.Error.WriteErrorLine("Cannot start server without a key file");
+                return false;
+            }
+
+            try
+            {
+                keyFileStream = new FileStream(keyFilePath, FileMode.Open, FileAccess.Read, FileShare.None);
+            }
+            catch (IOException)
+            {
+                Console.Error.WriteErrorLine("Could not obtain exclusive lock on key file");
+                return false;
+            }
+
+            var eggPath = Constants.DefaultEggPath;
+            if (!File.Exists(eggPath) && !EggFileManager.Create(eggPath))
+            {
+                Console.Error.WriteErrorLine("Cannot start server without an egg");
+                return false;
+            }
+
+            capture?.Reset();
+            WebServer.Run(eggPath, capture, args);
+            return true;
         }
 
         private static void Append(Queue<string> arguments)
