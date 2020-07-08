@@ -8,8 +8,8 @@ using egregore.Network;
 
 namespace egregore.Benchmarks
 {
-    [SimpleJob(RuntimeMoniker.CoreRt31)]
-    public sealed class SequenceBenchmarks
+    [SimpleJob(RuntimeMoniker.NetCoreApp31)]
+    public class SequenceBenchmarks
     {
         private Sequence _sequence;
 
