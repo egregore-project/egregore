@@ -1,10 +1,12 @@
+using BenchmarkDotNet.Running;
+
 namespace egregore.Benchmarks
 {
-    public class Program
+    internal static class Program
     {
         public static void Main(params string[] args)
         {
-
+            BenchmarkRunner.Run<SequenceBenchmarks>();
         }
     }
 }
