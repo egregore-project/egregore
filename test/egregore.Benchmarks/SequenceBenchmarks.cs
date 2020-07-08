@@ -8,7 +8,7 @@ using egregore.Network;
 
 namespace egregore.Benchmarks
 {
-    [SimpleJob(RuntimeMoniker.NetCoreApp31)]
+    [MediumRunJob(RuntimeMoniker.NetCoreApp31), SkewnessColumn, KurtosisColumn, MarkdownExporter]
     public class SequenceBenchmarks
     {
         private Sequence _sequence;
