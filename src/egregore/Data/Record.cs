@@ -8,15 +8,14 @@ namespace egregore.Data
 {
     public sealed class Record : ILogSerialized
     {
+        public string Type { get; set; }
+        public Guid Uuid { get; set; }
+        public List<RecordColumn> Columns { get; }
+
         public Record()
         {
             Columns = new List<RecordColumn>();
         }
-
-        public string Type { get; set; }
-        public Guid Uuid { get; set; }
-
-        public List<RecordColumn> Columns { get; }
 
         #region Serialization
 

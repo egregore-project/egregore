@@ -75,7 +75,7 @@ namespace egregore.Tests
             unsafe
             {
                 var capture = new PlaintextKeyCapture("rosebud", "rosebud");
-                var service = new TestKeyFileService();
+                var service = new TempKeyFileService();
                 CryptoTestHarness.GenerateKeyFile(_output, capture, service);
                 capture.Reset();
                 var sk = Crypto.SigningKeyToEncryptionKey(service, capture);

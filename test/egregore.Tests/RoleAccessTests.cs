@@ -22,12 +22,12 @@ namespace egregore.Tests
         public void Can_grant_and_revoke_roles_between_users()
         {
             var capture = new PlaintextKeyCapture("rosebud", "rosebud");
-            var service = new TestKeyFileService();
+            var service = new TempKeyFileService();
             
             var rootPubKey = CryptoTestHarness.GenerateKeyFile(_output, capture, service);
             capture.Reset();
 
-            var userPubKey = CryptoTestHarness.GenerateKeyFile(_output, capture, new TestKeyFileService());
+            var userPubKey = CryptoTestHarness.GenerateKeyFile(_output, capture, new TempKeyFileService());
             capture.Reset();
 
             var grant = new GrantRole("admin", rootPubKey, userPubKey);

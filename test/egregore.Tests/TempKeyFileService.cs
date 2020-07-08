@@ -8,12 +8,12 @@ using System.Runtime.CompilerServices;
 
 namespace egregore.Tests
 {
-    internal sealed class TestKeyFileService : IKeyFileService
+    internal sealed class TempKeyFileService : IKeyFileService
     {
         private readonly string _filePath;
         private readonly FileStream _fileStream;
 
-        public TestKeyFileService()
+        public TempKeyFileService()
         {
             _filePath = Path.GetTempFileName();
             _fileStream = File.Open(_filePath, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
