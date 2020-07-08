@@ -54,7 +54,10 @@ namespace egregore
 
                     webBuilder.ConfigureKestrel((context, options) => { });
                     webBuilder.ConfigureLogging((context, loggingBuilder) => { });
-                    webBuilder.ConfigureAppConfiguration((context, configBuilder) => { });
+                    webBuilder.ConfigureAppConfiguration((context, configBuilder) =>
+                    {
+                        configBuilder.AddEnvironmentVariables();
+                    });
                     webBuilder.ConfigureServices((context, services) =>
                     {
                         services.AddCors(o => o.AddDefaultPolicy(b =>
