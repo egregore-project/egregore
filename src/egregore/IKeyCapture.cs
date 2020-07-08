@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 namespace egregore
 {
@@ -6,5 +7,6 @@ namespace egregore
     {
         ConsoleKeyInfo ReadKey();
         void Reset();
+        void OnKeyRead(TextWriter @out);
     }
 }

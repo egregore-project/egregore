@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.IO;
+using egregore.IO;
 
 namespace egregore
 {
@@ -13,5 +14,10 @@ namespace egregore
         public static readonly string OwnerRole = "owner";
 
         public static readonly IKeyCapture ConsoleKeyCapture = new ConsoleKeyCapture();
+
+        internal static class EnvVars
+        {
+            public const string KeyFilePassword = "EGREGORE_KEY_FILE_PASSWORD";
+        }
     }
 }

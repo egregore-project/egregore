@@ -6,8 +6,11 @@ EXPOSE 80
 EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1-buster AS build
+WORKDIR /src
+COPY ["/egregore/egregore.csproj", "egregore/"]
+RUN dotnet restore "egregore/egregore.csproj"
+COPY . .
 WORKDIR "/src/egregore"
-RUN dotnet restore "egregore.csproj"
 RUN dotnet build "egregore.csproj" -c Release -o /app/build
 
 FROM build AS publish

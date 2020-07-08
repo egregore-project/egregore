@@ -3,6 +3,7 @@
 
 using System.Linq;
 using System.Text;
+using egregore.IO;
 using Xunit;
 using Xunit.Abstractions;
 

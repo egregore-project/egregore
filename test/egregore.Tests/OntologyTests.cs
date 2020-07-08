@@ -3,6 +3,7 @@
 
 using System;
 using System.Threading.Tasks;
+using egregore.IO;
 using egregore.Ontology;
 using egregore.Ontology.Exceptions;
 using Xunit;

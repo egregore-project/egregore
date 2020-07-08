@@ -36,7 +36,7 @@ namespace egregore.IO
     /// </summary>
     internal static class KeyFileManager
     {
-        private static readonly string BackspaceSpaceBackspace = "\b \b";
+        private const string BackspaceSpaceBackspace = "\b \b";
 
         public const byte SigAlgBytes = 2;
         public const byte KdfAlgBytes = 2;
@@ -63,12 +63,12 @@ namespace egregore.IO
 
         public static bool Create(Queue<string> arguments, bool warnIfExists, bool allowMissing, IKeyCapture capture)
         {
-            if (!TryResolveKeyPath(arguments, out Program.keyFilePath, warnIfExists, allowMissing))
+            if (!TryResolveKeyPath(arguments, out var keyFilePath, warnIfExists, allowMissing))
                 return false;
-            Program.keyFileStream = new FileStream(Program.keyFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
-            if (!TryGenerateKeyFile(Program.keyFileStream, Console.Out, Console.Error, capture))
+            var keyFileStream = new FileStream(keyFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+            if (!TryGenerateKeyFile(keyFileStream, Console.Out, Console.Error, capture))
                 return false;
-            Program.keyFileStream?.Dispose();
+            keyFileStream.Dispose();
             Console.Out.WriteLine(Strings.KeyFileSuccess);
             return true;
         }
@@ -119,7 +119,7 @@ namespace egregore.IO
                     }
                     initPwd.WriteByte((byte) key.KeyChar);
                     key = default;
-                    @out.Write(Strings.PasswordMask);
+                    @in.OnKeyRead(@out);
                     initPwdLength++;
                 } while (key.Key != ConsoleKey.Enter && initPwdLength < passwordMaxBytes);
                 Console.ResetColor();
@@ -150,7 +150,7 @@ namespace egregore.IO
                     }
                     confirmPwd.WriteByte((byte) key.KeyChar);
                     key = default;
-                    @out.Write(Strings.PasswordMask);
+                    @in.OnKeyRead(@out);
                     confirmPwdLength++;
                 } while (key.Key != ConsoleKey.Enter && confirmPwdLength < passwordMaxBytes);
                 Console.ResetColor();
@@ -362,15 +362,11 @@ namespace egregore.IO
 
                 try
                 {
-                    keyFileStream.Seek(0, SeekOrigin.Begin);
-                    for (var i = 0; i < KeyFileBytes; i++)
-                        keyFileStream.WriteByte(0);
-
                     using var mmf = MemoryMappedFile.CreateFromFile(keyFileStream, null, KeyFileBytes, MemoryMappedFileAccess.ReadWrite, HandleInheritability.None, true);
                     using var uvs = mmf.CreateViewStream(0, KeyFileBytes, MemoryMappedFileAccess.ReadWrite);
                     for (var i = 0; i < (int) KeyFileBytes; i++)
                         uvs.WriteByte(file[i]);
-                    keyFileStream.Flush();
+                    uvs.Flush();
                 }
                 finally
                 {
@@ -385,6 +381,16 @@ namespace egregore.IO
                 error.WriteErrorLine(Strings.KeyFileGenerateFailure);
                 return false;
             }
+        }
+
+        private static void ZeroKeyFile(FileStream keyFileStream)
+        {
+            if (!keyFileStream.CanWrite)
+                return;
+            keyFileStream.Seek(0, SeekOrigin.Begin);
+            for (var i = 0; i < KeyFileBytes; i++)
+                keyFileStream.WriteByte(0);
+            keyFileStream.Seek(0, SeekOrigin.Begin);
         }
 
         public static unsafe bool TryLoadKeyFile(FileStream keyFileStream, TextWriter @out, TextWriter error, out byte* secretKey, IPersistedKeyCapture capture)
@@ -411,8 +417,7 @@ namespace egregore.IO
             // Read key file: (SigAlg || KdfAlg || ChkAlg || KeyNum || KdfSalt || OpsLimit || MemLimit || Cipher || Checksum)
             try
             {
-                using var mmf = MemoryMappedFile.CreateFromFile(keyFileStream, null, KeyFileBytes, MemoryMappedFileAccess.Read,
-                    HandleInheritability.None, true);
+                using var mmf = MemoryMappedFile.CreateFromFile(keyFileStream, null, KeyFileBytes, MemoryMappedFileAccess.Read, HandleInheritability.None, true);
                 using var uvs = mmf.CreateViewStream(0, KeyFileBytes, MemoryMappedFileAccess.Read);
 
                 var sigAlg = NativeMethods.sodium_malloc(SigAlgBytes);

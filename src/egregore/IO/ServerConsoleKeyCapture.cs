@@ -2,8 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.IO;
 
-namespace egregore
+namespace egregore.IO
 {
     internal sealed class ServerConsoleKeyCapture : IPersistedKeyCapture
     {
@@ -12,6 +13,7 @@ namespace egregore
 
         public ConsoleKeyInfo ReadKey() => Console.ReadKey(true);
         public void Reset() => Console.Clear();
+        public void OnKeyRead(TextWriter @out) { }
 
         public unsafe void Sink(byte* password, int passwordLength)
         {

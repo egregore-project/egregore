@@ -15,14 +15,6 @@ namespace egregore
         public const uint PublicKeyBytes = 32U;
         public const uint SecretKeyBytes = 64U;
 
-        static Crypto()
-        {
-            if (NativeMethods.sodium_init() != 0)
-                throw new InvalidOperationException(nameof(NativeMethods.sodium_init));
-
-            NativeLibrary.SetDllImportResolver(typeof(Crypto).Assembly, Minisign.VerifyImportResolver);
-        }
-
         #region Utilities 
 
         public static byte[] Nonce(uint size)

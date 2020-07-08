@@ -76,14 +76,17 @@ namespace egregore
 
                         unsafe
                         {
-                            if (!KeyFileManager.TryLoadKeyFile(keyFileService.GetKeyFileStream(), Console.Out, Console.Error, out _, capture))
+                            try
+                            {
+                                capture.Reset();
+                                var sk = Crypto.LoadSecretKeyPointerFromFileStream(keyFileService.GetKeyFilePath(), keyFileService.GetKeyFileStream(), capture);
+                                Crypto.PublicKeyFromSecretKey(sk, publicKey);
+                            }
+                            catch (Exception e)
+                            {
+                                Trace.TraceError(e.ToString());
                                 Environment.Exit(-1);
-
-                            capture.Reset();
-                            var sk = Crypto.LoadSecretKeyPointerFromFileStream(keyFileService.GetKeyFilePath(),
-                                keyFileService.GetKeyFileStream(), capture);
-
-                            Crypto.PublicKeyFromSecretKey(sk, publicKey);
+                            }
                         }
 
                         services.Configure<WebServerOptions>(o =>

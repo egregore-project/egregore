@@ -21,6 +21,15 @@ namespace egregore
         [ExcludeFromCodeCoverage]
         public static void Main(params string[] args)
         {
+            unsafe
+            {
+                //
+                // Pre-initialize libsodium as deferring causes assertion errors on Linux containers:
+                NativeLibrary.SetDllImportResolver(typeof(Crypto).Assembly, IntegrityCheck.Preload);
+                NativeMethods.sodium_init();
+                NativeMethods.sodium_free(NativeMethods.sodium_malloc(0));
+            }
+
             try
             {
                 AppDomain.CurrentDomain.UnhandledException += (s, e) =>
@@ -34,17 +43,20 @@ namespace egregore
                 {
                     case 0:
                         Console.Out.WriteInfoLine("Starting server in non-interactive mode.");
-                        var password = Environment.GetEnvironmentVariable(EnvVars.KeyFilePassword);
+                        var password = Environment.GetEnvironmentVariable(Constants.EnvVars.KeyFilePassword);
                         if (string.IsNullOrWhiteSpace(password))
                         {
-                            Console.Error.WriteErrorLine($"Could not locate '{EnvVars.KeyFilePassword}' variable for container deployment.");
-                            Console.Out.WriteInfoLine("To run the server interactively to input a password, use the --server argument.");
+                            Console.Error.WriteErrorLine(
+                                $"Could not locate '{Constants.EnvVars.KeyFilePassword}' variable for container deployment.");
+                            Console.Out.WriteInfoLine(
+                                "To run the server interactively to input a password, use the --server argument.");
                             Environment.Exit(-1);
                         }
                         else
                         {
                             RunAsServer(args, arguments, new PlaintextKeyCapture(password, password));
                         }
+
                         break;
                     default:
                         ProcessCommandLineArguments(args, arguments);
@@ -98,7 +110,10 @@ namespace egregore
             if (!KeyFileManager.TryResolveKeyPath(arguments, out keyFilePath, false, true))
                 return false;
 
-            if (!File.Exists(keyFilePath) && !KeyFileManager.Create(arguments, false, true, capture ?? Constants.ConsoleKeyCapture))
+            if(!File.Exists(keyFilePath) || new FileInfo(keyFilePath).Length == 0)
+                File.WriteAllBytes(keyFilePath, new byte[KeyFileManager.KeyFileBytes]);
+
+            if (!KeyFileManager.Create(arguments, false, true, capture ?? Constants.ConsoleKeyCapture))
             {
                 Console.Error.WriteErrorLine("Cannot start server without a key file");
                 return false;

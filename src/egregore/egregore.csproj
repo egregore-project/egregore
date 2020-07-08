@@ -1,25 +1,22 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
-
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <IsPublishable>true</IsPublishable>
     <IsPackable>false</IsPackable>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileRunEnvironmentFiles>Dockerfile.env</DockerfileRunEnvironmentFiles>
+    <UserSecretsId>a6f089a8-a323-4e78-8649-e80b87c61b47</UserSecretsId>
   </PropertyGroup>
-  
   <ItemGroup>
     <PackageReference Include="Dapper" Version="2.0.35" />
     <PackageReference Include="libsodium" Version="1.0.18" />
     <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="3.6.0" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="3.1.5" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.9" />
-    <PackageReference Include="minisign-net" Version="0.2.0" />
   </ItemGroup>
-
   <ItemGroup>
     <Compile Update="Strings.Designer.cs">
       <DesignTime>True</DesignTime>
@@ -27,19 +24,16 @@
       <DependentUpon>Strings.resx</DependentUpon>
     </Compile>
   </ItemGroup>
-
   <ItemGroup>
     <EmbeddedResource Update="Strings.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Strings.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
-
   <ItemGroup>
     <Folder Include="Views\Home\" />
     <Folder Include="Views\Shared\" />
   </ItemGroup>
-
   <ItemGroup>
     <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap.min.css" />
     <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap.min.css.map" />
@@ -50,5 +44,4 @@
     <None Include="wwwroot\lib\jquery\dist\jquery.min.map" />
     <None Include="wwwroot\lib\jquery\LICENSE.txt" />
   </ItemGroup>
-
 </Project>

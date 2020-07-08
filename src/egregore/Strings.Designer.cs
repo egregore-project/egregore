@@ -250,7 +250,7 @@ namespace egregore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to read key file.
+        ///   Looks up a localized string similar to Failed to load key file.
         /// </summary>
         internal static string KeyFileLoadFailure {
             get {

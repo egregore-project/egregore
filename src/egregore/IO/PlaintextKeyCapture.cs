@@ -2,9 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.IO;
 using System.Text;
 
-namespace egregore
+namespace egregore.IO
 {
     internal sealed class PlaintextKeyCapture : IKeyCapture
     {
@@ -52,5 +53,7 @@ namespace egregore
         {
             _index = 0;
         }
+
+        public void OnKeyRead(TextWriter @out) { }
     }
 }

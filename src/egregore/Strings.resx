@@ -181,7 +181,7 @@
     <value>Key file is missing</value>
   </data>
   <data name="KeyFileLoadFailure" xml:space="preserve">
-    <value>Failed to read key file</value>
+    <value>Failed to load key file</value>
   </data>
   <data name="KeyFileSuccess" xml:space="preserve">
     <value>Generated key file.</value>
