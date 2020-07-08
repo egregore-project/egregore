@@ -8,12 +8,6 @@ namespace egregore.Data
 {
     public sealed class RecordColumn : ILogSerialized
     {
-        public int Index { get; }
-        public string Name { get; }
-        public string Type { get; }
-        public string Value { get; }
-        public string Default { get; set; }
-
         public RecordColumn(int index, string name, string type, string value)
         {
             Index = index;
@@ -22,19 +16,13 @@ namespace egregore.Data
             Value = value;
         }
 
-        #region Serialization 
+        public int Index { get; }
+        public string Name { get; }
+        public string Type { get; }
+        public string Value { get; }
+        public string Default { get; set; }
 
-        public void Serialize(LogSerializeContext context, bool hash)
-        {
-            throw new NotImplementedException();
-        }
-
-        public RecordColumn(LogSerializeContext context)
-        {
-            throw new NotImplementedException();
-        }
-
-        #endregion
+        public static IComparer<RecordColumn> IndexComparer { get; } = new IndexRelationalComparer();
 
         private sealed class IndexRelationalComparer : IComparer<RecordColumn>
         {
@@ -47,6 +35,18 @@ namespace egregore.Data
             }
         }
 
-        public static IComparer<RecordColumn> IndexComparer { get; } = new IndexRelationalComparer();
+        #region Serialization
+
+        public void Serialize(LogSerializeContext context, bool hash)
+        {
+            throw new NotImplementedException();
+        }
+
+        public RecordColumn(LogSerializeContext context)
+        {
+            throw new NotImplementedException();
+        }
+
+        #endregion
     }
 }

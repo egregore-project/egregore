@@ -30,9 +30,13 @@ using egregore.Extensions;
 namespace egregore.IO
 {
     /// <summary>
-    /// Encrypts secret keys by deriving another key from a password and mixing.
-    /// This is based largely on Frank Denis' minisign: https://github.com/jedisct1/minisign/blob/master/src/minisign.c although the file format is NOT compatible.
-    /// <remarks>Checksum function currently uses SCrypt, but if compatibility with Minisign and other tools is not a goal, then Argon2 is a better choice.</remarks>
+    ///     Encrypts secret keys by deriving another key from a password and mixing.
+    ///     This is based largely on Frank Denis' minisign: https://github.com/jedisct1/minisign/blob/master/src/minisign.c
+    ///     although the file format is NOT compatible.
+    ///     <remarks>
+    ///         Checksum function currently uses SCrypt, but if compatibility with Minisign and other tools is not a goal,
+    ///         then Argon2 is a better choice.
+    ///     </remarks>
     /// </summary>
     internal static class KeyFileManager
     {
@@ -41,10 +45,6 @@ namespace egregore.IO
         public const byte SigAlgBytes = 2;
         public const byte KdfAlgBytes = 2;
         public const byte ChkAlgBytes = 2;
-
-        public static readonly byte[] SigAlg = {(byte) 'E', (byte) 'd'};
-        public static readonly byte[] KdfAlg = {(byte) 'S', (byte) 'c'};
-        public static readonly byte[] ChkAlg = {(byte) 'B', (byte) '2'};
 
         public const byte KeyNumBytes = 8;
         public const uint KdfSaltBytes = 32U;
@@ -55,17 +55,23 @@ namespace egregore.IO
 
         public const int KdfMemLimitBytes = sizeof(int);
         public const int KdfMemLimit = 1073741824;
-        
+
         public const uint CipherBytes = KeyNumBytes + Crypto.SecretKeyBytes + ChecksumBytes;
         public const ulong ChecksumInputBytes = SigAlgBytes + KeyNumBytes + Crypto.SecretKeyBytes;
 
-        public const long KeyFileBytes = SigAlgBytes + KdfAlgBytes + ChkAlgBytes + KeyNumBytes + KdfSaltBytes + KdfOpsLimitBytes + KdfMemLimitBytes + CipherBytes + ChecksumBytes;
+        public const long KeyFileBytes = SigAlgBytes + KdfAlgBytes + ChkAlgBytes + KeyNumBytes + KdfSaltBytes +
+                                         KdfOpsLimitBytes + KdfMemLimitBytes + CipherBytes + ChecksumBytes;
+
+        public static readonly byte[] SigAlg = {(byte) 'E', (byte) 'd'};
+        public static readonly byte[] KdfAlg = {(byte) 'S', (byte) 'c'};
+        public static readonly byte[] ChkAlg = {(byte) 'B', (byte) '2'};
 
         public static bool Create(Queue<string> arguments, bool warnIfExists, bool allowMissing, IKeyCapture capture)
         {
             if (!TryResolveKeyPath(arguments, out var keyFilePath, warnIfExists, allowMissing))
                 return false;
-            var keyFileStream = new FileStream(keyFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+            var keyFileStream =
+                new FileStream(keyFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
             if (!TryGenerateKeyFile(keyFileStream, Console.Out, Console.Error, capture))
                 return false;
             keyFileStream.Dispose();
@@ -73,17 +79,20 @@ namespace egregore.IO
             return true;
         }
 
-        public static unsafe bool TryCapturePassword(string instructions, IPersistedKeyCapture @in, TextWriter @out, TextWriter error, out byte* password, out int passwordLength)
+        public static unsafe bool TryCapturePassword(string instructions, IPersistedKeyCapture @in, TextWriter @out,
+            TextWriter error, out byte* password, out int passwordLength)
         {
             if (@in.TryReadPersisted(out password, out passwordLength))
                 return true;
-            var result = TryCapturePassword(instructions, @in as IKeyCapture, @out, error, out password, out passwordLength);
-            if(result)
+            var result = TryCapturePassword(instructions, @in as IKeyCapture, @out, error, out password,
+                out passwordLength);
+            if (result)
                 @in.Sink(password, passwordLength);
             return result;
         }
 
-        public static unsafe bool TryCapturePassword(string instructions, IKeyCapture @in, TextWriter @out, TextWriter error, out byte* password, out int passwordLength)
+        public static unsafe bool TryCapturePassword(string instructions, IKeyCapture @in, TextWriter @out,
+            TextWriter error, out byte* password, out int passwordLength)
         {
             const int passwordMaxBytes = 1024;
             password = (byte*) NativeMethods.sodium_malloc(passwordMaxBytes);
@@ -115,18 +124,22 @@ namespace egregore.IO
                             initPwdLength--;
                             @out.Write(BackspaceSpaceBackspace);
                         }
+
                         continue;
                     }
+
                     initPwd.WriteByte((byte) key.KeyChar);
                     key = default;
                     @in.OnKeyRead(@out);
                     initPwdLength++;
                 } while (key.Key != ConsoleKey.Enter && initPwdLength < passwordMaxBytes);
+
                 Console.ResetColor();
 
                 var confirmPwdLength = 0;
-                using var confirmPwd = new UnmanagedMemoryStream((byte*) passwordConfirm, 0, passwordMaxBytes, FileAccess.Write);
-                
+                using var confirmPwd =
+                    new UnmanagedMemoryStream((byte*) passwordConfirm, 0, passwordMaxBytes, FileAccess.Write);
+
                 @out.WriteLine();
                 @out.Write(Strings.ConfirmPasswordPrompt);
 
@@ -146,13 +159,16 @@ namespace egregore.IO
                             confirmPwdLength--;
                             @out.Write(BackspaceSpaceBackspace);
                         }
+
                         continue;
                     }
+
                     confirmPwd.WriteByte((byte) key.KeyChar);
                     key = default;
                     @in.OnKeyRead(@out);
                     confirmPwdLength++;
                 } while (key.Key != ConsoleKey.Enter && confirmPwdLength < passwordMaxBytes);
+
                 Console.ResetColor();
 
                 @out.WriteLine();
@@ -210,14 +226,17 @@ namespace egregore.IO
                 var b = src[i];
                 xor[i] = (byte) (a ^ b);
             }
+
             return xor;
         }
 
-        public static unsafe bool TryGenerateKeyFile(FileStream keyFileStream, TextWriter @out, TextWriter error, IKeyCapture keyCapture)
+        public static unsafe bool TryGenerateKeyFile(FileStream keyFileStream, TextWriter @out, TextWriter error,
+            IKeyCapture keyCapture)
         {
             keyCapture ??= Constants.ConsoleKeyCapture;
 
-            if (!TryCapturePassword(Strings.GenerateKeyInstructions, keyCapture, @out, error, out var password, out var passwordLength))
+            if (!TryCapturePassword(Strings.GenerateKeyInstructions, keyCapture, @out, error, out var password,
+                out var passwordLength))
                 return false;
 
             var sk = (byte*) NativeMethods.sodium_malloc(Crypto.SecretKeyBytes);
@@ -248,14 +267,18 @@ namespace egregore.IO
                     NativeMethods.randombytes_buf(keyNumber, KeyNumBytes);
 
                     fixed (byte* src = SigAlg)
+                    {
                         for (var i = 0; i < SigAlgBytes; i++)
                             checksumInput[offset++] = src[i];
+                    }
+
                     for (var i = 0; i < KeyNumBytes; i++)
                         checksumInput[offset++] = keyNumber[i];
                     for (var i = 0; i < Crypto.SecretKeyBytes; i++)
                         checksumInput[offset++] = sk[i];
 
-                    if (NativeMethods.crypto_generichash(checksum, ChecksumBytes, checksumInput, ChecksumInputBytes, null, 0) != 0)
+                    if (NativeMethods.crypto_generichash(checksum, ChecksumBytes, checksumInput, ChecksumInputBytes,
+                        null, 0) != 0)
                         throw new InvalidOperationException(nameof(NativeMethods.crypto_generichash));
                 }
                 finally
@@ -280,7 +303,7 @@ namespace egregore.IO
                 {
                     NativeMethods.sodium_free(sk);
                 }
-                
+
                 @out.Write(Strings.EncryptionInProgressMessage);
 
                 //
@@ -295,7 +318,8 @@ namespace egregore.IO
                 {
                     NativeMethods.randombytes_buf(kdfSalt, KdfSaltBytes);
 
-                    if (NativeMethods.crypto_pwhash_scryptsalsa208sha256(stream, CipherBytes, password, (ulong) passwordLength, kdfSalt, opsLimit, memLimit) != 0)
+                    if (NativeMethods.crypto_pwhash_scryptsalsa208sha256(stream, CipherBytes, password,
+                        (ulong) passwordLength, kdfSalt, opsLimit, memLimit) != 0)
                         throw new InvalidOperationException(nameof(NativeMethods.crypto_pwhash_scryptsalsa208sha256));
 
                     xor = Xor(cipher, stream, CipherBytes);
@@ -306,6 +330,7 @@ namespace egregore.IO
                     NativeMethods.sodium_free(cipher);
                     NativeMethods.sodium_free(stream);
                 }
+
                 @out.WriteLine(Strings.EncryptionCompleteMessage);
 
                 // 
@@ -316,14 +341,22 @@ namespace egregore.IO
                     offset = 0;
 
                     fixed (byte* src = SigAlg)
+                    {
                         for (var i = 0; i < SigAlgBytes; i++)
                             file[offset++] = src[i];
+                    }
+
                     fixed (byte* src = KdfAlg)
+                    {
                         for (var i = 0; i < KdfAlgBytes; i++)
                             file[offset++] = src[i];
+                    }
+
                     fixed (byte* src = ChkAlg)
+                    {
                         for (var i = 0; i < ChkAlgBytes; i++)
                             file[offset++] = src[i];
+                    }
 
                     for (var i = 0; i < KeyNumBytes; i++)
                         file[offset++] = keyNumber[i];
@@ -338,10 +371,10 @@ namespace egregore.IO
                     var mem = BitConverter.GetBytes(memLimit);
                     foreach (var b in mem)
                         file[offset++] = b;
-                    
+
                     for (var i = 0; i < CipherBytes; i++)
                         file[offset++] = xor[i];
-                    
+
                     for (var i = 0; i < ChecksumBytes; i++)
                         file[offset++] = checksum[i];
 
@@ -362,7 +395,8 @@ namespace egregore.IO
 
                 try
                 {
-                    using var mmf = MemoryMappedFile.CreateFromFile(keyFileStream, null, KeyFileBytes, MemoryMappedFileAccess.ReadWrite, HandleInheritability.None, true);
+                    using var mmf = MemoryMappedFile.CreateFromFile(keyFileStream, null, KeyFileBytes,
+                        MemoryMappedFileAccess.ReadWrite, HandleInheritability.None, true);
                     using var uvs = mmf.CreateViewStream(0, KeyFileBytes, MemoryMappedFileAccess.ReadWrite);
                     for (var i = 0; i < (int) KeyFileBytes; i++)
                         uvs.WriteByte(file[i]);
@@ -393,31 +427,37 @@ namespace egregore.IO
             keyFileStream.Seek(0, SeekOrigin.Begin);
         }
 
-        public static unsafe bool TryLoadKeyFile(FileStream keyFileStream, TextWriter @out, TextWriter error, out byte* secretKey, IPersistedKeyCapture capture)
+        public static unsafe bool TryLoadKeyFile(FileStream keyFileStream, TextWriter @out, TextWriter error,
+            out byte* secretKey, IPersistedKeyCapture capture)
         {
             if (capture == default)
                 throw new InvalidOperationException(Strings.InvalidKeyCapture);
             secretKey = default;
-            return TryCapturePassword(Strings.LoadKeyInstructions, capture, @out, error, out var password, out var passwordLength) && 
+            return TryCapturePassword(Strings.LoadKeyInstructions, capture, @out, error, out var password,
+                       out var passwordLength) &&
                    TryLoadKeyFile(keyFileStream, @out, error, ref secretKey, password, passwordLength, true);
         }
 
-        public static unsafe bool TryLoadKeyFile(FileStream keyFileStream, TextWriter @out, TextWriter error, out byte* secretKey, IKeyCapture capture)
+        public static unsafe bool TryLoadKeyFile(FileStream keyFileStream, TextWriter @out, TextWriter error,
+            out byte* secretKey, IKeyCapture capture)
         {
             if (capture == default)
                 throw new InvalidOperationException(Strings.InvalidKeyCapture);
             secretKey = default;
-            return TryCapturePassword(Strings.LoadKeyInstructions, capture, @out, error, out var password, out var passwordLength) && 
+            return TryCapturePassword(Strings.LoadKeyInstructions, capture, @out, error, out var password,
+                       out var passwordLength) &&
                    TryLoadKeyFile(keyFileStream, @out, error, ref secretKey, password, passwordLength, false);
         }
 
-        private static unsafe bool TryLoadKeyFile(FileStream keyFileStream, TextWriter @out, TextWriter error, ref byte* secretKey, byte* password, int passwordLength, bool leaveOpen)
+        private static unsafe bool TryLoadKeyFile(FileStream keyFileStream, TextWriter @out, TextWriter error,
+            ref byte* secretKey, byte* password, int passwordLength, bool leaveOpen)
         {
             // 
             // Read key file: (SigAlg || KdfAlg || ChkAlg || KeyNum || KdfSalt || OpsLimit || MemLimit || Cipher || Checksum)
             try
             {
-                using var mmf = MemoryMappedFile.CreateFromFile(keyFileStream, null, KeyFileBytes, MemoryMappedFileAccess.Read, HandleInheritability.None, true);
+                using var mmf = MemoryMappedFile.CreateFromFile(keyFileStream, null, KeyFileBytes,
+                    MemoryMappedFileAccess.Read, HandleInheritability.None, true);
                 using var uvs = mmf.CreateViewStream(0, KeyFileBytes, MemoryMappedFileAccess.Read);
 
                 var sigAlg = NativeMethods.sodium_malloc(SigAlgBytes);
@@ -428,11 +468,13 @@ namespace egregore.IO
                         buffer[i] = (byte) uvs.ReadByte();
 
                     fixed (void* src = SigAlg)
+                    {
                         if (NativeMethods.sodium_memcmp(sigAlg, src, SigAlg.Length) != 0)
                         {
                             error.WriteErrorLine(Strings.InvalidSignatureAlgorithm);
                             return false;
                         }
+                    }
                 }
                 finally
                 {
@@ -447,11 +489,13 @@ namespace egregore.IO
                         buffer[i] = (byte) uvs.ReadByte();
 
                     fixed (void* src = KdfAlg)
+                    {
                         if (NativeMethods.sodium_memcmp(kdfAlg, src, KdfAlgBytes) != 0)
                         {
                             error.WriteErrorLine(Strings.InvalidKeyDerivationFunction);
                             return false;
                         }
+                    }
                 }
                 finally
                 {
@@ -466,11 +510,13 @@ namespace egregore.IO
                         buffer[i] = (byte) uvs.ReadByte();
 
                     fixed (void* src = ChkAlg)
+                    {
                         if (NativeMethods.sodium_memcmp(chkAlg, src, ChkAlgBytes) != 0)
                         {
                             error.WriteErrorLine(Strings.InvalidChecksumFunction);
                             return false;
                         }
+                    }
                 }
                 finally
                 {
@@ -518,7 +564,8 @@ namespace egregore.IO
                 byte* xor;
                 try
                 {
-                    if (NativeMethods.crypto_pwhash_scryptsalsa208sha256(stream, CipherBytes, password, (ulong) passwordLength,
+                    if (NativeMethods.crypto_pwhash_scryptsalsa208sha256(stream, CipherBytes, password,
+                        (ulong) passwordLength,
                         kdfSalt, opsLimit, memLimit) != 0)
                         throw new InvalidOperationException(nameof(NativeMethods.crypto_pwhash_scryptsalsa208sha256));
 
@@ -526,7 +573,7 @@ namespace egregore.IO
                 }
                 finally
                 {
-                    if(!leaveOpen)
+                    if (!leaveOpen)
                         NativeMethods.sodium_free(password);
                     NativeMethods.sodium_free(kdfSalt);
                     NativeMethods.sodium_free(fileCipher);
@@ -579,14 +626,18 @@ namespace egregore.IO
                 try
                 {
                     fixed (byte* src = SigAlg)
+                    {
                         for (var i = 0; i < SigAlgBytes; i++)
                             checksumInput[offset++] = src[i];
+                    }
+
                     for (var i = 0; i < KeyNumBytes; i++)
                         checksumInput[offset++] = fileCipherKeyNumber[i];
                     for (var i = 0; i < Crypto.SecretKeyBytes; i++)
                         checksumInput[offset++] = sk[i];
 
-                    if (NativeMethods.crypto_generichash(checksum, ChecksumBytes, checksumInput, ChecksumInputBytes, null, 0) !=
+                    if (NativeMethods.crypto_generichash(checksum, ChecksumBytes, checksumInput, ChecksumInputBytes,
+                            null, 0) !=
                         0)
                         throw new InvalidOperationException(nameof(NativeMethods.crypto_generichash));
 
@@ -616,11 +667,12 @@ namespace egregore.IO
             }
         }
 
-        public static bool TryResolveKeyPath(Queue<string> arguments, out string fullKeyPath, bool warnIfExists, bool allowMissing)
+        public static bool TryResolveKeyPath(Queue<string> arguments, out string fullKeyPath, bool warnIfExists,
+            bool allowMissing)
         {
             fullKeyPath = default;
             var keyPath = arguments.EndOfSubArguments() ? Constants.DefaultKeyFilePath : arguments.Dequeue();
-            
+
             Directory.CreateDirectory(".egregore");
             if (keyPath != Constants.DefaultKeyFilePath && keyPath.IndexOfAny(Path.GetInvalidFileNameChars()) > -1)
             {

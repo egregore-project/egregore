@@ -27,6 +27,24 @@ namespace egregore
             AddKnownType<RevokeRole>();
         }
 
+        public ulong? Get(Type type)
+        {
+            return !_reverseIndex.TryGetValue(type, out var result) ? (ulong?) null : result;
+        }
+
+        public Type Get(ulong typeId)
+        {
+            return !_index.TryGetValue(typeId, out var result) ? null : result;
+        }
+
+        public ILogSerialized Deserialize(Type type, LogDeserializeContext context)
+        {
+            if (!_serializers.TryGetValue(type, out var serializer))
+                return null;
+            var deserialized = serializer.Invoke(new object[] {context});
+            return (ILogSerialized) deserialized;
+        }
+
         private void AddKnownType<T>() where T : ILogSerialized
         {
             if (!TryAdd((ulong) _index.Count, typeof(T)))
@@ -37,25 +55,11 @@ namespace egregore
         private bool TryAdd(ulong id, Type type)
         {
             if (!_index.ContainsKey(id))
-            {
                 return _index.TryAdd(id, type) &&
                        _reverseIndex.TryAdd(type, id) &&
                        _serializers.TryAdd(type, type.GetConstructor(new[] {typeof(LogDeserializeContext)}));
-            }
 
             return false;
-        }
-
-        public ulong? Get(Type type) => !_reverseIndex.TryGetValue(type, out var result) ? (ulong?) null : result;
-
-        public Type Get(ulong typeId) => !_index.TryGetValue(typeId, out var result) ? null : result;
-
-        public ILogSerialized Deserialize(Type type, LogDeserializeContext context)
-        {
-            if (!_serializers.TryGetValue(type, out var serializer))
-                return null;
-            var deserialized = serializer.Invoke(new object[] { context });
-            return (ILogSerialized) deserialized;
         }
     }
 }

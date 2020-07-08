@@ -37,10 +37,11 @@ namespace egregore
         /// </summary>
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
         public static extern unsafe IntPtr sodium_hex2bin(byte* bin, int binMaxLen, byte* hex, int hexLen);
-        
+
         [DllImport("libsodium", CallingConvention = CallingConvention.Cdecl)]
-        public static extern unsafe int sodium_hex2bin(byte* bin, int binMaxlen, byte* hex, int hexLen, string ignore, out int binLen, string hexEnd);
-        
+        public static extern unsafe int sodium_hex2bin(byte* bin, int binMaxlen, byte* hex, int hexLen, string ignore,
+            out int binLen, string hexEnd);
+
         /// <summary>
         ///     <see href="https://libsodium.gitbook.io/doc/advanced/ed25519-curve25519" />
         /// </summary>
@@ -57,7 +58,8 @@ namespace egregore
         ///     <see href="https://libsodium.gitbook.io/doc/public-key_cryptography/public-key_signatures#detached-mode" />
         /// </summary>
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern unsafe int crypto_sign_detached(byte* sig, ref ulong siglen, byte* m, ulong mlen, byte* sk);
+        public static extern unsafe int
+            crypto_sign_detached(byte* sig, ref ulong siglen, byte* m, ulong mlen, byte* sk);
 
         /// <summary>
         ///     <see href="https://libsodium.gitbook.io/doc/public-key_cryptography/public-key_signatures#detached-mode" />
@@ -111,7 +113,8 @@ namespace egregore
         ///     <see href="https://libsodium.gitbook.io/doc/advanced/scrypt" />
         /// </summary>
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern unsafe int crypto_pwhash_scryptsalsa208sha256(byte* @out, ulong outlen, byte* passwd, ulong passwdlen, byte* salt, ulong opslimit, int memlimit);
+        public static extern unsafe int crypto_pwhash_scryptsalsa208sha256(byte* @out, ulong outlen, byte* passwd,
+            ulong passwdlen, byte* salt, ulong opslimit, int memlimit);
 
         /// <summary>
         ///     <see href="https://libsodium.gitbook.io/doc/helpers#constant-time-test-for-equality" />
@@ -123,6 +126,7 @@ namespace egregore
         ///     <see href="https://libsodium.gitbook.io/doc/hashing/generic_hashing" />
         /// </summary>
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern unsafe int crypto_generichash(byte* @out, int outlen, byte* @in, ulong inlen, char* key, int keylen);
+        public static extern unsafe int crypto_generichash(byte* @out, int outlen, byte* @in, ulong inlen, char* key,
+            int keylen);
     }
 }

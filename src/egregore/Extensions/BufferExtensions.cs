@@ -7,7 +7,7 @@ namespace egregore.Extensions
 {
     internal static class BufferExtensions
     {
-        #region Sugar 
+        #region Sugar
 
         public static bool WriteBoolean(this BinaryWriter bw, bool value)
         {
@@ -31,7 +31,7 @@ namespace egregore.Extensions
         }
 
         #endregion
-        
+
         #region Nullable<UInt64>
 
         public static void WriteNullableUInt64(this BinaryWriter bw, ulong? value)
@@ -47,7 +47,7 @@ namespace egregore.Extensions
         }
 
         #endregion
-        
+
         #region UInt128
 
         public static void Write(this BinaryWriter bw, UInt128 value)
@@ -64,7 +64,7 @@ namespace egregore.Extensions
         }
 
         #endregion
-        
+
         #region VarBuffer
 
         public static void WriteVarBuffer(this BinaryWriter bw, byte[] buffer)

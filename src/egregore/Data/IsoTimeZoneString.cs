@@ -14,20 +14,20 @@ namespace egregore.Data
 
         public IsoTimeZoneString(string timestamp)
         {
-            if(string.IsNullOrWhiteSpace(timestamp))
+            if (string.IsNullOrWhiteSpace(timestamp))
                 throw new FormatException("missing timestamp");
 
             var tokens = timestamp.Split('[');
-            if(tokens.Length != 2)
+            if (tokens.Length != 2)
                 throw new FormatException("invalid timestamp");
 
-            if(!DateTimeOffset.TryParse(tokens[0], out var dto))
+            if (!DateTimeOffset.TryParse(tokens[0], out var dto))
                 throw new FormatException("invalid timestamp");
 
             Timestamp = dto;
 
             var tz = tokens[1];
-            if(string.IsNullOrWhiteSpace(tz) || tz.Length < 3)
+            if (string.IsNullOrWhiteSpace(tz) || tz.Length < 3)
                 throw new FormatException("invalid time zone");
 
             TimeZone = tz.Substring(0, tz.Length - 1);
@@ -41,7 +41,7 @@ namespace egregore.Data
 
         public bool Equals(IsoTimeZoneString other)
         {
-            return Timestamp.Equals(other.Timestamp) && 
+            return Timestamp.Equals(other.Timestamp) &&
                    string.Equals(TimeZone, other.TimeZone, StringComparison.OrdinalIgnoreCase);
         }
 
@@ -58,10 +58,19 @@ namespace egregore.Data
             return hashCode.ToHashCode();
         }
 
-        public static bool operator ==(IsoTimeZoneString left, IsoTimeZoneString right) => left.Equals(right);
+        public static bool operator ==(IsoTimeZoneString left, IsoTimeZoneString right)
+        {
+            return left.Equals(right);
+        }
 
-        public static bool operator !=(IsoTimeZoneString left, IsoTimeZoneString right) => !left.Equals(right);
+        public static bool operator !=(IsoTimeZoneString left, IsoTimeZoneString right)
+        {
+            return !left.Equals(right);
+        }
 
-        public override string ToString() => $"{Timestamp:o}[{TimeZone}]";
+        public override string ToString()
+        {
+            return $"{Timestamp:o}[{TimeZone}]";
+        }
     }
 }

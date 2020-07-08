@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
@@ -19,6 +22,11 @@ namespace egregore.Data
             SqlMapper.AddTypeHandler(new UInt128TypeHandler());
         }
 
+        internal SqliteProjection(string filePath)
+        {
+            DataFile = filePath;
+        }
+
         public string DataFile { get; private set; }
 
         public void Init()
@@ -26,15 +34,10 @@ namespace egregore.Data
             CreateIfNotExists(DataFile);
         }
 
-        internal SqliteProjection(string filePath)
-        {
-            DataFile = filePath;
-        }
-
         private void CreateIfNotExists(string filePath)
         {
             var baseDirectory = Path.GetDirectoryName(filePath);
-            if(!string.IsNullOrWhiteSpace(baseDirectory))
+            if (!string.IsNullOrWhiteSpace(baseDirectory))
                 Directory.CreateDirectory(baseDirectory);
             DataFile = filePath;
         }
@@ -56,7 +59,7 @@ namespace egregore.Data
                     "FROM sqlite_master " +
                     "WHERE type='table' " +
                     "AND name LIKE :name " +
-                    "ORDER BY name DESC ", new {name = $"{record.Type}%",}, t)
+                    "ORDER BY name DESC ", new {name = $"{record.Type}%"}, t)
                 .AsList();
 
             int revision;
@@ -88,7 +91,8 @@ namespace egregore.Data
             var previous = revision == 1 ? 1 : revision - 1;
 
             var sequence =
-                db.QuerySingleOrDefault<long?>($"SELECT MAX(\"Sequence\") FROM \"{record.Type}_V{previous}\"", transaction: t)
+                db.QuerySingleOrDefault<long?>($"SELECT MAX(\"Sequence\") FROM \"{record.Type}_V{previous}\"",
+                        transaction: t)
                     .GetValueOrDefault(0);
 
             sequence++;
@@ -122,13 +126,11 @@ namespace egregore.Data
                     insert.Append(":");
                     insert.Append(column.Name);
                 }
+
                 insert.Append(", :Sequence)");
 
                 var hash = new Dictionary<string, object> {{"Sequence", sequence}};
-                foreach (var column in record.Columns)
-                {
-                    hash.Add(column.Name, column.Value);
-                }
+                foreach (var column in record.Columns) hash.Add(column.Name, column.Value);
 
                 var insertSql = insert.ToString();
                 db.Execute(insertSql, hash, t);
@@ -139,10 +141,11 @@ namespace egregore.Data
             }
         }
 
-        private static void RebuildView(Record record, IDbConnection db, IDbTransaction t, IEnumerable<TableInfo> tableInfoList, int revision)
+        private static void RebuildView(Record record, IDbConnection db, IDbTransaction t,
+            IEnumerable<TableInfo> tableInfoList, int revision)
         {
             db.Execute($"DROP VIEW IF EXISTS \"{record.Type}\"");
-            
+
             var view = new StringBuilder();
             view.Append("CREATE VIEW \"");
             view.Append(record.Type);
@@ -167,6 +170,7 @@ namespace egregore.Data
                 view.Append(column.Name);
                 view.Append("\"");
             }
+
             view.Append(", \"Sequence\" FROM \"");
             view.Append(record.Type);
             view.Append("_V");
@@ -206,7 +210,7 @@ namespace egregore.Data
             }
 
             view.Append(" ORDER BY \"Sequence\" ASC ");
-            var viewSql = view.ToString(); 
+            var viewSql = view.ToString();
             db.Execute(viewSql, transaction: t);
         }
 
@@ -255,7 +259,7 @@ namespace egregore.Data
             // See: https://www.sqlite.org/lang_createtable.html#rowid
             // - "INTEGER PRIMARY KEY" is faster when explicit
             // - don't use ROWID, as our sequence spans multiple tables, and ROWID uses AUTO INCREMENT
-            create.Append(", \"Sequence\" INTEGER PRIMARY KEY) WITHOUT ROWID"); 
+            create.Append(", \"Sequence\" INTEGER PRIMARY KEY) WITHOUT ROWID");
             var createSql = create.ToString();
             return createSql;
         }

@@ -16,22 +16,14 @@ namespace egregore
 {
     internal sealed class LogStore : ILogStore
     {
+        private readonly string _filePath;
+        private readonly HashProvider _hashProvider;
+        private readonly ILogObjectTypeProvider _typeProvider;
+
         static LogStore()
         {
             SqlMapper.AddTypeHandler(new UInt64TypeHandler());
             SqlMapper.AddTypeHandler(new UInt128TypeHandler());
-        }
-
-        private readonly string _filePath;
-        private readonly ILogObjectTypeProvider _typeProvider;
-        private readonly HashProvider _hashProvider;
-
-        public string DataFile { get; private set; }
-
-        public void Init()
-        {
-            CreateIfNotExists(_filePath);
-            MigrateToLatest(_filePath);
         }
 
         internal LogStore(string filePath)
@@ -40,6 +32,8 @@ namespace egregore
             _typeProvider = new LogObjectTypeProvider();
             _hashProvider = new HashProvider(_typeProvider);
         }
+
+        public string DataFile { get; private set; }
 
         public async Task<ulong> GetLengthAsync()
         {
@@ -54,7 +48,7 @@ namespace egregore
 
             await using var db = new SqliteConnection($"Data Source={DataFile}");
             await db.OpenAsync();
-            
+
             await using var t = await db.BeginTransactionAsync();
 
             var index = db.QuerySingle<ulong>(
@@ -87,7 +81,7 @@ namespace egregore
                                "WHERE e.'Index' >= @startingFrom " +
                                "ORDER BY e.'Index' ASC";
 
-            var stream = db.Query<LogEntryWithData>(sql, new { startingFrom }, buffered: false);
+            var stream = db.Query<LogEntryWithData>(sql, new {startingFrom}, buffered: false);
 
             // ReSharper disable once PossibleMultipleEnumeration
             var previousEntry = stream?.Take(1).FirstOrDefault();
@@ -109,6 +103,12 @@ namespace egregore
             }
         }
 
+        public void Init()
+        {
+            CreateIfNotExists(_filePath);
+            MigrateToLatest(_filePath);
+        }
+
         private void EntryCheck(LogEntry previous, LogEntry current)
         {
             if (previous.Index + 1 != current.Index)
@@ -119,14 +119,16 @@ namespace egregore
 
             if (!previous.Hash.SequenceEqual(current.PreviousHash))
             {
-                var message = $"Invalid previous hash: expected '{Crypto.ToHexString(previous.Hash)}' but was '{Crypto.ToHexString(current.PreviousHash)}'";
+                var message =
+                    $"Invalid previous hash: expected '{Crypto.ToHexString(previous.Hash)}' but was '{Crypto.ToHexString(current.PreviousHash)}'";
                 throw new LogException(message);
             }
 
             var hashRoot = _hashProvider.ComputeHashRootBytes(current);
             if (!hashRoot.SequenceEqual(current.HashRoot))
             {
-                var message = $"Invalid hash root: expected '{Crypto.ToHexString(hashRoot)}' but was '{Crypto.ToHexString(current.HashRoot)}'";
+                var message =
+                    $"Invalid hash root: expected '{Crypto.ToHexString(hashRoot)}' but was '{Crypto.ToHexString(current.HashRoot)}'";
                 throw new LogException(message);
             }
 
@@ -141,7 +143,8 @@ namespace egregore
             var hash = _hashProvider.ComputeHashBytes(current);
             if (!hash.SequenceEqual(current.Hash))
             {
-                var message = $"Invalid hash: expected '{Crypto.ToHexString(hash)}' but was '{Crypto.ToHexString(current.Hash)}'";
+                var message =
+                    $"Invalid hash: expected '{Crypto.ToHexString(hash)}' but was '{Crypto.ToHexString(current.Hash)}'";
                 throw new LogException(message);
             }
         }
@@ -176,7 +179,7 @@ namespace egregore
                     using var ebw = new BinaryWriter(ems, Encoding.UTF8);
                     var ec = new LogSerializeContext(ebw, _typeProvider, context.Version);
                     entry.SerializeObjects(ec, false);
-                    
+
                     var message = SecretStream.EncryptMessage(ems.ToArray(), nonce, secretKey);
                     context.bw.WriteVarBuffer(message);
                 }
@@ -203,7 +206,7 @@ namespace egregore
 
             // Nonce:
             var nonce = context.br.ReadVarBuffer();
-            if(nonce != null)
+            if (nonce != null)
             {
                 var message = SecretStream.DecryptMessage(context.br.ReadVarBuffer(), nonce, secretKey);
 
@@ -227,7 +230,7 @@ namespace egregore
         private void CreateIfNotExists(string filePath)
         {
             var baseDirectory = Path.GetDirectoryName(filePath);
-            if(!string.IsNullOrWhiteSpace(baseDirectory))
+            if (!string.IsNullOrWhiteSpace(baseDirectory))
                 Directory.CreateDirectory(baseDirectory);
             MigrateToLatest(_filePath);
             DataFile = _filePath;
@@ -255,7 +258,7 @@ namespace egregore
                 db.Close();
                 db.Dispose();
             }
-            catch (SqliteException e)						 
+            catch (SqliteException e)
             {
                 Trace.TraceError("Error migrating log store: {0}", e);
                 throw;

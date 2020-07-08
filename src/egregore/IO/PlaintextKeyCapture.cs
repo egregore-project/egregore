@@ -12,8 +12,11 @@ namespace egregore.IO
         private const char EnterKeyChar = '\u0000';
         private const char BackspaceKeyChar = '\b';
 
-        internal static readonly ConsoleKeyInfo EnterKey = new ConsoleKeyInfo(EnterKeyChar, ConsoleKey.Enter, false, false, false);
-        internal static readonly ConsoleKeyInfo BackspaceKey = new ConsoleKeyInfo(BackspaceKeyChar, ConsoleKey.Backspace, false, false, false);
+        internal static readonly ConsoleKeyInfo EnterKey =
+            new ConsoleKeyInfo(EnterKeyChar, ConsoleKey.Enter, false, false, false);
+
+        internal static readonly ConsoleKeyInfo BackspaceKey =
+            new ConsoleKeyInfo(BackspaceKeyChar, ConsoleKey.Backspace, false, false, false);
 
         private readonly string _value;
         private int _index;
@@ -26,6 +29,7 @@ namespace egregore.IO
                 sb.Append(value);
                 sb.Append(EnterKeyChar);
             }
+
             _value = sb.ToString();
             _index = 0;
         }
@@ -36,7 +40,7 @@ namespace egregore.IO
                 return EnterKey;
 
             var keyChar = _value[_index++];
-            
+
             switch (keyChar)
             {
                 case EnterKeyChar:
@@ -54,6 +58,8 @@ namespace egregore.IO
             _index = 0;
         }
 
-        public void OnKeyRead(TextWriter @out) { }
+        public void OnKeyRead(TextWriter @out)
+        {
+        }
     }
 }

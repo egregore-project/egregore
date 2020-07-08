@@ -8,8 +8,11 @@ namespace egregore.Ontology
 {
     public sealed class ServerKeyFileService : IKeyFileService
     {
-        public string GetKeyFilePath() => Program.keyFilePath;
-        public FileStream GetKeyFileStream() => Program.keyFileStream;
+        public FileStream GetKeyFileStream()
+        {
+            return Program.keyFileStream;
+        }
+
         public unsafe byte* GetSecretKeyPointer(IKeyCapture capture, [CallerMemberName] string callerMemberName = null)
         {
             var keyFilePath = GetKeyFilePath();
@@ -22,6 +25,13 @@ namespace egregore.Ontology
             return ptr;
         }
 
-        public void Dispose() { }
+        public void Dispose()
+        {
+        }
+
+        public string GetKeyFilePath()
+        {
+            return Program.keyFilePath;
+        }
     }
 }

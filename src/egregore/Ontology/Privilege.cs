@@ -8,12 +8,6 @@ namespace egregore.Ontology
 {
     public abstract class Privilege : ILogSerialized
     {
-        public byte[] Subject { get; set; }
-        public string Type { get; set; }
-        public string Value { get; set; }
-        public byte[] Authority { get; set; }
-        public byte[] Signature { get; private set; }
-
         protected Privilege(string type)
         {
             Type = type;
@@ -25,7 +19,14 @@ namespace egregore.Ontology
             Signature = signature;
         }
 
-        public void Sign(IKeyFileService keyFileService, IKeyCapture capture, ulong formatVersion = LogSerializeContext.FormatVersion)
+        public byte[] Subject { get; set; }
+        public string Type { get; set; }
+        public string Value { get; set; }
+        public byte[] Authority { get; set; }
+        public byte[] Signature { get; private set; }
+
+        public void Sign(IKeyFileService keyFileService, IKeyCapture capture,
+            ulong formatVersion = LogSerializeContext.FormatVersion)
         {
             unsafe
             {

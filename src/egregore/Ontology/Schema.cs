@@ -7,10 +7,12 @@ namespace egregore.Ontology
 {
     public sealed class Schema : ILogSerialized
     {
+        public Schema()
+        {
+        }
+
         public string Name { get; set; }
         public List<SchemaProperty> Properties { get; set; } = new List<SchemaProperty>();
-        
-        public Schema() { }
 
         #region Serialization
 

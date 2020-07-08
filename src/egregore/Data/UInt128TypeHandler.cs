@@ -8,7 +8,14 @@ namespace egregore.Data
 {
     internal sealed class UInt128TypeHandler : SqlMapper.TypeHandler<UInt128?>
     {
-        public override void SetValue(IDbDataParameter parameter, UInt128? value) => parameter.Value = value.GetValueOrDefault().ToString();
-        public override UInt128? Parse(object value) => value is UInt128 v ? v : new UInt128((string)value);
+        public override void SetValue(IDbDataParameter parameter, UInt128? value)
+        {
+            parameter.Value = value.GetValueOrDefault().ToString();
+        }
+
+        public override UInt128? Parse(object value)
+        {
+            return value is UInt128 v ? v : new UInt128((string) value);
+        }
     }
 }

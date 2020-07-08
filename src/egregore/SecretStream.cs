@@ -6,7 +6,7 @@ using System;
 namespace egregore
 {
     /// <summary>
-    /// https://libsodium.gitbook.io/doc/secret-key_cryptography/secretstream
+    ///     https://libsodium.gitbook.io/doc/secret-key_cryptography/secretstream
     /// </summary>
     internal static class SecretStream
     {

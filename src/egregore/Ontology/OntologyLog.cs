@@ -1,8 +1,10 @@
-﻿using System;
+﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using egregore.Ontology.Exceptions;
-using InvalidOperationException = System.InvalidOperationException;
 
 namespace egregore.Ontology
 {
@@ -12,19 +14,12 @@ namespace egregore.Ontology
 
         private long _index;
         private Namespace _namespace;
-        
-        public List<Namespace> Namespaces { get; }
-        public Dictionary<string, Dictionary<ulong, List<Schema>>> Schemas { get; }
-        public Dictionary<string, Dictionary<string, ulong>> Revisions { get; }
-
-        public Dictionary<string, List<string>> Roles { get; }
-        public Dictionary<string, Dictionary<string, List<string>>> RoleGrants { get; }
 
         public OntologyLog(ReadOnlySpan<byte> publicKey)
         {
-            Namespaces = new List<Namespace> { Default };
+            Namespaces = new List<Namespace> {Default};
             _namespace = Namespaces[0];
-            
+
             Schemas = new Dictionary<string, Dictionary<ulong, List<Schema>>>();
             Schemas.TryAdd(Constants.DefaultNamespace, new Dictionary<ulong, List<Schema>>());
 
@@ -41,11 +36,19 @@ namespace egregore.Ontology
             });
         }
 
-        public OntologyLog(ReadOnlySpan<byte> publicKey, ILogStore store, ulong startingFrom = 0UL, byte[] secretKey = null) : this(publicKey)
+        public OntologyLog(ReadOnlySpan<byte> publicKey, ILogStore store, ulong startingFrom = 0UL,
+            byte[] secretKey = null) : this(publicKey)
         {
             Interlocked.Exchange(ref _index, (long) startingFrom);
             Materialize(store, secretKey);
         }
+
+        public List<Namespace> Namespaces { get; }
+        public Dictionary<string, Dictionary<ulong, List<Schema>>> Schemas { get; }
+        public Dictionary<string, Dictionary<string, ulong>> Revisions { get; }
+
+        public Dictionary<string, List<string>> Roles { get; }
+        public Dictionary<string, Dictionary<string, List<string>>> RoleGrants { get; }
 
         public void Materialize(ILogStore store, byte[] secretKey = default)
         {
@@ -56,7 +59,6 @@ namespace egregore.Ontology
                 Interlocked.Exchange(ref _index, (long) entry.Index.GetValueOrDefault());
 
                 foreach (var @object in entry.Objects)
-                {
                     switch (@object.Data)
                     {
                         case Namespace ns:
@@ -95,7 +97,7 @@ namespace egregore.Ontology
                                 throw new InvalidOperationException($"invalid {revokeRole.Type}");
 
                             if (RoleGrants.TryGetValue(_namespace.Value, out var lookup) &&
-                                lookup.Count == 1 && 
+                                lookup.Count == 1 &&
                                 lookup[Constants.OwnerRole].Count == 1)
                                 throw new CannotRemoveSingleOwnerException("cannot revoke admin rights of only owner");
 
@@ -104,7 +106,6 @@ namespace egregore.Ontology
                         default:
                             throw new NotImplementedException(@object.Data.GetType().Name);
                     }
-                }
             }
         }
     }

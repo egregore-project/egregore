@@ -1,8 +1,6 @@
 ﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
-
 namespace egregore.Ontology
 {
     public sealed class GrantRole : Privilege
@@ -21,6 +19,8 @@ namespace egregore.Ontology
             Subject = grantee;
         }
 
-        public GrantRole(LogDeserializeContext context) : base(context) { }
+        public GrantRole(LogDeserializeContext context) : base(context)
+        {
+        }
     }
 }

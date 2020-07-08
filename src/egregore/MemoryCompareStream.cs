@@ -9,51 +9,46 @@ namespace egregore
 {
     internal sealed class MemoryCompareStream : Stream
     {
+        private readonly byte[] _compareTo;
+
         public MemoryCompareStream(byte[] compareTo)
         {
             _compareTo = compareTo;
-            _position = 0;
-        }
-
-        readonly byte[] _compareTo;
-        long _position;
-
-        public override void Write(byte[] buffer, int offset, int count)
-        {
-            for (int i = 0; i < count; i++)
-            {
-                if (buffer[offset + i] != _compareTo[_position + i])
-                {
-
-                    Debug.Assert(false);
-                    throw new Exception("Data mismatch");
-                }
-            }
-
-            _position += count;
-        }
-
-        public override void WriteByte(byte value)
-        {
-            if (_compareTo[_position] != value)
-            {
-                Debug.Assert(false);
-                throw new Exception("Data mismatch");
-            }
-
-            _position++;
+            Position = 0;
         }
 
         public override bool CanRead => false;
         public override bool CanSeek => true;
         public override bool CanWrite => true;
-        public override void Flush() { }
         public override long Length => _compareTo.Length;
 
-        public override long Position
-        { 
-            get => _position;
-            set => _position = value;
+        public override long Position { get; set; }
+
+        public override void Write(byte[] buffer, int offset, int count)
+        {
+            for (var i = 0; i < count; i++)
+                if (buffer[offset + i] != _compareTo[Position + i])
+                {
+                    Debug.Assert(false);
+                    throw new Exception("Data mismatch");
+                }
+
+            Position += count;
+        }
+
+        public override void WriteByte(byte value)
+        {
+            if (_compareTo[Position] != value)
+            {
+                Debug.Assert(false);
+                throw new Exception("Data mismatch");
+            }
+
+            Position++;
+        }
+
+        public override void Flush()
+        {
         }
 
         public override int Read(byte[] buffer, int offset, int count)
@@ -66,15 +61,16 @@ namespace egregore
             switch (origin)
             {
                 case SeekOrigin.Begin:
-                    _position = offset;
+                    Position = offset;
                     break;
                 case SeekOrigin.Current:
-                    _position += offset;
+                    Position += offset;
                     break;
                 case SeekOrigin.End:
-                    _position = _compareTo.Length - offset;
+                    Position = _compareTo.Length - offset;
                     break;
             }
+
             return Position;
         }
 

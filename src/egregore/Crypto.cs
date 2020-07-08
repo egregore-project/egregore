@@ -15,7 +15,7 @@ namespace egregore
         public const uint PublicKeyBytes = 32U;
         public const uint SecretKeyBytes = 64U;
 
-        #region Utilities 
+        #region Utilities
 
         public static byte[] Nonce(uint size)
         {
@@ -59,7 +59,7 @@ namespace egregore
             var length = ToBinary(Encoding.UTF8.GetBytes(hexString), buffer);
             if (length < buffer.Length)
                 buffer = buffer.Slice(0, length);
-        } 
+        }
 
         public static int ToBinary(this ReadOnlySpan<byte> hexString, Span<byte> buffer)
         {
@@ -70,7 +70,7 @@ namespace egregore
                 fixed (byte* bin = &buffer.GetPinnableReference())
                 fixed (byte* hex = &hexString.GetPinnableReference())
                 {
-                    if(NativeMethods.sodium_hex2bin(bin, binMaxLen, hex, hexLen, null, out var binLen, null) != 0)
+                    if (NativeMethods.sodium_hex2bin(bin, binMaxLen, hex, hexLen, null, out var binLen, null) != 0)
                         throw new InvalidOperationException(nameof(NativeMethods.sodium_hex2bin));
 
                     return binLen;
@@ -78,17 +78,22 @@ namespace egregore
             }
         }
 
-        public static string ToHexString(this ReadOnlySpan<byte> bin) => ToHexString(bin, new Span<byte>(new byte[bin.Length * 2 + 1]));
+        public static string ToHexString(this ReadOnlySpan<byte> bin)
+        {
+            return ToHexString(bin, new Span<byte>(new byte[bin.Length * 2 + 1]));
+        }
+
         public static string ToHexString(this ReadOnlySpan<byte> bin, Span<byte> hex)
         {
             var minLength = bin.Length * 2 + 1;
-            if(hex.Length < minLength)
-                throw new ArgumentOutOfRangeException(nameof(hex), hex.Length, $"Hex buffer is shorter than {minLength}");
+            if (hex.Length < minLength)
+                throw new ArgumentOutOfRangeException(nameof(hex), hex.Length,
+                    $"Hex buffer is shorter than {minLength}");
 
             unsafe
             {
-                fixed(byte* h = &hex.GetPinnableReference())
-                fixed(byte* b = &bin.GetPinnableReference())
+                fixed (byte* h = &hex.GetPinnableReference())
+                fixed (byte* b = &bin.GetPinnableReference())
                 {
                     var ptr = NativeMethods.sodium_bin2hex(h, hex.Length, b, bin.Length);
                     return Marshal.PtrToStringAnsi(ptr);
@@ -108,13 +113,13 @@ namespace egregore
         }
 
         public static void Sha256(this ReadOnlySpan<byte> @in, Span<byte> @out)
-        { 
+        {
             unsafe
             {
                 fixed (byte* o = &@out.GetPinnableReference())
                 fixed (byte* i = &@in.GetPinnableReference())
                 {
-                    if(NativeMethods.crypto_hash_sha256(o, i, (ulong) @in.Length) != 0)
+                    if (NativeMethods.crypto_hash_sha256(o, i, (ulong) @in.Length) != 0)
                         throw new InvalidOperationException(nameof(NativeMethods.crypto_hash_sha256));
                 }
             }
@@ -130,15 +135,15 @@ namespace egregore
             var sk = (byte*) NativeMethods.sodium_malloc(SecretKeyBytes);
             fixed (byte* pk = publicKey)
             {
-                if(NativeMethods.crypto_sign_keypair(pk, sk) != 0)
+                if (NativeMethods.crypto_sign_keypair(pk, sk) != 0)
                     throw new InvalidOperationException(nameof(NativeMethods.crypto_sign_keypair));
-                
+
                 secretKey = sk;
             }
         }
 
         /// <summary>
-        /// Generate a new key pair for offline purposes. NEVER use the secret key outside of tests. 
+        ///     Generate a new key pair for offline purposes. NEVER use the secret key outside of tests.
         /// </summary>
         public static void GenerateKeyPairDangerous(Span<byte> publicKey, Span<byte> secretKey)
         {
@@ -147,7 +152,7 @@ namespace egregore
                 fixed (byte* pk = &publicKey.GetPinnableReference())
                 fixed (byte* sk = &secretKey.GetPinnableReference())
                 {
-                    if(NativeMethods.crypto_sign_keypair(pk, sk) != 0)
+                    if (NativeMethods.crypto_sign_keypair(pk, sk) != 0)
                         throw new InvalidOperationException(nameof(NativeMethods.crypto_sign_keypair));
                 }
             }
@@ -158,13 +163,14 @@ namespace egregore
             var ed25519PublicKey = new byte[PublicKeyBytes];
             unsafe
             {
-                fixed(byte* sk = &ed25519SecretKey.GetPinnableReference())
-                fixed(byte* pk = &ed25519PublicKey.AsSpan().GetPinnableReference())
+                fixed (byte* sk = &ed25519SecretKey.GetPinnableReference())
+                fixed (byte* pk = &ed25519PublicKey.AsSpan().GetPinnableReference())
                 {
                     if (NativeMethods.crypto_sign_ed25519_sk_to_pk(pk, sk) != 0)
                         throw new InvalidOperationException(nameof(NativeMethods.crypto_sign_ed25519_sk_to_pk));
                 }
             }
+
             return ed25519PublicKey;
         }
 
@@ -183,7 +189,7 @@ namespace egregore
         {
             try
             {
-                fixed(byte* pk = &ed25519PublicKey.GetPinnableReference())
+                fixed (byte* pk = &ed25519PublicKey.GetPinnableReference())
                 {
                     if (NativeMethods.crypto_sign_ed25519_sk_to_pk(pk, sk) != 0)
                         throw new InvalidOperationException(nameof(NativeMethods.crypto_sign_ed25519_sk_to_pk));
@@ -195,7 +201,11 @@ namespace egregore
             }
         }
 
-        public static unsafe byte* SigningKeyToEncryptionKey(IKeyFileService keyFileService, IKeyCapture capture) => SigningKeyToEncryptionKey(keyFileService.GetSecretKeyPointer(capture));
+        public static unsafe byte* SigningKeyToEncryptionKey(IKeyFileService keyFileService, IKeyCapture capture)
+        {
+            return SigningKeyToEncryptionKey(keyFileService.GetSecretKeyPointer(capture));
+        }
+
         public static unsafe byte* SigningKeyToEncryptionKey(byte* ed25519Sk)
         {
             try
@@ -211,7 +221,11 @@ namespace egregore
             }
         }
 
-        public static unsafe ulong SignDetached(string message, byte* sk, Span<byte> signature) => SignDetached(Encoding.UTF8.GetBytes(message), sk, signature);
+        public static unsafe ulong SignDetached(string message, byte* sk, Span<byte> signature)
+        {
+            return SignDetached(Encoding.UTF8.GetBytes(message), sk, signature);
+        }
+
         public static unsafe ulong SignDetached(ReadOnlySpan<byte> message, byte* sk, Span<byte> signature)
         {
             var length = 0UL;
@@ -221,7 +235,7 @@ namespace egregore
             {
                 try
                 {
-                    if(NativeMethods.crypto_sign_detached(sig, ref length, m, (ulong) message.Length, sk) != 0)
+                    if (NativeMethods.crypto_sign_detached(sig, ref length, m, (ulong) message.Length, sk) != 0)
                         throw new InvalidOperationException(nameof(NativeMethods.crypto_sign_detached));
                 }
                 finally
@@ -233,8 +247,13 @@ namespace egregore
             return length;
         }
 
-        public static bool VerifyDetached(string message, ReadOnlySpan<byte> signature, ReadOnlySpan<byte> publicKey) => VerifyDetached(Encoding.UTF8.GetBytes(message), signature, publicKey);
-        public static bool VerifyDetached(ReadOnlySpan<byte> message, ReadOnlySpan<byte> signature, ReadOnlySpan<byte> publicKey)
+        public static bool VerifyDetached(string message, ReadOnlySpan<byte> signature, ReadOnlySpan<byte> publicKey)
+        {
+            return VerifyDetached(Encoding.UTF8.GetBytes(message), signature, publicKey);
+        }
+
+        public static bool VerifyDetached(ReadOnlySpan<byte> message, ReadOnlySpan<byte> signature,
+            ReadOnlySpan<byte> publicKey)
         {
             unsafe
             {
@@ -252,21 +271,25 @@ namespace egregore
 
         #region File operations
 
-        public static unsafe byte* LoadSecretKeyPointerFromFileStream(string keyFilePath, FileStream keyFileStream, IPersistedKeyCapture capture, [CallerMemberName] string callerMemberName = null)
+        public static unsafe byte* LoadSecretKeyPointerFromFileStream(string keyFilePath, FileStream keyFileStream,
+            IPersistedKeyCapture capture, [CallerMemberName] string callerMemberName = null)
         {
             if (keyFileStream.CanSeek)
                 keyFileStream.Seek(0, SeekOrigin.Begin);
             if (!KeyFileManager.TryLoadKeyFile(keyFileStream, Console.Out, Console.Error, out var sk, capture))
-                throw new InvalidOperationException($"{callerMemberName}: Cannot load key file at path '{keyFilePath}'");
+                throw new InvalidOperationException(
+                    $"{callerMemberName}: Cannot load key file at path '{keyFilePath}'");
             return sk;
         }
 
-        public static unsafe byte* LoadSecretKeyPointerFromFileStream(string keyFilePath, FileStream keyFileStream, IKeyCapture capture, [CallerMemberName] string callerMemberName = null)
+        public static unsafe byte* LoadSecretKeyPointerFromFileStream(string keyFilePath, FileStream keyFileStream,
+            IKeyCapture capture, [CallerMemberName] string callerMemberName = null)
         {
             if (keyFileStream.CanSeek)
                 keyFileStream.Seek(0, SeekOrigin.Begin);
             if (!KeyFileManager.TryLoadKeyFile(keyFileStream, Console.Out, Console.Error, out var sk, capture))
-                throw new InvalidOperationException($"{callerMemberName}: Cannot load key file at path '{keyFilePath}'");
+                throw new InvalidOperationException(
+                    $"{callerMemberName}: Cannot load key file at path '{keyFilePath}'");
             return sk;
         }
 

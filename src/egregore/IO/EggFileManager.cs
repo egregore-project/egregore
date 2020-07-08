@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -46,7 +49,7 @@ namespace egregore.IO
                 Trace.TraceError(e.ToString());
                 Console.Error.WriteErrorLine(
                     RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
-                        ? $"Failed to create egg file at '{0}'. SQLite must run on a volume with nobrl enabled. Use the '{Constants.EnvVars.EggFilePath}' environment variable to specify a compatible storage path."
+                        ? $"Failed to create egg file at '{eggPath}'. SQLite must run on a volume with nobrl enabled. Use the '{Constants.EnvVars.EggFilePath}' environment variable to specify a compatible storage path. {e}"
                         : $"Failed to create egg file at '{eggPath}': {e}");
 
                 return false;

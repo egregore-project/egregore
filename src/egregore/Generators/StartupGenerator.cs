@@ -1,6 +1,9 @@
-﻿namespace egregore.Generators
+﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+namespace egregore.Generators
 {
-    public class StartupGenerator 
+    public class StartupGenerator
     {
         public void Generate(IStringBuilder sb)
         {
@@ -11,13 +14,15 @@
             sb.AppendLine("using Microsoft.Extensions.Hosting;");
             sb.AppendLine();
 
-            sb.AppendLine(@$"public sealed class Startup");
-            sb.AppendLine(@$"{{");
-            sb.AppendLine(@$"    public IConfiguration Configuration {{ get; }}");
-            sb.AppendLine(@$"    public Startup(IConfiguration configuration) => Configuration = configuration;");
-            sb.AppendLine(@$"    public void ConfigureServices(IServiceCollection services) => services.AddGenerated(Configuration);");
-            sb.AppendLine(@$"    public void Configure(IApplicationBuilder app, IWebHostEnvironment env) => app.UseGenerated(env);");
-            sb.AppendLine(@$"}}");
+            sb.AppendLine(@"public sealed class Startup");
+            sb.AppendLine(@"{");
+            sb.AppendLine(@"    public IConfiguration Configuration { get; }");
+            sb.AppendLine(@"    public Startup(IConfiguration configuration) => Configuration = configuration;");
+            sb.AppendLine(
+                @"    public void ConfigureServices(IServiceCollection services) => services.AddGenerated(Configuration);");
+            sb.AppendLine(
+                @"    public void Configure(IApplicationBuilder app, IWebHostEnvironment env) => app.UseGenerated(env);");
+            sb.AppendLine(@"}");
             sb.AppendLine();
         }
     }

@@ -1,4 +1,7 @@
-﻿using System.Text;
+﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System.Text;
 
 namespace egregore.Generators
 {
@@ -6,7 +9,18 @@ namespace egregore.Generators
     {
         private readonly StringBuilder _inner;
 
-        public int Indent { get; set; }
+        public IndentAwareStringBuilder() : this(new StringBuilder())
+        {
+        }
+
+        public IndentAwareStringBuilder(int capacity) : this(new StringBuilder(capacity))
+        {
+        }
+
+        public IndentAwareStringBuilder(StringBuilder inner)
+        {
+            _inner = inner;
+        }
 
         public int Capacity
         {
@@ -14,18 +28,12 @@ namespace egregore.Generators
             set => _inner.Capacity = value;
         }
 
+        public int Indent { get; set; }
+
         public int Length
         {
             get => _inner.Length;
             set => _inner.Length = value;
-        }
-
-        public IndentAwareStringBuilder() : this(new StringBuilder()) { }
-        public IndentAwareStringBuilder(int capacity) : this(new StringBuilder(capacity)) { }
-
-        public IndentAwareStringBuilder(StringBuilder inner)
-        {
-            _inner = inner;
         }
 
         public IStringBuilder AppendLine(string message)
@@ -44,11 +52,6 @@ namespace egregore.Generators
         {
             _inner.Clear();
             return this;
-        }
-
-        public override string ToString()
-        {
-            return _inner.ToString();
         }
 
         public IStringBuilder Insert(int index, object value)
@@ -76,6 +79,11 @@ namespace egregore.Generators
         {
             _inner.Append(value);
             return this;
+        }
+
+        public override string ToString()
+        {
+            return _inner.ToString();
         }
     }
 }

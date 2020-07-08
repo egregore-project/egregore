@@ -20,7 +20,8 @@ namespace egregore
             return VerifyAndLoad(assembly, libraryName, NativeMethods.DllName, publicKeyString, searchPath);
         }
 
-        private static IntPtr VerifyAndLoad(Assembly assembly, string source, string target, string publicKey, DllImportSearchPath? searchPath)
+        private static IntPtr VerifyAndLoad(Assembly assembly, string source, string target, string publicKey,
+            DllImportSearchPath? searchPath)
         {
             var handle = IntPtr.Zero;
             if (source == target)
@@ -36,7 +37,8 @@ namespace egregore
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
                     var libraryFileName = $"{target}.so";
-                    var fullPath = Path.Combine(RuntimesPathSegment, $"linux-{architecture}", "native", libraryFileName);
+                    var fullPath = Path.Combine(RuntimesPathSegment, $"linux-{architecture}", "native",
+                        libraryFileName);
                     IntegrityCheckFile(fullPath, publicKey);
                     NativeLibrary.TryLoad(libraryFileName, assembly, searchPath, out handle);
                 }

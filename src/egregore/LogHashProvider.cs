@@ -10,10 +10,14 @@ namespace egregore
 {
     internal sealed class HashProvider
     {
-        private readonly ILogObjectTypeProvider _typeProvider;
+        private static readonly LogObject NoLogObjects = new LogObject();
         private readonly HashAlgorithm _algorithm;
+        private readonly ILogObjectTypeProvider _typeProvider;
 
-        public HashProvider(ILogObjectTypeProvider typeProvider) : this(typeProvider, SHA256.Create()) { }
+        public HashProvider(ILogObjectTypeProvider typeProvider) : this(typeProvider, SHA256.Create())
+        {
+        }
+
         internal HashProvider(ILogObjectTypeProvider typeProvider, HashAlgorithm algorithm)
         {
             _typeProvider = typeProvider;
@@ -38,8 +42,6 @@ namespace egregore
             return _algorithm.ComputeHash(ms);
         }
 
-        private static readonly LogObject NoLogObjects = new LogObject();
-
         public byte[] ComputeHashRootBytes(LogEntry entry)
         {
             // https://en.bitcoin.it/wiki/Protocol_documentation#Merkle_Trees
@@ -51,7 +53,7 @@ namespace egregore
             foreach (var o in entry.Objects)
                 p.Add(_algorithm.ComputeHash(ComputeHashBytes(o)));
 
-            if(p.Count > 1 && p.Count % 2 != 0)
+            if (p.Count > 1 && p.Count % 2 != 0)
                 p.Add(p[^1]);
             if (p.Count == 1)
                 return p[0];
@@ -60,16 +62,15 @@ namespace egregore
             {
                 var n = new List<byte[]>(p.Count / 2);
                 for (var i = 0; i < p.Count; i++)
+                for (var j = i + 1; j < p.Count; j++)
                 {
-                    for (var j = i + 1; j < p.Count; j++)
-                    {
-                        var a = entry.Objects[i].Hash;
-                        var b = entry.Objects[j].Hash;
-                        var d = DoubleHash(a, b);
-                        n.Add(d);
-                        i++;
-                    }
+                    var a = entry.Objects[i].Hash;
+                    var b = entry.Objects[j].Hash;
+                    var d = DoubleHash(a, b);
+                    n.Add(d);
+                    i++;
                 }
+
                 if (n.Count == 1)
                     return n[0];
                 if (n.Count % 2 != 0)
@@ -79,7 +80,7 @@ namespace egregore
                 goto pass;
             }
         }
-        
+
         private byte[] DoubleHash(byte[] a, byte[] b)
         {
             var buffer = new byte[a.Length + b.Length];

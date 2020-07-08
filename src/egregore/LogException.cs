@@ -7,6 +7,8 @@ namespace egregore
 {
     public sealed class LogException : Exception
     {
-        public LogException(string message) : base(message) { }
+        public LogException(string message) : base(message)
+        {
+        }
     }
 }

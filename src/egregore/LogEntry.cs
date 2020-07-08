@@ -16,23 +16,23 @@ namespace egregore
             Objects = new List<LogObject>();
         }
 
+        public ulong? Index { get; set; }
+        public byte[] Hash { get; internal set; }
+
+        public IList<LogObject> Objects { get; set; }
+
         public ulong Version { get; set; }
         public byte[] PreviousHash { get; set; }
         public byte[] HashRoot { get; set; }
         public UInt128 Timestamp { get; set; }
-
-        public ulong? Index { get; set; }
         public byte[] Nonce { get; set; }
-        public byte[] Hash { get; internal set; }
-
-        public IList<LogObject> Objects { get; set; }
 
         #region Serialization
 
         public void Serialize(LogSerializeContext context, bool hash)
         {
             LogHeader.Serialize(this, context, hash);
-            if(!hash)
+            if (!hash)
                 context.bw.WriteVarBuffer(Hash);
             SerializeObjects(context, hash);
         }
@@ -43,7 +43,7 @@ namespace egregore
             Hash = context.br.ReadVarBuffer();
             DeserializeObjects(context);
         }
-        
+
         internal void DeserializeObjects(LogDeserializeContext context)
         {
             var count = context.br.ReadInt32();
@@ -95,7 +95,9 @@ namespace egregore
             LogEntry deserialized;
             if (nonce != null)
             {
-                using var dms = new MemoryStream(SecretStream.DecryptMessage(deserializeContext.br.ReadVarBuffer(), nonce, secretKey));
+                using var dms =
+                    new MemoryStream(SecretStream.DecryptMessage(deserializeContext.br.ReadVarBuffer(), nonce,
+                        secretKey));
                 using var dbr = new BinaryReader(dms);
                 var dc = new LogDeserializeContext(dbr, typeProvider);
                 deserialized = new LogEntry(dc);

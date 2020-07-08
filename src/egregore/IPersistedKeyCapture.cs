@@ -7,7 +7,14 @@ namespace egregore
 {
     public interface IPersistedKeyCapture : IKeyCapture, IDisposable
     {
-        unsafe void Sink(byte* password, int passwordLength) => throw new NotSupportedException();
-        unsafe bool TryReadPersisted(out byte* password, out int passwordLength) => throw new NotSupportedException();
+        unsafe void Sink(byte* password, int passwordLength)
+        {
+            throw new NotSupportedException();
+        }
+
+        unsafe bool TryReadPersisted(out byte* password, out int passwordLength)
+        {
+            throw new NotSupportedException();
+        }
     }
 }

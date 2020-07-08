@@ -5,13 +5,15 @@ namespace egregore.Ontology
 {
     public class SchemaProperty : ILogSerialized
     {
+        public SchemaProperty()
+        {
+        }
+
         public string Name { get; set; }
         public string Type { get; set; }
 
-        public SchemaProperty() { }
-        
         #region Serialization
-        
+
         public SchemaProperty(LogDeserializeContext context)
         {
             Name = context.br.ReadString();

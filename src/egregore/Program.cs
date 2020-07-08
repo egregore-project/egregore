@@ -46,8 +46,10 @@ namespace egregore
                         var password = Environment.GetEnvironmentVariable(Constants.EnvVars.KeyFilePassword);
                         if (string.IsNullOrWhiteSpace(password))
                         {
-                            Console.Error.WriteErrorLine($"Could not locate '{Constants.EnvVars.KeyFilePassword}' variable for container deployment.");
-                            Console.Out.WriteInfoLine("To run the server interactively to input a password, use the --server argument.");
+                            Console.Error.WriteErrorLine(
+                                $"Could not locate '{Constants.EnvVars.KeyFilePassword}' variable for container deployment.");
+                            Console.Out.WriteInfoLine(
+                                "To run the server interactively to input a password, use the --server argument.");
                             Environment.Exit(-1);
                         }
                         else
@@ -108,8 +110,10 @@ namespace egregore
             if (!KeyFileManager.TryResolveKeyPath(arguments, out keyFilePath, false, true))
                 return false;
 
-            if(!File.Exists(keyFilePath) || new FileInfo(keyFilePath).Length == 0)
+            if (!File.Exists(keyFilePath) || new FileInfo(keyFilePath).Length == 0)
                 File.WriteAllBytes(keyFilePath, new byte[KeyFileManager.KeyFileBytes]);
+
+            Console.Out.WriteInfoLine($"Key file path resolved to '{keyFilePath}'");
 
             if (!KeyFileManager.Create(arguments, false, true, capture ?? Constants.ConsoleKeyCapture))
             {
@@ -128,16 +132,13 @@ namespace egregore
             }
 
             var eggPath = Environment.GetEnvironmentVariable(Constants.EnvVars.EggFilePath);
-            if(string.IsNullOrWhiteSpace(eggPath))
+            if (string.IsNullOrWhiteSpace(eggPath))
                 eggPath = Constants.DefaultEggPath;
 
             Console.Out.WriteInfoLine($"Egg file path resolved to '{eggPath}'");
 
             if (!File.Exists(eggPath) && !EggFileManager.Create(eggPath))
-            {
-                Console.Error.WriteErrorLine("Cannot start server without an egg");
-                return false;
-            }
+                Console.Error.WriteWarningLine("Server started without an egg");
 
             capture?.Reset();
             WebServer.Run(eggPath, capture, args);
@@ -198,10 +199,7 @@ namespace egregore
             var signature = signatureString.ToBinary();
 
             var grant = new GrantRole(value, authority, subject, signature);
-            if (!grant.Verify())
-            {
-                Console.Error.WriteErrorLine("Invalid signature");
-            }
+            if (!grant.Verify()) Console.Error.WriteErrorLine("Invalid signature");
 
             Console.WriteLine("TODO: append privilege to ontology");
         }

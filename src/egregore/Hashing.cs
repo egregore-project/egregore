@@ -16,7 +16,7 @@ namespace egregore
         private const ulong C2 = 0x4cf5ad432745937fu;
 
         /// <summary>
-        /// <see href="https://en.wikipedia.org/wiki/MurmurHash#MurmurHash3" />
+        ///     <see href="https://en.wikipedia.org/wiki/MurmurHash#MurmurHash3" />
         /// </summary>
         public static UInt128 MurmurHash3(byte[] key, UInt128 seed = default)
         {
@@ -32,22 +32,22 @@ namespace egregore
             {
                 // Get 128 bits from key
                 ulong k1 = key[i * 16];
-                k1 |= (ulong)key[i * 16 + 1] << 8;
-                k1 |= (ulong)key[i * 16 + 2] << 16;
-                k1 |= (ulong)key[i * 16 + 3] << 24;
-                k1 |= (ulong)key[i * 16 + 4] << 32;
-                k1 |= (ulong)key[i * 16 + 5] << 40;
-                k1 |= (ulong)key[i * 16 + 6] << 48;
-                k1 |= (ulong)key[i * 16 + 7] << 56;
+                k1 |= (ulong) key[i * 16 + 1] << 8;
+                k1 |= (ulong) key[i * 16 + 2] << 16;
+                k1 |= (ulong) key[i * 16 + 3] << 24;
+                k1 |= (ulong) key[i * 16 + 4] << 32;
+                k1 |= (ulong) key[i * 16 + 5] << 40;
+                k1 |= (ulong) key[i * 16 + 6] << 48;
+                k1 |= (ulong) key[i * 16 + 7] << 56;
 
                 ulong k2 = key[i * 16 + 8];
-                k2 |= (ulong)key[i * 16 + 9] << 8;
-                k2 |= (ulong)key[i * 16 + 10] << 16;
-                k2 |= (ulong)key[i * 16 + 11] << 24;
-                k2 |= (ulong)key[i * 16 + 12] << 32;
-                k2 |= (ulong)key[i * 16 + 13] << 40;
-                k2 |= (ulong)key[i * 16 + 14] << 48;
-                k2 |= (ulong)key[i * 16 + 15] << 56;
+                k2 |= (ulong) key[i * 16 + 9] << 8;
+                k2 |= (ulong) key[i * 16 + 10] << 16;
+                k2 |= (ulong) key[i * 16 + 11] << 24;
+                k2 |= (ulong) key[i * 16 + 12] << 32;
+                k2 |= (ulong) key[i * 16 + 13] << 40;
+                k2 |= (ulong) key[i * 16 + 14] << 48;
+                k2 |= (ulong) key[i * 16 + 15] << 56;
 
                 k1 *= C1;
                 k1 = Rotl64(k1, 31);
@@ -79,25 +79,25 @@ namespace egregore
                 switch (len & (1u << 4) - 1) // len & 15
                 {
                     case 15:
-                        k2 |= (ulong)key[offset + 14] << 48;
+                        k2 |= (ulong) key[offset + 14] << 48;
                         goto case 14;
                     case 14:
-                        k2 |= (ulong)key[offset + 13] << 40;
+                        k2 |= (ulong) key[offset + 13] << 40;
                         goto case 13;
                     case 13:
-                        k2 |= (ulong)key[offset + 12] << 32;
+                        k2 |= (ulong) key[offset + 12] << 32;
                         goto case 12;
                     case 12:
-                        k2 |= (ulong)key[offset + 11] << 24;
+                        k2 |= (ulong) key[offset + 11] << 24;
                         goto case 11;
                     case 11:
-                        k2 |= (ulong)key[offset + 10] << 16;
+                        k2 |= (ulong) key[offset + 10] << 16;
                         goto case 10;
                     case 10:
-                        k2 |= (ulong)key[offset + 9] << 8;
+                        k2 |= (ulong) key[offset + 9] << 8;
                         goto case 9;
                     case 9:
-                        k2 ^= (ulong)key[8] << 0;
+                        k2 ^= (ulong) key[8] << 0;
                         k2 *= C2;
                         k2 = Rotl64(k2, 33);
                         k2 *= C1;
@@ -105,28 +105,28 @@ namespace egregore
                         goto case 8;
 
                     case 8:
-                        k1 |= (ulong)key[offset + 7] << 56;
+                        k1 |= (ulong) key[offset + 7] << 56;
                         goto case 7;
                     case 7:
-                        k1 |= (ulong)key[offset + 6] << 48;
+                        k1 |= (ulong) key[offset + 6] << 48;
                         goto case 6;
                     case 6:
-                        k1 |= (ulong)key[offset + 5] << 40;
+                        k1 |= (ulong) key[offset + 5] << 40;
                         goto case 5;
                     case 5:
-                        k1 |= (ulong)key[offset + 4] << 32;
+                        k1 |= (ulong) key[offset + 4] << 32;
                         goto case 4;
                     case 4:
-                        k1 |= (ulong)key[offset + 3] << 24;
+                        k1 |= (ulong) key[offset + 3] << 24;
                         goto case 3;
                     case 3:
-                        k1 |= (ulong)key[offset + 2] << 16;
+                        k1 |= (ulong) key[offset + 2] << 16;
                         goto case 2;
                     case 2:
-                        k1 |= (ulong)key[offset + 1] << 8;
+                        k1 |= (ulong) key[offset + 1] << 8;
                         goto case 1;
                     case 1:
-                        k1 ^= (ulong)key[0] << 0;
+                        k1 ^= (ulong) key[0] << 0;
                         k1 *= C1;
                         k1 = Rotl64(k1, 31);
                         k1 *= C2;
@@ -138,8 +138,8 @@ namespace egregore
             //----------
             // finalization
 
-            h1 ^= (ulong)len;
-            h2 ^= (ulong)len;
+            h1 ^= (ulong) len;
+            h2 ^= (ulong) len;
 
             h1 += h2;
             h2 += h1;
@@ -155,7 +155,7 @@ namespace egregore
         }
 
         /// <summary>
-        /// <see href="https://en.wikipedia.org/wiki/MurmurHash#MurmurHash3" />
+        ///     <see href="https://en.wikipedia.org/wiki/MurmurHash#MurmurHash3" />
         /// </summary>
         public static UInt128 MurmurHash3(string key, UInt128 seed = default)
         {
@@ -171,14 +171,14 @@ namespace egregore
             {
                 // Get 128 bits from key
                 ulong k1 = key[i * 8];
-                k1 |= (ulong)key[i * 8 + 1] << 16;
-                k1 |= (ulong)key[i * 8 + 2] << 32;
-                k1 |= (ulong)key[i * 8 + 3] << 48;
+                k1 |= (ulong) key[i * 8 + 1] << 16;
+                k1 |= (ulong) key[i * 8 + 2] << 32;
+                k1 |= (ulong) key[i * 8 + 3] << 48;
 
                 ulong k2 = key[i * 8 + 4];
-                k2 |= (ulong)key[i * 8 + 5] << 16;
-                k2 |= (ulong)key[i * 8 + 6] << 32;
-                k2 |= (ulong)key[i * 8 + 7] << 48;
+                k2 |= (ulong) key[i * 8 + 5] << 16;
+                k2 |= (ulong) key[i * 8 + 6] << 32;
+                k2 |= (ulong) key[i * 8 + 7] << 48;
 
                 k1 *= C1;
                 k1 = Rotl64(k1, 31);
@@ -210,13 +210,13 @@ namespace egregore
                 switch (key.Length & 7) // len & 15
                 {
                     case 7:
-                        k2 |= (ulong)key[offset + 6] << 32;
+                        k2 |= (ulong) key[offset + 6] << 32;
                         goto case 6;
                     case 6:
-                        k2 |= (ulong)key[offset + 5] << 16;
+                        k2 |= (ulong) key[offset + 5] << 16;
                         goto case 5;
                     case 5:
-                        k2 |= (ulong)key[offset + 4] << 0;
+                        k2 |= (ulong) key[offset + 4] << 0;
                         k2 *= C2;
                         k2 = Rotl64(k2, 33);
                         k2 *= C1;
@@ -224,16 +224,16 @@ namespace egregore
                         goto case 4;
 
                     case 4:
-                        k1 |= (ulong)key[offset + 3] << 48;
+                        k1 |= (ulong) key[offset + 3] << 48;
                         goto case 3;
                     case 3:
-                        k1 |= (ulong)key[offset + 2] << 32;
+                        k1 |= (ulong) key[offset + 2] << 32;
                         goto case 2;
                     case 2:
-                        k1 |= (ulong)key[offset + 1] << 16;
+                        k1 |= (ulong) key[offset + 1] << 16;
                         goto case 1;
                     case 1:
-                        k1 |= (ulong)key[offset + 0] << 0;
+                        k1 |= (ulong) key[offset + 0] << 0;
                         k1 *= C1;
                         k1 = Rotl64(k1, 31);
                         k1 *= C2;
@@ -245,8 +245,8 @@ namespace egregore
             //----------
             // finalization
 
-            h1 ^= (ulong)len;
-            h2 ^= (ulong)len;
+            h1 ^= (ulong) len;
+            h2 ^= (ulong) len;
 
             h1 += h2;
             h2 += h1;
@@ -262,7 +262,7 @@ namespace egregore
         }
 
         /// <summary>
-        /// <see href="https://en.wikipedia.org/wiki/MurmurHash#MurmurHash3" />
+        ///     <see href="https://en.wikipedia.org/wiki/MurmurHash#MurmurHash3" />
         /// </summary>
         public static UInt128 MurmurHash3(StringBuilder key, UInt128 seed = default)
         {
@@ -278,14 +278,14 @@ namespace egregore
             {
                 // Get 128 bits from key
                 ulong k1 = key[i * 8];
-                k1 |= (ulong)key[i * 8 + 1] << 16;
-                k1 |= (ulong)key[i * 8 + 2] << 32;
-                k1 |= (ulong)key[i * 8 + 3] << 48;
+                k1 |= (ulong) key[i * 8 + 1] << 16;
+                k1 |= (ulong) key[i * 8 + 2] << 32;
+                k1 |= (ulong) key[i * 8 + 3] << 48;
 
                 ulong k2 = key[i * 8 + 4];
-                k2 |= (ulong)key[i * 8 + 5] << 16;
-                k2 |= (ulong)key[i * 8 + 6] << 32;
-                k2 |= (ulong)key[i * 8 + 7] << 48;
+                k2 |= (ulong) key[i * 8 + 5] << 16;
+                k2 |= (ulong) key[i * 8 + 6] << 32;
+                k2 |= (ulong) key[i * 8 + 7] << 48;
 
                 k1 *= C1;
                 k1 = Rotl64(k1, 31);
@@ -317,13 +317,13 @@ namespace egregore
                 switch (key.Length & 7) // len & 15
                 {
                     case 7:
-                        k2 |= (ulong)key[offset + 6] << 32;
+                        k2 |= (ulong) key[offset + 6] << 32;
                         goto case 6;
                     case 6:
-                        k2 |= (ulong)key[offset + 5] << 16;
+                        k2 |= (ulong) key[offset + 5] << 16;
                         goto case 5;
                     case 5:
-                        k2 |= (ulong)key[offset + 4] << 0;
+                        k2 |= (ulong) key[offset + 4] << 0;
                         k2 *= C2;
                         k2 = Rotl64(k2, 33);
                         k2 *= C1;
@@ -331,16 +331,16 @@ namespace egregore
                         goto case 4;
 
                     case 4:
-                        k1 |= (ulong)key[offset + 3] << 48;
+                        k1 |= (ulong) key[offset + 3] << 48;
                         goto case 3;
                     case 3:
-                        k1 |= (ulong)key[offset + 2] << 32;
+                        k1 |= (ulong) key[offset + 2] << 32;
                         goto case 2;
                     case 2:
-                        k1 |= (ulong)key[offset + 1] << 16;
+                        k1 |= (ulong) key[offset + 1] << 16;
                         goto case 1;
                     case 1:
-                        k1 |= (ulong)key[offset + 0] << 0;
+                        k1 |= (ulong) key[offset + 0] << 0;
                         k1 *= C1;
                         k1 = Rotl64(k1, 31);
                         k1 *= C2;
@@ -352,8 +352,8 @@ namespace egregore
             //----------
             // finalization
 
-            h1 ^= (ulong)len;
-            h2 ^= (ulong)len;
+            h1 ^= (ulong) len;
+            h2 ^= (ulong) len;
 
             h1 += h2;
             h2 += h1;
@@ -369,7 +369,7 @@ namespace egregore
         }
 
         /// <summary>
-        /// <see href="https://en.wikipedia.org/wiki/MurmurHash#MurmurHash3" />
+        ///     <see href="https://en.wikipedia.org/wiki/MurmurHash#MurmurHash3" />
         /// </summary>
         public static UInt128 MurmurHash3(ulong key, UInt128 seed = default)
         {

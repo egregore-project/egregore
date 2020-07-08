@@ -7,6 +7,9 @@ namespace egregore.Extensions
 {
     internal static class QueueExtensions
     {
-        public static bool EndOfSubArguments(this Queue<string> arguments) => arguments.Count == 0 || arguments.Peek().StartsWith("-");
+        public static bool EndOfSubArguments(this Queue<string> arguments)
+        {
+            return arguments.Count == 0 || arguments.Peek().StartsWith("-");
+        }
     }
 }
