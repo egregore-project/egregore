@@ -46,10 +46,8 @@ namespace egregore
                         var password = Environment.GetEnvironmentVariable(Constants.EnvVars.KeyFilePassword);
                         if (string.IsNullOrWhiteSpace(password))
                         {
-                            Console.Error.WriteErrorLine(
-                                $"Could not locate '{Constants.EnvVars.KeyFilePassword}' variable for container deployment.");
-                            Console.Out.WriteInfoLine(
-                                "To run the server interactively to input a password, use the --server argument.");
+                            Console.Error.WriteErrorLine($"Could not locate '{Constants.EnvVars.KeyFilePassword}' variable for container deployment.");
+                            Console.Out.WriteInfoLine("To run the server interactively to input a password, use the --server argument.");
                             Environment.Exit(-1);
                         }
                         else
@@ -129,7 +127,12 @@ namespace egregore
                 return false;
             }
 
-            var eggPath = Constants.DefaultEggPath;
+            var eggPath = Environment.GetEnvironmentVariable(Constants.EnvVars.EggFilePath);
+            if(string.IsNullOrWhiteSpace(eggPath))
+                eggPath = Constants.DefaultEggPath;
+
+            Console.Out.WriteInfoLine($"Egg file path resolved to '{eggPath}'");
+
             if (!File.Exists(eggPath) && !EggFileManager.Create(eggPath))
             {
                 Console.Error.WriteErrorLine("Cannot start server without an egg");

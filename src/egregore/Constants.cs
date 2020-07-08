@@ -18,6 +18,7 @@ namespace egregore
         internal static class EnvVars
         {
             public const string KeyFilePassword = "EGREGORE_KEY_FILE_PASSWORD";
+            public const string EggFilePath = "EGREGORE_EGG_FILE_PATH";
         }
     }
 }

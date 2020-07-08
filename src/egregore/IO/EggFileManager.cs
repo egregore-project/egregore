@@ -1,15 +1,20 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
+using System.Threading;
 using egregore.Extensions;
+using Microsoft.Data.Sqlite;
 
 namespace egregore.IO
 {
     internal static class EggFileManager
     {
+        private static readonly object Lock = new object();
+
         public static bool Create(string eggPath)
         {
-            if (eggPath != Constants.DefaultEggPath && eggPath.IndexOfAny(Path.GetInvalidFileNameChars()) > -1)
+            if (Path.GetFileName(eggPath).IndexOfAny(Path.GetInvalidFileNameChars()) > -1)
             {
                 Console.Error.WriteErrorLine(Strings.InvalidCharactersInPath);
                 return false;
@@ -28,6 +33,7 @@ namespace egregore.IO
                 return false;
             }
 
+            Monitor.Enter(Lock);
             try
             {
                 var store = new LogStore(eggPath);
@@ -35,11 +41,25 @@ namespace egregore.IO
                 Console.Out.WriteLine("Created egg file '{0}'", Path.GetFileName(eggPath));
                 return true;
             }
+            catch (SqliteException e)
+            {
+                Trace.TraceError(e.ToString());
+                Console.Error.WriteErrorLine(
+                    RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+                        ? $"Failed to create egg file at '{0}'. SQLite must run on a volume with nobrl enabled. Use the '{Constants.EnvVars.EggFilePath}' environment variable to specify a compatible storage path."
+                        : $"Failed to create egg file at '{eggPath}': {e}");
+
+                return false;
+            }
             catch (Exception e)
             {
                 Trace.TraceError(e.ToString());
-                Console.Error.WriteErrorLine("Failed to create egg file at '{0}'", eggPath);
+                Console.Error.WriteErrorLine("Failed to create egg file at '{0}': {1}", eggPath, e);
                 return false;
+            }
+            finally
+            {
+                Monitor.Exit(Lock);
             }
         }
     }
