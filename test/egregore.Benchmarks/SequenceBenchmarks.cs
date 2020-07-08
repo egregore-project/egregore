@@ -8,7 +8,7 @@ using egregore.Network;
 
 namespace egregore.Benchmarks
 {
-    [MediumRunJob(RuntimeMoniker.NetCoreApp31), SkewnessColumn, KurtosisColumn, MarkdownExporter]
+    [MediumRunJob(RuntimeMoniker.NetCoreApp31), SkewnessColumn, KurtosisColumn, MarkdownExporter, MemoryDiagnoser]
     public class SequenceBenchmarks
     {
         private Sequence _sequence;
@@ -28,7 +28,8 @@ namespace egregore.Benchmarks
         [Benchmark]
         public void Write_speed()
         {
-            _sequence.GetNextValue();
+            for(var i = 0; i < 1000; i++)
+                _sequence.GetNextValue();
         }
     }
 }
