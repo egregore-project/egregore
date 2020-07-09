@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using egregore.Extensions;
 
 namespace egregore
@@ -29,6 +30,73 @@ namespace egregore
 
         #region Serialization
 
+        public byte[] SerializeObjects(ILogObjectTypeProvider typeProvider, byte[] secretKey = default)
+        {
+            RoundTripCheck(typeProvider, secretKey);
+
+            byte[] data;
+            using (var ms = new MemoryStream())
+            {
+                using var bw = new BinaryWriter(ms, Encoding.UTF8);
+
+                // Version:
+                var context = new LogSerializeContext(bw, typeProvider);
+
+                if (secretKey != null)
+                {
+                    // Nonce:
+                    var nonce = SecretStream.Nonce();
+                    context.bw.WriteVarBuffer(nonce);
+
+                    // Data:
+                    using var ems = new MemoryStream();
+                    using var ebw = new BinaryWriter(ems, Encoding.UTF8);
+                    var ec = new LogSerializeContext(ebw, typeProvider, context.Version);
+                    SerializeObjects(ec, false);
+
+                    var message = SecretStream.EncryptMessage(ems.ToArray(), nonce, secretKey);
+                    context.bw.WriteVarBuffer(message);
+                }
+                else
+                {
+                    // Data:
+                    context.bw.Write(false);
+                    SerializeObjects(context, false);
+                }
+
+                data = ms.ToArray();
+            }
+
+            return data;
+        }
+
+        public void DeserializeObjects(ILogObjectTypeProvider typeProvider, byte[] data, byte[] secretKey)
+        {
+            using var ms = new MemoryStream(data);
+            using var br = new BinaryReader(ms);
+
+            // Version:
+            var context = new LogDeserializeContext(br, typeProvider);
+
+            // Nonce:
+            var nonce = context.br.ReadVarBuffer();
+            if (nonce != null)
+            {
+                var message = SecretStream.DecryptMessage(context.br.ReadVarBuffer(), nonce, secretKey);
+
+                // Data:
+                using var dms = new MemoryStream(message);
+                using var dbr = new BinaryReader(dms);
+                var dc = new LogDeserializeContext(dbr, typeProvider);
+                DeserializeObjects(dc);
+            }
+            else
+            {
+                // Data:
+                DeserializeObjects(context);
+            }
+        }
+
         public void Serialize(LogSerializeContext context, bool hash)
         {
             LogHeader.Serialize(this, context, hash);
@@ -37,7 +105,7 @@ namespace egregore
             SerializeObjects(context, hash);
         }
 
-        private LogEntry(LogDeserializeContext context)
+        internal LogEntry(LogDeserializeContext context)
         {
             LogHeader.Deserialize(this, context);
             Hash = context.br.ReadVarBuffer();
@@ -122,6 +190,47 @@ namespace egregore
             {
                 secondSerializeContext.bw.Write(false);
                 deserialized.Serialize(secondSerializeContext, false);
+            }
+        }
+
+        #endregion
+
+        #region Validation
+
+        public void EntryCheck(LogEntry previous, HashProvider hashProvider)
+        {
+            if (previous.Index + 1 != Index)
+            {
+                var message = $"Invalid index: expected '{previous.Index + 1}' but was '{Index}'";
+                throw new LogException(message);
+            }
+
+            if (!previous.Hash.SequenceEqual(PreviousHash))
+            {
+                var message = $"Invalid previous hash: expected '{Crypto.ToHexString(previous.Hash)}' but was '{Crypto.ToHexString(this.PreviousHash)}'";
+                throw new LogException(message);
+            }
+
+            var hashRoot = hashProvider.ComputeHashRootBytes(this);
+            if (!hashRoot.SequenceEqual(HashRoot))
+            {
+                var message = $"Invalid hash root: expected '{Crypto.ToHexString(hashRoot)}' but was '{Crypto.ToHexString(this.HashRoot)}'";
+                throw new LogException(message);
+            }
+
+            for (var i = 0; i < Objects.Count; i++)
+            {
+                if (Objects[i].Index == i)
+                    continue;
+                var message = $"Invalid object index: expected '{i}' but was '{this.Objects[i].Index}'";
+                throw new LogException(message);
+            }
+
+            var hash = hashProvider.ComputeHashBytes(this);
+            if (!hash.SequenceEqual(Hash))
+            {
+                var message = $"Invalid hash: expected '{Crypto.ToHexString(hash)}' but was '{Crypto.ToHexString(this.Hash)}'";
+                throw new LogException(message);
             }
         }
 

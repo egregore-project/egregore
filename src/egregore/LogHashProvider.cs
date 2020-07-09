@@ -8,7 +8,7 @@ using System.Security.Cryptography;
 
 namespace egregore
 {
-    internal sealed class HashProvider
+    public sealed class HashProvider
     {
         private static readonly LogObject NoLogObjects = new LogObject();
         private readonly HashAlgorithm _algorithm;

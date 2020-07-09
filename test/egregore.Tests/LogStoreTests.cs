@@ -28,7 +28,7 @@ namespace egregore.Tests
             
             var count = await fixture.Store.AddEntryAsync(entry);
             Assert.Equal(1UL, count);
-            Assert.Equal(entry.Index, count);
+            Assert.Equal(0UL, entry.Index);
 
             var items = 0;
             foreach (var item in fixture.Store.StreamEntries())
@@ -60,10 +60,10 @@ namespace egregore.Tests
             Assert.True(one.Hash.SequenceEqual(two.PreviousHash));
 
             await fixture.Store.AddEntryAsync(one);
-            Assert.Equal(1UL, one.Index);
+            Assert.Equal(0UL, one.Index);
 
             await fixture.Store.AddEntryAsync(two);
-            Assert.Equal(2UL, two.Index);
+            Assert.Equal(1UL, two.Index);
 
             var count = await fixture.Store.GetLengthAsync();
             Assert.Equal(2UL, count);

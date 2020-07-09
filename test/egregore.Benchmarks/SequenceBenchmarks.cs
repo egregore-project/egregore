@@ -28,8 +28,7 @@ namespace egregore.Benchmarks
         [Benchmark]
         public void Write_speed()
         {
-            for(var i = 0; i < 1000; i++)
-                _sequence.GetNextValue();
+            _sequence.GetNextValue();
         }
     }
 }

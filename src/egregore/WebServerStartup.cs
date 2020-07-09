@@ -33,7 +33,7 @@ namespace egregore
             try
             {
                 _logger?.LogInformation($"Restoring ontology logs started for '{_options.CurrentValue.EggPath}'");
-                var store = new LogStore(_options.CurrentValue.EggPath);
+                var store = new LightningLogStore(_options.CurrentValue.EggPath);
                 store.Init();
 
                 var owner = _options.CurrentValue.PublicKey;

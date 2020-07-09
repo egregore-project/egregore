@@ -9,9 +9,9 @@ namespace egregore
     public interface ILogStore
     {
         string DataFile { get; }
-
         Task<ulong> GetLengthAsync();
         Task<ulong> AddEntryAsync(LogEntry entry, byte[] secretKey = null);
         IEnumerable<LogEntry> StreamEntries(ulong startingFrom = 0UL, byte[] secretKey = null);
+        void Purge();
     }
 }

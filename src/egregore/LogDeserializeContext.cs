@@ -11,7 +11,6 @@ namespace egregore
         public readonly BinaryReader br;
         public ILogObjectTypeProvider typeProvider;
 
-
         public LogDeserializeContext(BinaryReader br, ILogObjectTypeProvider typeProvider)
         {
             this.br = br;
