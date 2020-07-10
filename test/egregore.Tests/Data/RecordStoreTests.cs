@@ -19,7 +19,7 @@ namespace egregore.Tests.Data
         }
 
         [Fact]
-        public async Task Can_append_record()
+        public async Task Can_append_record_and_retrieve_by_uuid()
         {
             using var fixture = new RecordStoreFixture();
 
@@ -32,6 +32,9 @@ namespace egregore.Tests.Data
 
             var count = await fixture.Store.GetLengthAsync();
             Assert.Equal(1UL, count);
+
+            var fetched = await fixture.Store.GetByIdAsync(record.Uuid);
+            Assert.NotNull(fetched);
         }
     }
 }

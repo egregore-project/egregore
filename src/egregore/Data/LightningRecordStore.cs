@@ -3,6 +3,9 @@
 
 using System;
 using System.IO;
+using System.Net.WebSockets;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using LightningDB;
 
@@ -44,6 +47,31 @@ namespace egregore.Data
 
             record.Index = sequence;
             return sequence + 1;
+        }
+
+        public Task<Record> GetByIdAsync(Guid uuid)
+        {
+            using var tx = env.Value.BeginTransaction(TransactionBeginFlags.ReadOnly);
+            using var db = tx.OpenDatabase();
+            using var cursor = tx.CreateCursor(db);
+            
+            if(!cursor.MoveTo(uuid.ToByteArray()))
+                return default;
+
+            var found = cursor.Current;
+
+            unsafe
+            {
+                var buffer = found.Value.AsSpan();
+                fixed (byte* buf = &buffer.GetPinnableReference())
+                {
+                    var ms = new UnmanagedMemoryStream(buf, buffer.Length);
+                    var br = new BinaryReader(ms);
+                    var context = new LogDeserializeContext(br, _typeProvider);
+                    var record = new Record(context);
+                    return Task.FromResult(record);
+                }
+            }
         }
 
         public void Destroy(bool destroySequence)

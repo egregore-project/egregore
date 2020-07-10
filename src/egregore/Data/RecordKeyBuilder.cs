@@ -9,7 +9,7 @@ namespace egregore.Data
     {
         public byte[] BuildKey(Record record)
         {
-            return Encoding.UTF8.GetBytes($"{record.Type}:{record.Uuid}");
+            return record.Uuid.ToByteArray();
         }
     }
 }
