@@ -4,10 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 using LightningDB;
-using Microsoft.Extensions.FileSystemGlobbing.Internal.PathSegments;
 
 namespace egregore.Data
 {
