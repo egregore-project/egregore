@@ -1,6 +1,7 @@
 ﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using LightningDB;
@@ -24,8 +25,8 @@ namespace egregore.Data
 
         public async Task<ulong> AddRecordAsync(Record record, byte[] secretKey = null)
         {
-            using var tx = env.Value.BeginTransaction(TransactionBeginFlags.None);
-            using var db = tx.OpenDatabase();
+            if (record.Uuid == default)
+                record.Uuid = Guid.NewGuid();
 
             await using var ms = new MemoryStream();
             await using var bw = new BinaryWriter(ms);
@@ -33,12 +34,15 @@ namespace egregore.Data
             record.Serialize(context, false);
 
             var sequence = await _sequence.GetNextValueAsync();
-            var key = _keyBuilder.BuildKey(sequence, record);
+            var key = _keyBuilder.BuildKey(record);
             var value = ms.ToArray();
 
+            using var tx = env.Value.BeginTransaction(TransactionBeginFlags.None);
+            using var db = tx.OpenDatabase();
             tx.Put(db, key, value, PutOptions.NoOverwrite);
             tx.Commit();
 
+            record.Index = sequence;
             return sequence + 1;
         }
 

@@ -27,6 +27,8 @@ namespace egregore.Ontology
 
         public async Task<ulong> AddEntryAsync(LogEntry entry, byte[] secretKey = null)
         {
+            entry.RoundTripCheck(_typeProvider, secretKey);
+
             var ms = new MemoryStream();
             var bw = new BinaryWriter(ms);
             entry.Serialize(new LogSerializeContext(bw, _typeProvider), false);

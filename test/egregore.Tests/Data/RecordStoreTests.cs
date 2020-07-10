@@ -27,15 +27,11 @@ namespace egregore.Tests.Data
             record.Columns.Add(new RecordColumn(0, "Order", "int", "123"));
             
             var next = await fixture.Store.AddRecordAsync(record);
+            Assert.Equal(0UL, record.Index);
             Assert.Equal(1UL, next);
 
             var count = await fixture.Store.GetLengthAsync();
             Assert.Equal(1UL, count);
-        }
-        
-        private class CustomerV1
-        {
-            public int Order { get; set; }
         }
     }
 }

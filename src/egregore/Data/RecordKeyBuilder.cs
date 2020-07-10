@@ -7,9 +7,9 @@ namespace egregore.Data
 {
     internal sealed class RecordKeyBuilder
     {
-        public byte[] BuildKey(ulong sequence, Record record)
+        public byte[] BuildKey(Record record)
         {
-            return Encoding.UTF8.GetBytes($"{record.Type}:{record.Uuid}:{sequence}");
+            return Encoding.UTF8.GetBytes($"{record.Type}:{record.Uuid}");
         }
     }
 }

@@ -8,6 +8,7 @@ namespace egregore.Data
 {
     public sealed class Record : ILogSerialized
     {
+        public ulong? Index { get; set; }
         public string Type { get; set; }
         public Guid Uuid { get; set; }
         public List<RecordColumn> Columns { get; }

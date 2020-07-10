@@ -4,7 +4,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using egregore.Extensions;
 
 namespace egregore
@@ -29,73 +28,6 @@ namespace egregore
         public byte[] Nonce { get; set; }
 
         #region Serialization
-
-        public byte[] SerializeObjects(ILogObjectTypeProvider typeProvider, byte[] secretKey = default)
-        {
-            RoundTripCheck(typeProvider, secretKey);
-
-            byte[] data;
-            using (var ms = new MemoryStream())
-            {
-                using var bw = new BinaryWriter(ms, Encoding.UTF8);
-
-                // Version:
-                var context = new LogSerializeContext(bw, typeProvider);
-
-                if (secretKey != null)
-                {
-                    // Nonce:
-                    var nonce = SecretStream.Nonce();
-                    context.bw.WriteVarBuffer(nonce);
-
-                    // Data:
-                    using var ems = new MemoryStream();
-                    using var ebw = new BinaryWriter(ems, Encoding.UTF8);
-                    var ec = new LogSerializeContext(ebw, typeProvider, context.Version);
-                    SerializeObjects(ec, false);
-
-                    var message = SecretStream.EncryptMessage(ems.ToArray(), nonce, secretKey);
-                    context.bw.WriteVarBuffer(message);
-                }
-                else
-                {
-                    // Data:
-                    context.bw.Write(false);
-                    SerializeObjects(context, false);
-                }
-
-                data = ms.ToArray();
-            }
-
-            return data;
-        }
-
-        public void DeserializeObjects(ILogObjectTypeProvider typeProvider, byte[] data, byte[] secretKey)
-        {
-            using var ms = new MemoryStream(data);
-            using var br = new BinaryReader(ms);
-
-            // Version:
-            var context = new LogDeserializeContext(br, typeProvider);
-
-            // Nonce:
-            var nonce = context.br.ReadVarBuffer();
-            if (nonce != null)
-            {
-                var message = SecretStream.DecryptMessage(context.br.ReadVarBuffer(), nonce, secretKey);
-
-                // Data:
-                using var dms = new MemoryStream(message);
-                using var dbr = new BinaryReader(dms);
-                var dc = new LogDeserializeContext(dbr, typeProvider);
-                DeserializeObjects(dc);
-            }
-            else
-            {
-                // Data:
-                DeserializeObjects(context);
-            }
-        }
 
         public void Serialize(LogSerializeContext context, bool hash)
         {
@@ -127,9 +59,10 @@ namespace egregore
         {
             var count = Objects?.Count ?? 0;
             context.bw.Write(count);
-            if (Objects != null)
-                foreach (var @object in Objects.OrderBy(x => x.Index))
-                    @object.Serialize(context, hash);
+            if (Objects == null)
+                return;
+            foreach (var @object in Objects.OrderBy(x => x.Index))
+                @object.Serialize(context, hash);
         }
 
         public void RoundTripCheck(ILogObjectTypeProvider typeProvider, byte[] secretKey)
@@ -163,9 +96,7 @@ namespace egregore
             LogEntry deserialized;
             if (nonce != null)
             {
-                using var dms =
-                    new MemoryStream(SecretStream.DecryptMessage(deserializeContext.br.ReadVarBuffer(), nonce,
-                        secretKey));
+                using var dms = new MemoryStream(SecretStream.DecryptMessage(deserializeContext.br.ReadVarBuffer(), nonce, secretKey));
                 using var dbr = new BinaryReader(dms);
                 var dc = new LogDeserializeContext(dbr, typeProvider);
                 deserialized = new LogEntry(dc);
