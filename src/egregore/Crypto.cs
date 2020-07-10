@@ -6,6 +6,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using egregore.IO;
 
 namespace egregore
@@ -294,14 +295,18 @@ namespace egregore
         }
 
         #endregion
-
+        
+        private static int _initialized;
         public static void Initialize()
         {
-            unsafe
+            if (Interlocked.CompareExchange(ref _initialized, 1, 0) == 0)
             {
-                NativeLibrary.SetDllImportResolver(typeof(Crypto).Assembly, IntegrityCheck.Preload);
-                NativeMethods.sodium_init();
-                NativeMethods.sodium_free(NativeMethods.sodium_malloc(0));
+                unsafe
+                {
+                    NativeLibrary.SetDllImportResolver(typeof(Crypto).Assembly, IntegrityCheck.Preload);
+                    NativeMethods.sodium_init();
+                    NativeMethods.sodium_free(NativeMethods.sodium_malloc(0));
+                }
             }
         }
     }
