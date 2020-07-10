@@ -11,5 +11,10 @@ namespace egregore.Ontology
             Authority = grantor;
             Subject = grantee;
         }
+
+        public RevokeRole(LogDeserializeContext context) : base(context)
+        {
+
+        }
     }
 }

@@ -11,5 +11,8 @@ namespace egregore.Ontology
             Authority = grantor;
             Subject = grantee;
         }
+
+        // ReSharper disable once UnusedMember.Global (needed for deserialization)
+        public GrantRole(LogDeserializeContext context) : base(context) { }
     }
 }
