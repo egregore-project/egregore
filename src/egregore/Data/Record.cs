@@ -29,11 +29,12 @@ namespace egregore.Data
                 column.Serialize(context, hash);
         }
 
-        public Record(LogDeserializeContext context)
+        public Record(LogDeserializeContext context) : this()
         {
             Type = context.br.ReadString();
             Uuid = new Guid(context.br.ReadBytes(16));
-            for(var i = 0; i < context.br.ReadInt32(); i++)
+            var columns = context.br.ReadInt32();
+            for(var i = 0; i < columns; i++)
                 Columns.Add(new RecordColumn(context));
         }
 
