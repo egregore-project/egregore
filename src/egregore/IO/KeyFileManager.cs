@@ -21,7 +21,6 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.MemoryMappedFiles;
@@ -66,9 +65,9 @@ namespace egregore.IO
         public static readonly byte[] KdfAlg = {(byte) 'S', (byte) 'c'};
         public static readonly byte[] ChkAlg = {(byte) 'B', (byte) '2'};
 
-        public static bool Create(Queue<string> arguments, bool warnIfExists, bool allowMissing, IKeyCapture capture)
+        public static bool Create(string pathArgument, bool warnIfExists, bool allowMissing, IKeyCapture capture)
         {
-            if (!TryResolveKeyPath(arguments, out var keyFilePath, warnIfExists, allowMissing))
+            if (!TryResolveKeyPath(pathArgument, out var keyFilePath, warnIfExists, allowMissing))
                 return false;
             var keyFileStream =
                 new FileStream(keyFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
@@ -417,18 +416,7 @@ namespace egregore.IO
             }
         }
 
-        private static void ZeroKeyFile(FileStream keyFileStream)
-        {
-            if (!keyFileStream.CanWrite)
-                return;
-            keyFileStream.Seek(0, SeekOrigin.Begin);
-            for (var i = 0; i < KeyFileBytes; i++)
-                keyFileStream.WriteByte(0);
-            keyFileStream.Seek(0, SeekOrigin.Begin);
-        }
-
-        public static unsafe bool TryLoadKeyFile(FileStream keyFileStream, TextWriter @out, TextWriter error,
-            out byte* secretKey, IPersistedKeyCapture capture)
+        public static unsafe bool TryLoadKeyFile(FileStream keyFileStream, TextWriter @out, TextWriter error, out byte* secretKey, IPersistedKeyCapture capture)
         {
             if (capture == default)
                 throw new InvalidOperationException(Strings.InvalidKeyCapture);
@@ -667,14 +655,15 @@ namespace egregore.IO
             }
         }
 
-        public static bool TryResolveKeyPath(Queue<string> arguments, out string fullKeyPath, bool warnIfExists,
+        public static bool TryResolveKeyPath(string pathArgument, out string fullKeyPath, bool warnIfExists,
             bool allowMissing)
         {
             fullKeyPath = default;
-            var keyPath = arguments.EndOfSubArguments() ? Constants.DefaultKeyFilePath : arguments.Dequeue();
 
-            Directory.CreateDirectory(".egregore");
-            if (keyPath != Constants.DefaultKeyFilePath && keyPath.IndexOfAny(Path.GetInvalidFileNameChars()) > -1)
+            if(pathArgument == Constants.DefaultKeyFilePath)
+                Directory.CreateDirectory(".egregore");
+
+            if (pathArgument != Constants.DefaultKeyFilePath && Path.GetFileName(pathArgument).IndexOfAny(Path.GetInvalidFileNameChars()) > -1)
             {
                 Console.Error.WriteErrorLine(Strings.InvalidCharactersInPath);
                 return false;
@@ -682,9 +671,9 @@ namespace egregore.IO
 
             try
             {
-                fullKeyPath = Path.GetFullPath(keyPath);
+                fullKeyPath = Path.GetFullPath(pathArgument);
                 if (!Path.HasExtension(fullKeyPath))
-                    fullKeyPath = Path.ChangeExtension(keyPath, ".key");
+                    fullKeyPath = Path.ChangeExtension(pathArgument, ".key");
             }
             catch (Exception e)
             {

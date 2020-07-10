@@ -8,12 +8,7 @@ namespace egregore.Ontology
 {
     public abstract class Privilege : ILogSerialized
     {
-        protected Privilege(string type)
-        {
-            Type = type;
-        }
-
-        protected Privilege(string type, byte[] signature)
+        protected Privilege(string type, byte[] signature = null)
         {
             Type = type;
             Signature = signature;

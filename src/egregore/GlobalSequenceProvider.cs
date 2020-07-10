@@ -23,6 +23,7 @@ namespace egregore
         public void Destroy()
         {
             _sequence.Destroy();
+            Dispose();
         }
 
         public void Dispose()

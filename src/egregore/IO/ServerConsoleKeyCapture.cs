@@ -21,9 +21,7 @@ namespace egregore.IO
             Console.Clear();
         }
 
-        public void OnKeyRead(TextWriter @out)
-        {
-        }
+        public void OnKeyRead(TextWriter @out) { }
 
         public unsafe void Sink(byte* password, int passwordLength)
         {

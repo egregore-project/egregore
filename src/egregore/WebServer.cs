@@ -17,7 +17,7 @@ using Microsoft.Extensions.Options;
 
 namespace egregore
 {
-    internal sealed class WebServer
+    public sealed class WebServer
     {
         public WebServer(IConfiguration configuration)
         {
@@ -28,10 +28,16 @@ namespace egregore
 
         public static void Run(string eggPath, IKeyCapture capture, params string[] args)
         {
+            PrintMasthead();
+
+            var builder = CreateHostBuilder(eggPath, capture, args);
+            var host = builder.Build();
+            host.Run();
+        }
+
+        private static void PrintMasthead()
+        {
             Console.ResetColor();
-
-            #region Masthead
-
             Console.ForegroundColor = ConsoleColor.Magenta;
             Console.WriteLine(@"                                        
                        @@@@             
@@ -51,18 +57,16 @@ namespace egregore
          @@@@@@@@@@                     
 ");
             Console.ResetColor();
+        }
 
-            #endregion
-
+        internal static unsafe IHostBuilder CreateHostBuilder(string eggPath, IKeyCapture capture, params string[] args)
+        {
             var builder = Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     Activity.DefaultIdFormat = ActivityIdFormat.W3C;
 
-                    webBuilder.ConfigureKestrel((context, options) =>
-                    {
-                        options.AddServerHeader = false;
-                    });
+                    webBuilder.ConfigureKestrel((context, options) => { options.AddServerHeader = false; });
                     webBuilder.ConfigureLogging((context, loggingBuilder) => { });
                     webBuilder.ConfigureAppConfiguration((context, configBuilder) =>
                     {
@@ -87,20 +91,17 @@ namespace egregore
 
                         var publicKey = new byte[Crypto.PublicKeyBytes];
 
-                        unsafe
+                        try
                         {
-                            try
-                            {
-                                capture.Reset();
-                                var sk = Crypto.LoadSecretKeyPointerFromFileStream(keyFileService.GetKeyFilePath(),
-                                    keyFileService.GetKeyFileStream(), capture);
-                                Crypto.PublicKeyFromSecretKey(sk, publicKey);
-                            }
-                            catch (Exception e)
-                            {
-                                Trace.TraceError(e.ToString());
-                                Environment.Exit(-1);
-                            }
+                            capture.Reset();
+                            var sk = Crypto.LoadSecretKeyPointerFromFileStream(keyFileService.GetKeyFilePath(),
+                                keyFileService.GetKeyFileStream(), capture);
+                            Crypto.PublicKeyFromSecretKey(sk, publicKey);
+                        }
+                        catch (Exception e)
+                        {
+                            Trace.TraceError(e.ToString());
+                            Environment.Exit(-1);
                         }
 
                         services.Configure<WebServerOptions>(o =>
@@ -109,16 +110,10 @@ namespace egregore
                             o.EggPath = eggPath;
                         });
                     });
-                    webBuilder.Configure((context, appBuilder) =>
-                    {
-                        appBuilder.UseCors();
-                    });
+                    webBuilder.Configure((context, appBuilder) => { appBuilder.UseCors(); });
                     webBuilder.UseStartup<WebServer>();
                 });
-
-            var host = builder.Build();
-
-            host.Run();
+            return builder;
         }
 
         public void ConfigureServices(IServiceCollection services)

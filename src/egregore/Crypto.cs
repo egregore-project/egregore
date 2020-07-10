@@ -294,5 +294,15 @@ namespace egregore
         }
 
         #endregion
+
+        public static void Initialize()
+        {
+            unsafe
+            {
+                NativeLibrary.SetDllImportResolver(typeof(Crypto).Assembly, IntegrityCheck.Preload);
+                NativeMethods.sodium_init();
+                NativeMethods.sodium_free(NativeMethods.sodium_malloc(0));
+            }
+        }
     }
 }

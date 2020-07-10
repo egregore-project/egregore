@@ -21,5 +21,11 @@ namespace egregore
             public const string KeyFilePassword = "EGREGORE_KEY_FILE_PASSWORD";
             public const string EggFilePath = "EGREGORE_EGG_FILE_PATH";
         }
+
+        public class Commands
+        {
+            public const string GrantRole = "grant_role";
+            public const string RevokeRole = "revoke_role";
+        }
     }
 }

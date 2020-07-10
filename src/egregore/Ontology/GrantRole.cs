@@ -5,22 +5,11 @@ namespace egregore.Ontology
 {
     public sealed class GrantRole : Privilege
     {
-        public GrantRole(string role, byte[] grantor, byte[] grantee) : base("grant_role")
+        public GrantRole(string role, byte[] grantor, byte[] grantee, byte[] signature = null) : base(Constants.Commands.GrantRole, signature)
         {
             Value = role;
             Authority = grantor;
             Subject = grantee;
-        }
-
-        public GrantRole(string role, byte[] grantor, byte[] grantee, byte[] signature) : base("grant_role", signature)
-        {
-            Value = role;
-            Authority = grantor;
-            Subject = grantee;
-        }
-
-        public GrantRole(LogDeserializeContext context) : base(context)
-        {
         }
     }
 }
