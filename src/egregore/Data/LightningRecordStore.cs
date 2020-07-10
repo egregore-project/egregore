@@ -56,7 +56,7 @@ namespace egregore.Data
             using var cursor = tx.CreateCursor(db);
             
             if(!cursor.MoveTo(uuid.ToByteArray()))
-                return default;
+                return Task.FromResult(default(Record));
 
             var found = cursor.Current;
 
