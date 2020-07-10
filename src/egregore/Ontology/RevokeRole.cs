@@ -12,9 +12,7 @@ namespace egregore.Ontology
             Subject = grantee;
         }
 
-        public RevokeRole(LogDeserializeContext context) : base(context)
-        {
-
-        }
+        // ReSharper disable once UnusedMember.Global (needed for deserialization)
+        public RevokeRole(LogDeserializeContext context) : base(context) { }
     }
 }

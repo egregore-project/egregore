@@ -19,10 +19,7 @@ namespace egregore.Tests
 
             File.WriteAllBytes(keyFilePath, new byte[KeyFileManager.KeyFileBytes]);
             
-            Environment.SetEnvironmentVariable(Constants.EnvVars.KeyFilePassword, $"{Guid.NewGuid()}");
-            Environment.SetEnvironmentVariable(Constants.EnvVars.EggFilePath, eggPath);
-            
-            var password = Environment.GetEnvironmentVariable(Constants.EnvVars.KeyFilePassword);
+            var password =  $"{Guid.NewGuid()}";
             IKeyCapture capture = new PlaintextKeyCapture(password, password);
             
             Assert.True(KeyFileManager.Create(keyFilePath, false, true, capture));
