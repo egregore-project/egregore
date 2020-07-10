@@ -138,7 +138,6 @@ namespace egregore
             {
                 if (NativeMethods.crypto_sign_keypair(pk, sk) != 0)
                     throw new InvalidOperationException(nameof(NativeMethods.crypto_sign_keypair));
-
                 secretKey = sk;
             }
         }

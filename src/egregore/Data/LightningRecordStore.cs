@@ -90,8 +90,7 @@ namespace egregore.Data
             using var cursor = tx.CreateCursor(db);
 
             // FIXME: do not allocate here!
-            var key = Encoding.UTF8.GetBytes($"R:{index.ToArray()}");
-            if (!cursor.MoveToAndGet(key))
+            if (!cursor.MoveToAndGet(index.ToArray()))
                 return default;
 
             var found = cursor.Current;
