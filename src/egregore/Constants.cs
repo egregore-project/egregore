@@ -8,11 +8,12 @@ namespace egregore
 {
     internal static class Constants
     {
-        public static readonly string DefaultNamespace = "Default";
+        public const string DefaultNamespace = "Default";
+        public const string DefaultSequence = "global";
+        public const string OwnerRole = "owner";
+
         public static readonly string DefaultKeyFilePath = Path.Combine(".egregore", "egregore.key");
         public static readonly string DefaultEggPath = Path.Combine(".egregore", "default.egg");
-        public static readonly string OwnerRole = "owner";
-
         public static readonly IKeyCapture ConsoleKeyCapture = new ConsoleKeyCapture();
 
         internal static class EnvVars

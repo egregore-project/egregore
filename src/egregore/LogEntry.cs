@@ -197,7 +197,7 @@ namespace egregore
 
         #region Validation
 
-        public void EntryCheck(LogEntry previous, HashProvider hashProvider)
+        public void EntryCheck(LogEntry previous, ILogEntryHashProvider hashProvider)
         {
             if (previous.Index + 1 != Index)
             {

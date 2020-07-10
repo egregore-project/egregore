@@ -8,17 +8,15 @@ using System.Security.Cryptography;
 
 namespace egregore
 {
-    public sealed class HashProvider
+    public sealed class LogEntryHashProvider : ILogEntryHashProvider
     {
         private static readonly LogObject NoLogObjects = new LogObject();
         private readonly HashAlgorithm _algorithm;
         private readonly ILogObjectTypeProvider _typeProvider;
 
-        public HashProvider(ILogObjectTypeProvider typeProvider) : this(typeProvider, SHA256.Create())
-        {
-        }
+        public LogEntryHashProvider(ILogObjectTypeProvider typeProvider) : this(typeProvider, SHA256.Create()) { }
 
-        internal HashProvider(ILogObjectTypeProvider typeProvider, HashAlgorithm algorithm)
+        internal LogEntryHashProvider(ILogObjectTypeProvider typeProvider, HashAlgorithm algorithm)
         {
             _typeProvider = typeProvider;
             _algorithm = algorithm;

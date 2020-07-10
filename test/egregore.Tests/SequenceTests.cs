@@ -20,9 +20,9 @@ namespace egregore.Tests
         [Fact]
         public void Can_increment()
         {
-            Assert.Equal(1, _fixture.Sequence.Current);
-            Assert.Equal(2, _fixture.Sequence.GetNextValue());
-            Assert.Equal(2, _fixture.Sequence.Current);
+            Assert.Equal(-1, _fixture.Sequence.Current);
+            Assert.Equal(0, _fixture.Sequence.GetNextValue());
+            Assert.Equal(0, _fixture.Sequence.Current);
         }
 
         [Fact]
@@ -55,7 +55,7 @@ namespace egregore.Tests
                 await one;
 
                 using (var sequence = new Sequence(sequenceName))
-                    Assert.Equal(4, sequence.Current);
+                    Assert.Equal(2, sequence.Current);
             }
             finally
             {

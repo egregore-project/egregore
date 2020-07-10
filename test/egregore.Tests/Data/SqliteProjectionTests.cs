@@ -9,7 +9,7 @@ using Record = egregore.Data.Record;
 
 namespace egregore.Tests.Data
 {
-    public class DataProjectionTests
+    public class SqliteProjectionTests
     {
         [Fact]
         public void Can_project_data_structure_changes_over_time()

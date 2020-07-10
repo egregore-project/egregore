@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using egregore.Ontology;
 using Xunit;
 
-namespace egregore.Tests
+namespace egregore.Tests.Ontology
 {
     public class LogStoreTests
     {

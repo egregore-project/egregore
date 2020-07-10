@@ -21,12 +21,19 @@ namespace egregore.Data
 
         public void Serialize(LogSerializeContext context, bool hash)
         {
-            throw new NotImplementedException();
+            context.bw.Write(Type);
+            context.bw.Write(Uuid.ToByteArray());
+            context.bw.Write(Columns.Count);
+            foreach (var column in Columns)
+                column.Serialize(context, hash);
         }
 
-        public Record(LogSerializeContext context)
+        public Record(LogDeserializeContext context)
         {
-            throw new NotImplementedException();
+            Type = context.br.ReadString();
+            Uuid = new Guid(context.br.ReadBytes(16));
+            for(var i = 0; i < context.br.ReadInt32(); i++)
+                Columns.Add(new RecordColumn(context));
         }
 
         #endregion

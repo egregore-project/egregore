@@ -18,7 +18,7 @@ namespace egregore.Network
         private string SequenceName => $@"egregore_sequence_{_name}";
         private string MutexName => $@"egregore_mutex_{_name}";
 
-        public Sequence(string name, long startWith = 1, long incrementBy = 1)
+        public Sequence(string name, long startWith = -1, long incrementBy = 1)
         {
             _name = name;
             _startWith = startWith;

@@ -7,6 +7,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using egregore.Extensions;
+using egregore.Ontology;
 using Microsoft.Data.Sqlite;
 
 namespace egregore.IO

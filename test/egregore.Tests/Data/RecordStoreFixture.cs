@@ -2,16 +2,18 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.IO;
+using egregore.Data;
 
-namespace egregore.Tests
+namespace egregore.Tests.Data
 {
-    public sealed class LogStoreFixture : IDisposable
+    public sealed class RecordStoreFixture : IDisposable
     {
-        public ILogStore Store { get; }
+        public IRecordStore Store { get; }
 
-        public LogStoreFixture()
+        public RecordStoreFixture()
         {
-            var store = new LightningLogStore($"{Guid.NewGuid()}.egg");
+            var store = new LightningRecordStore($"{Guid.NewGuid()}.egg", $"{Guid.NewGuid()}");
             store.Init();
             Store = store;
         }
@@ -21,7 +23,7 @@ namespace egregore.Tests
             var dataFile = Store?.DataFile;
             if (string.IsNullOrWhiteSpace(dataFile))
                 return;
-            Store?.Purge();
+            Store?.Destroy(true);
             GC.Collect();
             GC.WaitForPendingFinalizers();
         }

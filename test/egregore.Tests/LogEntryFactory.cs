@@ -7,13 +7,13 @@ namespace egregore.Tests
 {
     internal static class LogEntryFactory
     {
-        public static readonly HashProvider HashProvider;
+        public static readonly LogEntryHashProvider HashProvider;
         public static readonly LogObjectTypeProvider TypeProvider;
 
         static LogEntryFactory()
         {
             TypeProvider = new LogObjectTypeProvider();
-            HashProvider = new HashProvider(TypeProvider);
+            HashProvider = new LogEntryHashProvider(TypeProvider);
         }
 
         public static LogEntry CreateNamespaceEntry(string value, byte[] previousHash)

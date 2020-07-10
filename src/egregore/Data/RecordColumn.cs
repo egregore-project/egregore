@@ -1,8 +1,8 @@
 ﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
+using egregore.Extensions;
 
 namespace egregore.Data
 {
@@ -39,12 +39,20 @@ namespace egregore.Data
 
         public void Serialize(LogSerializeContext context, bool hash)
         {
-            throw new NotImplementedException();
+            context.bw.Write(Index);
+            context.bw.Write(Name);
+            context.bw.Write(Type);
+            context.bw.WriteNullableString(Value);
+            context.bw.WriteNullableString(Default);
         }
 
-        public RecordColumn(LogSerializeContext context)
+        public RecordColumn(LogDeserializeContext context)
         {
-            throw new NotImplementedException();
+            Index = context.br.ReadInt32();
+            Name = context.br.ReadString();
+            Type = context.br.ReadString();
+            Value = context.br.ReadNullableString();
+            Default = context.br.ReadNullableString();
         }
 
         #endregion

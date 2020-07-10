@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("egregore.Tests")]
+[assembly: InternalsVisibleTo("egregore.Benchmarks")]
 
 namespace egregore
 {
