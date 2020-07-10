@@ -11,6 +11,7 @@
 // ReSharper disable StringLiteralTypo
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.InteropServices;
 
@@ -37,9 +38,16 @@ namespace egregore.Data
                 // Windows servers use CLDR
                 var region = RegionInfo.CurrentRegion;
                 var regionName = region.EnglishName.Replace(' ', '_');
-                var localTimeZone = TimeZoneInfo.Local; 
+                var localTimeZone = TimeZoneInfo.Local;
 
-                #region LUT
+                return Lookup(now, region, regionName, localTimeZone);
+            }
+        }
+
+        [ExcludeFromCodeCoverage]
+        private static IsoTimeZoneString Lookup(DateTimeOffset now, RegionInfo region, string regionName, TimeZoneInfo localTimeZone)
+        {
+            #region LUT
 
                 switch(localTimeZone.StandardName)
                 {
@@ -2340,7 +2348,6 @@ namespace egregore.Data
                 }
 
                 #endregion
-            }
         }
     }
 }
