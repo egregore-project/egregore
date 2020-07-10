@@ -68,12 +68,19 @@ namespace egregore.Tests.Data
             sb.AppendLine("                var regionName = region.EnglishName.Replace(' ', '_');");
             sb.AppendLine("                var localTimeZone = TimeZoneInfo.Local; ");
             sb.AppendLine();
-            sb.AppendLine("                #region LUT");
+            sb.AppendLine("                return Lookup(now, region, regionName, localTimeZone);");
+            sb.AppendLine("            }");
+            sb.AppendLine("        }");
             sb.AppendLine();
-            sb.AppendLine("                switch(localTimeZone.StandardName)");
-            sb.AppendLine("                {");
-            sb.AppendLine("                    case \"Coordinated Universal Time\":");
-            sb.AppendLine("                        return new IsoTimeZoneString(now, \"Etc\\UTC\");");
+            sb.AppendLine("        [ExcludeFromCodeCoverage]");
+            sb.AppendLine("        private static IsoTimeZoneString Lookup(DateTimeOffset now, RegionInfo region, string regionName, TimeZoneInfo localTimeZone)");
+            sb.AppendLine("        {");
+            sb.AppendLine("            #region LUT");
+            sb.AppendLine();
+            sb.AppendLine("            switch(localTimeZone.StandardName)");
+            sb.AppendLine("            {");
+            sb.AppendLine("                case \"Coordinated Universal Time\":");
+            sb.AppendLine("                    return new IsoTimeZoneString(now, \"Etc\\UTC\");");
 
             // other, territory, type
             var map = new Dictionary<string, Dictionary<string, string>>();
@@ -87,10 +94,10 @@ namespace egregore.Tests.Data
 
             foreach (var (k, v) in map)
             {
-                sb.AppendLine($"                    case \"{k}\":");
+                sb.AppendLine($"                case \"{k}\":");
+                sb.AppendLine($"                {{");
+                sb.AppendLine($"                    switch(region.TwoLetterISORegionName)");
                 sb.AppendLine($"                    {{");
-                sb.AppendLine($"                        switch(region.TwoLetterISORegionName)");
-                sb.AppendLine($"                        {{");
                 foreach (var tuple in v
                 .Reverse())
                 {
@@ -101,35 +108,34 @@ namespace egregore.Tests.Data
                     if (values.Length > 1)
                     {
                         var prefix = values[0].Split("/")[0];
-                        sb.AppendLine($"                                switch($\"{prefix}/{{regionName}}\")");
-                        sb.AppendLine($"                                {{");
+                        sb.AppendLine($"                            switch($\"{prefix}/{{regionName}}\")");
+                        sb.AppendLine($"                            {{");
                         foreach (var value in values)
                         {
-                            sb.AppendLine($"                                    case \"{value}\":");
-                            sb.AppendLine($"                                        return new IsoTimeZoneString(now, \"{value}\");");
+                            sb.AppendLine($"                                case \"{value}\":");
+                            sb.AppendLine($"                                    return new IsoTimeZoneString(now, \"{value}\");");
                         }
-                        sb.AppendLine($"                                    default:");
-                        sb.AppendLine($"                                        return new IsoTimeZoneString(now, \"{values[0]}\");");
-                        sb.AppendLine($"                                }}");
+                        sb.AppendLine($"                                default:");
+                        sb.AppendLine($"                                    return new IsoTimeZoneString(now, \"{values[0]}\");");
+                        sb.AppendLine($"                            }}");
                     }
                     else
                     {
-                        sb.AppendLine($"                                    return new IsoTimeZoneString(now, \"{tuple.Value}\");");
+                        sb.AppendLine($"                                return new IsoTimeZoneString(now, \"{tuple.Value}\");");
                     }
                 }
-                sb.AppendLine($"                        }}");
+                sb.AppendLine($"                    }}");
                 sb.AppendLine($"                    }}");
             }
 
             sb.AppendLine("                    default:");
             sb.AppendLine($"                        throw new NotSupportedException($\"Missing time zone map from '{{localTimeZone.DisplayName}}'\");");
-            sb.AppendLine("                }");
+            sb.AppendLine("                }"); // switch
             sb.AppendLine();
-            sb.AppendLine("                #endregion");
-            sb.AppendLine("            }");
-            sb.AppendLine("        }");
-            sb.AppendLine("    }");
-            sb.AppendLine("}");
+            sb.AppendLine("            #endregion");
+            sb.AppendLine("        }"); // method
+            sb.AppendLine("    }"); // class
+            sb.AppendLine("}"); // namespace
             _output.WriteLine(sb.ToString());
         }
 
