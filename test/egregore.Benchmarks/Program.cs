@@ -6,8 +6,9 @@ namespace egregore.Benchmarks
     {
         public static void Main(params string[] args)
         {
-            BenchmarkRunner.Run<SequenceBenchmarks>();
-            BenchmarkRunner.Run<LogStoreBenchmarks>();
+            //BenchmarkRunner.Run<SequenceBenchmarks>();
+            //BenchmarkRunner.Run<LogStoreBenchmarks>();
+            BenchmarkRunner.Run<SocketBenchmarks>();
         }
     }
 }

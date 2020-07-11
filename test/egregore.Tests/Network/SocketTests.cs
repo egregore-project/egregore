@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using egregore.Network;
 using Xunit;
@@ -16,20 +17,20 @@ namespace egregore.Tests.Network
         }
 
         [Fact]
-        public async Task Can_send_and_receive_from_socket()
+        public void Can_send_and_receive_from_socket()
         {
             var @out = new XunitDuplexTextWriter(_console, Console.Out);
 
             SocketServer.@out = @out;
-            SocketServer.@in = Console.In;
-            SocketClient.@out = @out;
 
-            _ = Task.Run(() => { SocketServer.StartListening("localhost", 11000); });
+            var cancel = new CancellationTokenSource();
+            _ = Task.Run(() => { SocketServer.Start("localhost", 11000, cancel.Token); }, cancel.Token);
 
-            await Task.Run(() =>
-            {
-                SocketClient.StartClient("localhost", 11000);
-            });
+            var client = new SocketClient(@out);
+            client.Start("localhost", 11000);
+            cancel.Cancel();
+
+            SocketServer.Stop();
         }
     }
 }
