@@ -20,16 +20,13 @@ namespace egregore.Tests.Network
         public void Can_send_and_receive_from_socket()
         {
             var @out = new XunitDuplexTextWriter(_console, Console.Out);
-            var cancel = new CancellationTokenSource();
-
+            
             using var server = new SocketServer(@out);
-            server.Start("localhost", 11000, cancel.Token);
+            server.Start("localhost", 11000);
 
             var client = new SocketClient(@out);
             client.ConnectAndSend("localhost", 11000);
             client.ConnectAndSend("localhost", 11000);
-
-            cancel.Cancel();
         }
     }
 }

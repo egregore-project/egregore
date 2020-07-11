@@ -14,7 +14,9 @@ namespace egregore.Network
         private readonly Encoding _encoding = Encoding.UTF8;
         private readonly ManualResetEvent _signal = new ManualResetEvent(false);
         private readonly TextWriter _out;
+
         private Task _task;
+        private CancellationTokenSource _source;
 
         public SocketServer(TextWriter @out = default)
         {
@@ -23,6 +25,12 @@ namespace egregore.Network
         
         public void Start(string hostNameOrIpAddress, int port, CancellationToken cancellationToken = default)
         {
+            if (cancellationToken == default)
+            {
+                _source = new CancellationTokenSource();
+                cancellationToken = _source.Token;
+            }
+
             var ipHostInfo = Dns.GetHostEntry(hostNameOrIpAddress);
             var ipAddress = ipHostInfo.AddressList[0];
             var localEndPoint = new IPEndPoint(ipAddress, port);
@@ -118,6 +126,7 @@ namespace egregore.Network
 
         public void Dispose()
         {
+            _source?.Cancel(true);
             while (!_task.IsCanceled && !_task.IsCompleted && !_task.IsFaulted)
                 _signal.WaitOne(10);
             _signal?.Dispose();
