@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using egregore.Network;
 using Xunit;
 
-namespace egregore.Tests
+namespace egregore.Tests.Network
 {
     public sealed class SequenceTests : IClassFixture<SequenceFixture>
     {

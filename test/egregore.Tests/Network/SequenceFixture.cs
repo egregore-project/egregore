@@ -4,7 +4,7 @@
 using System;
 using egregore.Network;
 
-namespace egregore.Tests
+namespace egregore.Tests.Network
 {
     public class SequenceFixture : IDisposable
     {
