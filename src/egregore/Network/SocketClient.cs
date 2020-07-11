@@ -13,20 +13,43 @@ namespace egregore.Network
 {
     public sealed class SocketClient
     {
-        private readonly ManualResetEvent _connectDone = new ManualResetEvent(false);
-        private readonly ManualResetEvent _sendDone = new ManualResetEvent(false);
-        private readonly ManualResetEvent _receiveDone = new ManualResetEvent(false);
+        private readonly ManualResetEvent _connected = new ManualResetEvent(false);
+        private readonly ManualResetEvent _sent = new ManualResetEvent(false);
+        private readonly ManualResetEvent _received = new ManualResetEvent(false);
         private readonly Encoding _encoding = Encoding.UTF8;
 
         private string _response = string.Empty;
         private readonly TextWriter _out;
+        private Socket _socket;
+        private readonly string _id;
 
-        public SocketClient(TextWriter @out = default)
+        public SocketClient(string id = default, TextWriter @out = default)
         {
+            _id = id ?? "[CLIENT]";
             _out = @out;
         }
 
-        public void ConnectAndSend(string hostNameOrAddress, int port)
+        public void Connect(string hostNameOrAddress, int port)
+        {
+            var ipHostInfo = Dns.GetHostEntry(hostNameOrAddress);
+            var ipAddress = ipHostInfo.AddressList[0];
+            var endpoint = new IPEndPoint(ipAddress, port);
+
+            var client = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            client.BeginConnect(endpoint, ConnectCallback, client);
+            _connected.WaitOne();
+        }
+
+        public void SendTestMessage()
+        {
+             SendMessage(_socket, "This is a test<EOF>");
+             _sent.WaitOne();
+
+             Receive(_socket);
+             _received.WaitOne();
+        }
+
+        public void ConnectAndSendTestMessage(string hostNameOrAddress, int port)
         {
             var ipHostInfo = Dns.GetHostEntry(hostNameOrAddress);
             var ipAddress = ipHostInfo.AddressList[0];
@@ -36,28 +59,28 @@ namespace egregore.Network
             try
             {
                 client.BeginConnect(endpoint, ConnectCallback, client);
-                _connectDone.WaitOne();
+                _connected.WaitOne();
 
                 SendMessage(client, "This is a test<EOF>");
-                _sendDone.WaitOne();
+                _sent.WaitOne();
 
                 Receive(client);
-                _receiveDone.WaitOne();
+                _received.WaitOne();
 
-                _out?.WriteLine("Response received : {0}", _response);
+                _out?.WriteInfoLine($"{_id}: Response received : {_response}");
                 client.Shutdown(SocketShutdown.Both);
                 client.Close();
             }
             catch (Exception e)
             {
-                _out?.WriteErrorLine(e.ToString());
+                _out?.WriteErrorLine($"{_id}: {e}");
             }
             finally
             {
                 client.Dispose();
-                _connectDone.Reset();
-                _sendDone.Reset();
-                _receiveDone.Reset();
+                _connected.Reset();
+                _sent.Reset();
+                _received.Reset();
             }
         }
 
@@ -65,14 +88,15 @@ namespace egregore.Network
         {
             try
             {
-                var client = (Socket) ar.AsyncState;
-                client.EndConnect(ar);
-                _out?.WriteLine("Socket connected to {0}", client.RemoteEndPoint);
-                _connectDone.Set();
+                var socket = (Socket) ar.AsyncState;
+                socket.EndConnect(ar);
+                _out?.WriteInfoLine($"{_id}: Socket connected to {socket.RemoteEndPoint}");
+                _connected.Set();
+                _socket = socket;
             }
             catch (Exception e)
             {
-                _out?.WriteErrorLine(e.ToString());
+                _out?.WriteErrorLine($"{_id}: {e}");
             }
         }
 
@@ -85,7 +109,7 @@ namespace egregore.Network
             }
             catch (Exception e)
             {
-                _out?.WriteErrorLine(e.ToString());
+                _out?.WriteErrorLine($"{_id}: {e}");
             }
         }
 
@@ -106,12 +130,12 @@ namespace egregore.Network
                 {
                     if (state.sb.Length > 1)
                         _response = state.sb.ToString();
-                    _receiveDone.Set();
+                    _received.Set();
                 }
             }
             catch (Exception e)
             {
-                _out?.WriteErrorLine(e.ToString());
+                _out?.WriteErrorLine($"{_id}: {e}");
             }
         }
 
@@ -126,13 +150,13 @@ namespace egregore.Network
             try
             {
                 var client = (Socket) ar.AsyncState;
-                var bytesSent = client.EndSend(ar);
-                _out?.WriteInfoLine("Sent {0} bytes to server.", bytesSent);
-                _sendDone.Set();
+                var sent = client.EndSend(ar);
+                _out?.WriteInfoLine($"{_id}: Sent {sent} bytes to server.");
+                _sent.Set();
             }
             catch (Exception e)
             {
-                _out?.WriteErrorLine(e.ToString());
+                _out?.WriteErrorLine($"{_id}: {e}");
             }
         }
     }

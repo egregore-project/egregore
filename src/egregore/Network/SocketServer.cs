@@ -17,9 +17,11 @@ namespace egregore.Network
 
         private Task _task;
         private CancellationTokenSource _source;
+        private readonly string _id;
 
-        public SocketServer(TextWriter @out = default)
+        public SocketServer(string id = default, TextWriter @out = default)
         {
+            _id = id ?? "[SERVER]";
             _out = @out;
         }
         
@@ -48,7 +50,7 @@ namespace egregore.Network
                 while (true)
                 {
                     _signal.Reset();
-                    _out?.WriteInfoLine("Waiting for a connection...");
+                    _out?.WriteInfoLine($"{_id}: Waiting for a connection...");
                     var ar = listener.BeginAccept(AcceptCallback, listener);
                     while (!_signal.WaitOne(10) && !ar.IsCompleted)
                         cancellationToken.ThrowIfCancellationRequested();
@@ -56,15 +58,15 @@ namespace egregore.Network
             }
             catch (OperationCanceledException)
             {
-                _out?.WriteInfoLine("Server thread was cancelled.");
+                _out?.WriteInfoLine($"{_id}: Server thread was cancelled.");
             }
             catch (Exception e)
             {
-                _out?.WriteErrorLine(e.ToString());
+                _out?.WriteErrorLine($"{_id}: {e}");
             }
             finally
             {
-                _out?.WriteInfo("Closing server connection... ");
+                _out?.WriteInfo($"{_id}: Closing connection... ");
                 listener.Close();
                 listener.Dispose();
                 _out?.WriteInfoLine("done.");
@@ -75,9 +77,10 @@ namespace egregore.Network
         {
             _signal.Set();
             var listener = (Socket) ar.AsyncState;
-            var handler = listener.EndAccept(ar);
-            var socketState = new SocketState {Handler = handler};
-            handler.BeginReceive(socketState.buffer, 0, SocketState.BufferSize, 0, ReadCallback, socketState);
+            var socket = listener.EndAccept(ar);
+            _out?.WriteInfoLine($"{_id}: Connected to {socket.RemoteEndPoint}");
+            var socketState = new SocketState {Handler = socket};
+            socket.BeginReceive(socketState.buffer, 0, SocketState.BufferSize, 0, ReadCallback, socketState);
         }
 
         public void ReadCallback(IAsyncResult ar)
@@ -90,11 +93,11 @@ namespace egregore.Network
                 return;
 
             socketState.sb.Append(_encoding.GetString(socketState.buffer, 0, bytesRead));
-            var content = socketState.sb.ToString();
-            if (content.IndexOf("<EOF>", StringComparison.Ordinal) > -1)
+            var message = socketState.sb.ToString();
+            if (message.IndexOf("<EOF>", StringComparison.Ordinal) > -1)
             {
-                _out?.WriteLine("Read {0} bytes from socket. \n Data : {1}", content.Length, content);
-                SendMessage(handler, content);
+                _out?.WriteLine($"{_id}: Read {bytesRead} bytes from socket. Message: '{message}'");
+                SendMessage(handler, message);
             }
             else
             {
@@ -113,14 +116,14 @@ namespace egregore.Network
             try
             {
                 var handler = (Socket) ar.AsyncState;
-                var bytesSent = handler.EndSend(ar);
-                _out?.WriteInfoLine("Sent {0} bytes to client.", bytesSent);
+                var sent = handler.EndSend(ar);
+                _out?.WriteInfoLine($"{_id}: Sent {sent} bytes to client.");
                 handler.Shutdown(SocketShutdown.Both);
                 handler.Close();
             }
             catch (Exception e)
             {
-                _out?.WriteErrorLine(e.ToString());
+                _out?.WriteErrorLine($"{_id}: {e}");
             }
         }
 

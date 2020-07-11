@@ -30,7 +30,7 @@ namespace egregore.Benchmarks
         [Benchmark]
         public void Send_and_receive_loop()
         {
-            _client.ConnectAndSend("localhost", 11000);
+            _client.ConnectAndSendTestMessage("localhost", 11000);
         }
     }
 }
