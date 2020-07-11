@@ -6,6 +6,7 @@ namespace egregore.Configuration
     public class WebServerOptions
     {
         public byte[] PublicKey { get; set; }
+        public string ServerId { get; set; }
         public string EggPath { get; set; }
     }
 }

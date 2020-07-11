@@ -21,7 +21,6 @@ namespace egregore
         public override bool CanSeek => true;
         public override bool CanWrite => true;
         public override long Length => _compareTo.Length;
-
         public override long Position { get; set; }
 
         public override void Write(byte[] buffer, int offset, int count)
@@ -47,14 +46,9 @@ namespace egregore
             Position++;
         }
 
-        public override void Flush()
-        {
-        }
+        public override void Flush() { }
 
-        public override int Read(byte[] buffer, int offset, int count)
-        {
-            throw new InvalidOperationException();
-        }
+        public override int Read(byte[] buffer, int offset, int count) => throw new InvalidOperationException();
 
         public override long Seek(long offset, SeekOrigin origin)
         {
@@ -69,6 +63,8 @@ namespace egregore
                 case SeekOrigin.End:
                     Position = _compareTo.Length - offset;
                     break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(origin), origin, null);
             }
 
             return Position;

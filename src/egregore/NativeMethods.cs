@@ -126,7 +126,7 @@ namespace egregore
         ///     <see href="https://libsodium.gitbook.io/doc/hashing/generic_hashing" />
         /// </summary>
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern unsafe int crypto_generichash(byte* @out, int outlen, byte* @in, ulong inlen, char* key,
+        public static extern unsafe int crypto_generichash(byte* @out, int outlen, byte* @in, ulong inlen, byte* key,
             int keylen);
     }
 }

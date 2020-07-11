@@ -106,12 +106,13 @@ namespace egregore
             if (!KeyFileManager.TryResolveKeyPath(keyPath, out keyFilePath, false, true))
                 return false;
 
-            if (!File.Exists(keyFilePath) || new FileInfo(keyFilePath).Length == 0)
+            var shouldCreateKeyFile = !File.Exists(keyFilePath) || new FileInfo(keyFilePath).Length == 0;
+            if (shouldCreateKeyFile)
                 File.WriteAllBytes(keyFilePath, new byte[KeyFileManager.KeyFileBytes]);
 
             Console.Out.WriteInfoLine($"Key file path resolved to '{keyFilePath}'");
 
-            if (!KeyFileManager.Create(keyFilePath, false, true, capture ?? Constants.ConsoleKeyCapture))
+            if (shouldCreateKeyFile && !KeyFileManager.Create(keyFilePath, false, true, capture ?? Constants.ConsoleKeyCapture))
             {
                 Console.Error.WriteErrorLine("Cannot start server without a key file");
                 return false;
@@ -152,7 +153,7 @@ namespace egregore
             var command = arguments.Dequeue();
             switch (command)
             {
-                case "grantrole":
+                case  Constants.Commands.GrantRole:
                     GrantRole(arguments);
                     break;
             }
