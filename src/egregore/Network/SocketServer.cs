@@ -9,111 +9,119 @@ using egregore.Extensions;
 
 namespace egregore.Network
 {
-    // Current code is based on: https://docs.microsoft.com/en-us/dotnet/framework/network-programming/asynchronous-client-socket-example
-
-    public sealed class SocketServer
+    public sealed class SocketServer : IDisposable
     {
-        private static readonly Encoding Encoding = Encoding.UTF8;
-        public static ManualResetEvent signal = new ManualResetEvent(false);
-        public static TextWriter @out;
-        private static Task _task;
+        private readonly Encoding _encoding = Encoding.UTF8;
+        private readonly ManualResetEvent _signal = new ManualResetEvent(false);
+        private readonly TextWriter _out;
+        private Task _task;
+
+        public SocketServer(TextWriter @out = default)
+        {
+            _out = @out;
+        }
         
-        public static void Start(string hostNameOrIpAddress, int port, CancellationToken cancellationToken = default)
+        public void Start(string hostNameOrIpAddress, int port, CancellationToken cancellationToken = default)
         {
             var ipHostInfo = Dns.GetHostEntry(hostNameOrIpAddress);
             var ipAddress = ipHostInfo.AddressList[0];
             var localEndPoint = new IPEndPoint(ipAddress, port);
-
-            _task = Task.Run(() => { 
-                var listener = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                try
-                {
-                    listener.Bind(localEndPoint);
-                    listener.Listen(100);
-
-                    while (true)
-                    {
-                        signal.Reset();
-                        @out.WriteInfoLine("Waiting for a connection...");
-                        var ar = listener.BeginAccept(AcceptCallback, listener);
-                        while (!signal.WaitOne(10) && !ar.IsCompleted)
-                            cancellationToken.ThrowIfCancellationRequested();
-                    }
-                }
-                catch (OperationCanceledException)
-                {
-                    @out?.WriteInfoLine("Server thread was cancelled.");
-                }
-                catch (Exception e)
-                {
-                    @out?.WriteErrorLine(e.ToString());
-                }
-                finally
-                {
-                    @out?.WriteInfoLine("Closing server connection...");
-                    listener.Close();
-                    listener.Dispose();
-                } }, cancellationToken);
+            _task = Task.Run(() => { AcceptConnection(ipAddress, localEndPoint, cancellationToken); }, cancellationToken);
         }
 
-        public static void Stop()
+        private void AcceptConnection(IPAddress address, EndPoint endpoint, CancellationToken cancellationToken)
         {
-            while (!_task.IsCanceled && !_task.IsCompleted && !_task.IsFaulted)
-                signal.WaitOne(10);
-            _task?.Dispose();
+            var listener = new Socket(address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            try
+            {
+                listener.Bind(endpoint);
+                listener.Listen(100);
+
+                while (true)
+                {
+                    _signal.Reset();
+                    _out?.WriteInfoLine("Waiting for a connection...");
+                    var ar = listener.BeginAccept(AcceptCallback, listener);
+                    while (!_signal.WaitOne(10) && !ar.IsCompleted)
+                        cancellationToken.ThrowIfCancellationRequested();
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                _out?.WriteInfoLine("Server thread was cancelled.");
+            }
+            catch (Exception e)
+            {
+                _out?.WriteErrorLine(e.ToString());
+            }
+            finally
+            {
+                _out?.WriteInfo("Closing server connection... ");
+                listener.Close();
+                listener.Dispose();
+                _out?.WriteInfoLine("done.");
+            }
         }
         
-        public static void AcceptCallback(IAsyncResult ar)
+        public void AcceptCallback(IAsyncResult ar)
         {
-            signal.Set();
+            _signal.Set();
             var listener = (Socket) ar.AsyncState;
             var handler = listener.EndAccept(ar);
-            var socketState = new SocketState {workSocket = handler};
+            var socketState = new SocketState {Handler = handler};
             handler.BeginReceive(socketState.buffer, 0, SocketState.BufferSize, 0, ReadCallback, socketState);
         }
 
-        public static void ReadCallback(IAsyncResult ar)
+        public void ReadCallback(IAsyncResult ar)
         {
             var socketState = (SocketState) ar.AsyncState;
-            var handler = socketState.workSocket;
+            var handler = socketState.Handler;
 
             var bytesRead = handler.EndReceive(ar);
-            if (bytesRead > 0)
+            if (bytesRead <= 0)
+                return;
+
+            socketState.sb.Append(_encoding.GetString(socketState.buffer, 0, bytesRead));
+            var content = socketState.sb.ToString();
+            if (content.IndexOf("<EOF>", StringComparison.Ordinal) > -1)
             {
-                socketState.sb.Append(Encoding.GetString(socketState.buffer, 0, bytesRead));
-                var content = socketState.sb.ToString();
-                if (content.IndexOf("<EOF>", StringComparison.Ordinal) > -1)
-                {
-                    @out?.WriteLine("Read {0} bytes from socket. \n Data : {1}", content.Length, content);
-                    Send(handler, content);
-                }
-                else
-                {
-                    handler.BeginReceive(socketState.buffer, 0, SocketState.BufferSize, 0, ReadCallback, socketState);
-                }
+                _out?.WriteLine("Read {0} bytes from socket. \n Data : {1}", content.Length, content);
+                SendMessage(handler, content);
+            }
+            else
+            {
+                handler.BeginReceive(socketState.buffer, 0, SocketState.BufferSize, 0, ReadCallback, socketState);
             }
         }
 
-        private static void Send(Socket handler, string data)
+        private void SendMessage(Socket handler, string message)
         {
-            var byteData = Encoding.GetBytes(data);
+            var byteData = _encoding.GetBytes(message);
             handler.BeginSend(byteData, 0, byteData.Length, 0, SendCallback, handler);
         }
-
-        private static void SendCallback(IAsyncResult ar)
+        
+        private void SendCallback(IAsyncResult ar)
         {
             try
             {
                 var handler = (Socket) ar.AsyncState;
                 var bytesSent = handler.EndSend(ar);
-                @out?.WriteLine("Sent {0} bytes to client.", bytesSent);
+                _out?.WriteInfoLine("Sent {0} bytes to client.", bytesSent);
                 handler.Shutdown(SocketShutdown.Both);
                 handler.Close();
             }
             catch (Exception e)
             {
-                @out?.WriteErrorLine(e.ToString());
+                _out?.WriteErrorLine(e.ToString());
             }
+        }
+
+        public void Dispose()
+        {
+            while (!_task.IsCanceled && !_task.IsCompleted && !_task.IsFaulted)
+                _signal.WaitOne(10);
+            _signal?.Dispose();
+            _task?.Dispose();
         }
     }
 }

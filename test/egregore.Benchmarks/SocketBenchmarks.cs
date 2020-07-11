@@ -1,6 +1,7 @@
 // Copyright (c) The Egregore Project & Contributors. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Threading;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
@@ -13,25 +14,29 @@ namespace egregore.Benchmarks
     {
         private CancellationTokenSource _cancel;
 
+        private SocketServer _server;
+        private SocketClient _client;
+
         [GlobalSetup]
         public void Setup()
         {
             _cancel = new CancellationTokenSource();
-            SocketServer.Start("localhost", 11000, _cancel.Token);
+            _server = new SocketServer();
+            _server.Start("localhost", 11000);
+            _client = new SocketClient();
         }
 
         [GlobalCleanup]
         public void Cleanup()
         {
             _cancel.Cancel(true);
-            SocketServer.Stop();
+            _server.Dispose();
         }
         
         [Benchmark]
         public void Send_and_receive_loop()
         {
-            var client = new SocketClient();
-            client.Start("localhost", 11000);
+            _client.ConnectAndSend("localhost", 11000);
         }
     }
 }

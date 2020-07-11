@@ -5,8 +5,9 @@ namespace egregore.Network
 {
     public class SocketState
     {  
-        public Socket workSocket = null;  
         public const int BufferSize = 1024;  
+
+        public Socket Handler { get; set; }
         public byte[] buffer = new byte[BufferSize];  
         public StringBuilder sb = new StringBuilder();  
     }

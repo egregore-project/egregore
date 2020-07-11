@@ -26,24 +26,24 @@ namespace egregore.Network
             _out = @out;
         }
 
-        public void Start(string hostNameOrAddress, int port)
+        public void ConnectAndSend(string hostNameOrAddress, int port)
         {
+            var ipHostInfo = Dns.GetHostEntry(hostNameOrAddress);
+            var ipAddress = ipHostInfo.AddressList[0];
+            var endpoint = new IPEndPoint(ipAddress, port);
+
+            var client = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             try
             {
-                var ipHostInfo = Dns.GetHostEntry(hostNameOrAddress);
-                var ipAddress = ipHostInfo.AddressList[0];
-                var endpoint = new IPEndPoint(ipAddress, port);
-
-                var client = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                 client.BeginConnect(endpoint, ConnectCallback, client);
                 _connectDone.WaitOne();
 
-                Send(client, "This is a test<EOF>");
+                SendMessage(client, "This is a test<EOF>");
                 _sendDone.WaitOne();
 
                 Receive(client);
                 _receiveDone.WaitOne();
-                
+
                 _out?.WriteLine("Response received : {0}", _response);
                 client.Shutdown(SocketShutdown.Both);
                 client.Close();
@@ -51,6 +51,13 @@ namespace egregore.Network
             catch (Exception e)
             {
                 _out?.WriteErrorLine(e.ToString());
+            }
+            finally
+            {
+                client.Dispose();
+                _connectDone.Reset();
+                _sendDone.Reset();
+                _receiveDone.Reset();
             }
         }
 
@@ -73,7 +80,7 @@ namespace egregore.Network
         {
             try
             {
-                var state = new SocketState {workSocket = client};
+                var state = new SocketState {Handler = client};
                 client.BeginReceive(state.buffer, 0, SocketState.BufferSize, 0, ReceiveCallback, state);
             }
             catch (Exception e)
@@ -87,7 +94,7 @@ namespace egregore.Network
             try
             {
                 var state = (SocketState) ar.AsyncState;
-                var client = state.workSocket;
+                var client = state.Handler;
 
                 var bytesRead = client.EndReceive(ar);
                 if (bytesRead > 0)
@@ -98,9 +105,7 @@ namespace egregore.Network
                 else
                 {
                     if (state.sb.Length > 1)
-                    {
                         _response = state.sb.ToString();
-                    }
                     _receiveDone.Set();
                 }
             }
@@ -110,10 +115,10 @@ namespace egregore.Network
             }
         }
 
-        private void Send(Socket client, string data)
+        private void SendMessage(Socket handler, string message)
         {
-            var byteData = _encoding.GetBytes(data);
-            client.BeginSend(byteData, 0, byteData.Length, 0, SendCallback, client);
+            var byteData = _encoding.GetBytes(message);
+            handler.BeginSend(byteData, 0, byteData.Length, 0, SendCallback, handler);
         }
 
         private void SendCallback(IAsyncResult ar)

@@ -15,6 +15,13 @@ namespace egregore.Extensions
             Console.ResetColor();
         }
 
+        public static void WriteInfo(this TextWriter writer, string value, params object[] args)
+        {
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            writer.Write(value, args);
+            Console.ResetColor();
+        }
+
         public static void WriteWarningLine(this TextWriter writer, string value, params object[] args)
         {
             Console.ForegroundColor = ConsoleColor.DarkYellow;
