@@ -16,7 +16,7 @@ namespace egregore.Benchmarks
         [GlobalSetup]
         public void Setup()
         {
-            _server = new SocketServer();
+            _server = new SocketServer(new EchoProtocol());
             _server.Start("localhost", 11000);
             _client = new SocketClient();
         }

@@ -9,19 +9,21 @@ using egregore.Extensions;
 
 namespace egregore.Network
 {
-    public sealed class SocketServer : IDisposable
+    public sealed class SocketServer : IDisposable, IProtocolSend
     {
         private readonly Encoding _encoding = Encoding.UTF8;
         private readonly ManualResetEvent _signal = new ManualResetEvent(false);
+        private readonly IProtocol _protocol;
         private readonly TextWriter _out;
 
         private Task _task;
         private CancellationTokenSource _source;
         private readonly string _id;
 
-        public SocketServer(string id = default, TextWriter @out = default)
+        public SocketServer(IProtocol protocol, string id = default, TextWriter @out = default)
         {
             _id = id ?? "[SERVER]";
+            _protocol = protocol;
             _out = @out;
         }
         
@@ -103,10 +105,10 @@ namespace egregore.Network
 
             socketState.sb.Append(_encoding.GetString(socketState.buffer, 0, bytesRead));
             var message = socketState.sb.ToString();
-            if (message.IndexOf("<EOF>", StringComparison.Ordinal) > -1)
+            if (_protocol.IsEndOfMessage(message))
             {
                 _out?.WriteLine($"{_id}: Read {bytesRead} bytes from socket. Message: '{message}'");
-                SendMessage(handler, message);
+                _protocol.OnMessageReceived(this, handler, message);
             }
             else
             {
@@ -114,7 +116,7 @@ namespace egregore.Network
             }
         }
 
-        private void SendMessage(Socket handler, string message)
+        public void Send(Socket handler, string message)
         {
             var byteData = _encoding.GetBytes(message);
             handler.BeginSend(byteData, 0, byteData.Length, 0, SendCallback, handler);

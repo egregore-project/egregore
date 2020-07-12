@@ -111,7 +111,6 @@ namespace egregore.Network
                 ReceiveMessage(client);
                 _received.WaitOne();
 
-                _out?.WriteLine("Response received : {0}", _response);
                 _out?.WriteInfoLine($"{_id}: Response received : {_response}");
                 client.Shutdown(SocketShutdown.Both);
                 client.Close();
