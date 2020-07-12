@@ -35,18 +35,62 @@ namespace egregore.Network
             var ipAddress = ipHostInfo.AddressList[0];
             var endpoint = new IPEndPoint(ipAddress, port);
 
-            var client = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            client.BeginConnect(endpoint, ConnectCallback, client);
-            _connected.WaitOne();
+            try
+            {
+                var client = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                client.BeginConnect(endpoint, ConnectCallback, client);
+                _connected.WaitOne();
+            }
+            catch (Exception e)
+            {
+                _out?.WriteErrorLine($"{_id}: {e}");
+            }
         }
 
         public void SendTestMessage()
         {
-             SendMessage(_socket, "This is a test<EOF>");
-             _sent.WaitOne();
+            if (_socket == default)
+                throw new InvalidOperationException($"{_id}: Must be connected before sending a message");
 
-             Receive(_socket);
-             _received.WaitOne();
+            try
+            {
+                SendMessage(_socket, "This is a test<EOF>");
+                _sent.WaitOne();
+
+                ReceiveMessage(_socket);
+                _received.WaitOne();
+            }
+            catch (Exception e)
+            {
+                _out?.WriteErrorLine($"{_id}: {e}");
+            }
+            finally
+            {
+                _sent.Reset();
+                _received.Reset();
+            }
+        }
+
+        public void Disconnect()
+        {
+            if (_socket == default)
+                throw new InvalidOperationException($"{_id}: Must be connected before disconnecting");
+
+            try
+            {
+                _socket.Shutdown(SocketShutdown.Both);
+                _socket.Close();
+            }
+            catch (Exception e)
+            {
+                _out?.WriteErrorLine($"{_id}: {e}");
+            }
+            finally
+            {
+                _socket.Dispose();
+                _socket = default;
+                _connected.Reset();
+            }
         }
 
         public void ConnectAndSendTestMessage(string hostNameOrAddress, int port)
@@ -64,15 +108,17 @@ namespace egregore.Network
                 SendMessage(client, "This is a test<EOF>");
                 _sent.WaitOne();
 
-                Receive(client);
+                ReceiveMessage(client);
                 _received.WaitOne();
 
+                _out?.WriteLine("Response received : {0}", _response);
                 _out?.WriteInfoLine($"{_id}: Response received : {_response}");
                 client.Shutdown(SocketShutdown.Both);
                 client.Close();
             }
             catch (Exception e)
             {
+                _out?.WriteErrorLine(e.ToString());
                 _out?.WriteErrorLine($"{_id}: {e}");
             }
             finally
@@ -100,12 +146,15 @@ namespace egregore.Network
             }
         }
 
-        private void Receive(Socket client)
+        private void ReceiveMessage(Socket client)
         {
             try
             {
                 var state = new SocketState {Handler = client};
-                client.BeginReceive(state.buffer, 0, SocketState.BufferSize, 0, ReceiveCallback, state);
+                if (client.Connected)
+                {
+                    client.BeginReceive(state.buffer, 0, SocketState.BufferSize, 0, ReceiveCallback, state);
+                }
             }
             catch (Exception e)
             {

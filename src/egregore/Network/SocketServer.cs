@@ -44,6 +44,7 @@ namespace egregore.Network
             var listener = new Socket(address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             try
             {
+                listener.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
                 listener.Bind(endpoint);
                 listener.Listen(100);
 

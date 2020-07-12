@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
 using egregore.Network;
 using Xunit;
 using Xunit.Abstractions;
@@ -10,10 +8,14 @@ namespace egregore.Tests.Network
     public class SocketTests
     {
         private readonly ITestOutputHelper _console;
+        private readonly string _hostName;
+        private readonly int _port;
 
         public SocketTests(ITestOutputHelper console)
         {
             _console = console;
+            _hostName = "localhost";
+            _port = 11000;
         }
         
         [Fact]
@@ -22,13 +24,19 @@ namespace egregore.Tests.Network
             var @out = new XunitDuplexTextWriter(_console, Console.Out);
             
             using var server = new SocketServer(default, @out);
-            server.Start("localhost", 11000);
+            server.Start(_hostName, _port);
 
             var client = new SocketClient(default, @out);
-            client.ConnectAndSendTestMessage("localhost", 11000);
 
-            client.Connect("localhost", 11000);
+            client.ConnectAndSendTestMessage(_hostName, _port);
+
+            client.Connect(_hostName, _port);
             client.SendTestMessage();
+            client.Disconnect();
+
+            client.Connect(_hostName, _port);
+            client.SendTestMessage();
+            client.Disconnect();
         }
     }
 }
