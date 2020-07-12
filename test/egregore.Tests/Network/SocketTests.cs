@@ -23,7 +23,7 @@ namespace egregore.Tests.Network
         {
             var @out = new XunitDuplexTextWriter(_console, Console.Out);
             
-            using var server = new SocketServer(new EchoProtocol(), default, @out);
+            using var server = new SocketServer(new EchoProtocol(@out), default, @out);
             server.Start(_hostName, _port);
 
             var client = new SocketClient(default, @out);
