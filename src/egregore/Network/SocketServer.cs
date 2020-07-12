@@ -77,11 +77,19 @@ namespace egregore.Network
         public void AcceptCallback(IAsyncResult ar)
         {
             _signal.Set();
-            var listener = (Socket) ar.AsyncState;
-            var socket = listener.EndAccept(ar);
-            _out?.WriteInfoLine($"{_id}: Connected to {socket.RemoteEndPoint}");
-            var socketState = new SocketState {Handler = socket};
-            socket.BeginReceive(socketState.buffer, 0, SocketState.BufferSize, 0, ReadCallback, socketState);
+            try
+            {
+                var listener = (Socket) ar.AsyncState;
+                var socket = listener.EndAccept(ar);
+                _out?.WriteInfoLine($"{_id}: Connected to {socket.RemoteEndPoint}");
+                var socketState = new SocketState {Handler = socket};
+                socket.BeginReceive(socketState.buffer, 0, SocketState.BufferSize, 0, ReadCallback, socketState);
+            }
+            catch (ObjectDisposedException e)
+            {
+                if (e.ObjectName != "System.Net.Sockets.Socket")
+                    throw;
+            }
         }
 
         public void ReadCallback(IAsyncResult ar)
