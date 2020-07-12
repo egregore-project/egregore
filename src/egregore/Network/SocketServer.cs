@@ -107,7 +107,7 @@ namespace egregore.Network
             var message = socketState.sb.ToString();
             if (_protocol.IsEndOfMessage(message))
             {
-                _out?.WriteLine($"{_id}: Read {bytesRead} bytes from socket. Message: '{message}'");
+                _out?.WriteLine($"{_id}: Read {bytesRead} bytes from socket.");
                 _protocol.OnMessageReceived(this, handler, message);
             }
             else
