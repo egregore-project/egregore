@@ -34,6 +34,7 @@ namespace egregore.Benchmarks
         public void Send_and_receive_loop()
         {
             _client.Send("This is a message");
+            _client.Receive();
         }
     }
 }
