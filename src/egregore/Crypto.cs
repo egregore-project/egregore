@@ -15,6 +15,7 @@ namespace egregore
     {
         public const uint PublicKeyBytes = 32U;
         public const uint SecretKeyBytes = 64U;
+        public const uint EncryptionKeyBytes = 32U;
 
         #region Utilities
 

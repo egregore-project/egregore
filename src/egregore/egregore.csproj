@@ -43,4 +43,7 @@
     <None Include="wwwroot\lib\jquery\dist\jquery.min.map" />
     <None Include="wwwroot\lib\jquery\LICENSE.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\submodules\noise\Noise\Noise.csproj" />
+  </ItemGroup>
 </Project>

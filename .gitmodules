@@ -1,0 +1,3 @@
+[submodule "submodules/noise"]
+	path = submodules/noise
+	url = https://github.com/egregore-project/noise

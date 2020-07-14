@@ -9,7 +9,7 @@ using egregore.Extensions;
 
 namespace egregore.Network
 {
-    public sealed class SocketServer : IDisposable, IProtocolSend
+    public sealed class SocketServer : IDisposable, IChannel
     {
         private readonly Encoding _encoding = Encoding.UTF8;
         private readonly ManualResetEvent _signal = new ManualResetEvent(false);
@@ -84,8 +84,23 @@ namespace egregore.Network
                 var listener = (Socket) ar.AsyncState;
                 var socket = listener.EndAccept(ar);
                 _out?.WriteInfoLine($"{_id}: Connected to {socket.RemoteEndPoint}");
-                var socketState = new SocketState {Handler = socket};
-                socket.BeginReceive(socketState.buffer, 0, SocketState.BufferSize, 0, ReadCallback, socketState);
+                if (!_protocol.HasTransport)
+                {
+                    try
+                    {
+                        _protocol.Handshake(this, socket);
+                    }
+                    catch (Exception e)
+                    {
+                        _out?.WriteErrorLine($"{_id}: Failed to establish handshake: {e}");
+                        socket.Close();
+                    }
+                }
+                else
+                {
+                    var socketState = new SocketState {Handler = socket};
+                    socket.BeginReceive(socketState.buffer, 0, SocketState.BufferSize, 0, ReadCallback, socketState);    
+                }
             }
             catch (ObjectDisposedException e)
             {
@@ -108,7 +123,7 @@ namespace egregore.Network
             if (_protocol.IsEndOfMessage(message))
             {
                 _out?.WriteLine($"{_id}: Read {bytesRead} bytes from socket.");
-                _protocol.OnMessageReceived(this, handler, message);
+                _protocol.OnMessageReceived(this, handler, Encoding.UTF8.GetBytes(message));
             }
             else
             {
@@ -118,7 +133,13 @@ namespace egregore.Network
 
         public void Send(Socket handler, string message)
         {
-            var byteData = _encoding.GetBytes(message);
+            var byteData = Encoding.UTF8.GetBytes(message);
+            handler.BeginSend(byteData, 0, byteData.Length, 0, SendCallback, handler);
+        }
+
+        public void Send(Socket handler, ReadOnlySpan<byte> message)
+        {
+            var byteData = message.ToArray();
             handler.BeginSend(byteData, 0, byteData.Length, 0, SendCallback, handler);
         }
         

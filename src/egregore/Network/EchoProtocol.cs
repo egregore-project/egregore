@@ -4,12 +4,13 @@
 using System;
 using System.IO;
 using System.Net.Sockets;
+using System.Text;
 using egregore.Extensions;
 
 namespace egregore.Network
 {
     /// <summary>
-    /// The simplest possible protocol that takes 
+    /// The simplest possible protocol that takes delimited input and echos it back to the connected client.
     /// </summary>
     internal sealed class EchoProtocol : IProtocol
     {
@@ -24,9 +25,12 @@ namespace egregore.Network
             _id = "[ECHO]";
         }
 
-        public void OnMessageReceived(IProtocolSend sender, Socket handler, string message)
+        public bool Handshake(IChannel sender, Socket handler) => true;
+        public bool HasTransport => true;
+
+        public void OnMessageReceived(IChannel sender, Socket handler, ReadOnlySpan<byte> message)
         {
-            _out?.WriteInfoLine($"{_id}: {message}");
+            _out?.WriteInfoLine($"{_id}: {Encoding.UTF8.GetString(message)}");
             sender.Send(handler, message);
         }
 

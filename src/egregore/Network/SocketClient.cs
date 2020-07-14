@@ -11,7 +11,7 @@ using egregore.Extensions;
 
 namespace egregore.Network
 {
-    public sealed class SocketClient
+    public sealed class SocketClient : IChannel
     {
         private readonly ManualResetEvent _connected = new ManualResetEvent(false);
         private readonly ManualResetEvent _sent = new ManualResetEvent(false);
@@ -19,13 +19,15 @@ namespace egregore.Network
         private readonly Encoding _encoding = Encoding.UTF8;
 
         private string _response = string.Empty;
+        private readonly IProtocol _protocol;
         private readonly TextWriter _out;
         private Socket _socket;
         private readonly string _id;
 
-        public SocketClient(string id = default, TextWriter @out = default)
+        public SocketClient(IProtocol protocol, string id = default, TextWriter @out = default)
         {
             _id = id ?? "[CLIENT]";
+            _protocol = protocol;
             _out = @out;
         }
 
@@ -54,7 +56,7 @@ namespace egregore.Network
 
             try
             {
-                SendMessage(_socket, "This is a test<EOF>");
+                Send(_socket, "This is a test<EOF>");
                 _sent.WaitOne();
 
                 ReceiveMessage(_socket);
@@ -105,7 +107,7 @@ namespace egregore.Network
                 client.BeginConnect(endpoint, ConnectCallback, client);
                 _connected.WaitOne();
 
-                SendMessage(client, "This is a test<EOF>");
+                Send(client, "This is a test<EOF>");
                 _sent.WaitOne();
 
                 ReceiveMessage(client);
@@ -136,6 +138,17 @@ namespace egregore.Network
                 var socket = (Socket) ar.AsyncState;
                 socket.EndConnect(ar);
                 _out?.WriteInfoLine($"{_id}: Socket connected to {socket.RemoteEndPoint}");
+                if (!_protocol.HasTransport)
+                {
+                    try
+                    {
+                        _protocol.Handshake(this, socket);
+                    }
+                    catch (Exception e)
+                    {
+                        _out?.WriteErrorLine($"{_id}: Failed to establish handshake: {e}");
+                    }
+                }
                 _connected.Set();
                 _socket = socket;
             }
@@ -187,9 +200,15 @@ namespace egregore.Network
             }
         }
 
-        private void SendMessage(Socket handler, string message)
+        public void Send(Socket handler, string message)
         {
             var byteData = _encoding.GetBytes(message);
+            handler.BeginSend(byteData, 0, byteData.Length, 0, SendCallback, handler);
+        }
+
+        public void Send(Socket handler, ReadOnlySpan<byte> message)
+        {
+            var byteData = message.ToArray();
             handler.BeginSend(byteData, 0, byteData.Length, 0, SendCallback, handler);
         }
 

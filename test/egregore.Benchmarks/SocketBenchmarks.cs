@@ -18,7 +18,7 @@ namespace egregore.Benchmarks
         {
             _server = new SocketServer(new EchoProtocol());
             _server.Start("localhost", 11000);
-            _client = new SocketClient();
+            _client = new SocketClient(new EchoProtocol());
         }
 
         [GlobalCleanup]
