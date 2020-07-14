@@ -6,6 +6,7 @@ using System.IO;
 using System.Net.Sockets;
 using System.Text;
 using egregore.Extensions;
+using NetMQ;
 
 namespace egregore.Network
 {
@@ -14,26 +15,33 @@ namespace egregore.Network
     /// </summary>
     internal sealed class EchoProtocol : IProtocol
     {
-        private const string EndOfMessage = "<EOF>";
-
+        private readonly bool _initiator;
         private readonly TextWriter _out;
         private readonly string _id;
 
-        public EchoProtocol(TextWriter @out = default)
+        public EchoProtocol(bool initiator, string id = default, TextWriter @out = default)
         {
+            _initiator = initiator;
             _out = @out;
-            _id = "[ECHO]";
+            _id = id ?? "[ECHO]";
         }
 
-        public bool Handshake(IChannel sender, Socket handler) => true;
-        public bool HasTransport => true;
-
-        public void OnMessageReceived(IChannel sender, Socket handler, ReadOnlySpan<byte> message)
+        public void Configure(SocketOptions options) { }
+        public bool Handshake(NetMQSocket handler) => true;
+        
+        public void OnMessageReceived(NetMQSocket handler, ReadOnlySpan<byte> payload)
         {
-            _out?.WriteInfoLine($"{_id}: {Encoding.UTF8.GetString(message)}");
-            sender.Send(handler, message);
+            if (_initiator)
+                return;
+            var data = payload.ToArray();
+            handler.SendFrame(data);
+            _out?.WriteInfoLine($"{_id}: Sent: '{Encoding.UTF8.GetString(payload)}'");
         }
 
-        public bool IsEndOfMessage(string message) => message.IndexOf(EndOfMessage, StringComparison.Ordinal) > -1;
+        public void OnMessageSending(NetMQSocket handler, ReadOnlySpan<byte> payload)
+        {
+            var data = payload.ToArray();
+            handler.SendFrame(data);
+        }
     }
 }

@@ -22,6 +22,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Noise.Examples", "submodule
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Noise.Tests", "submodules\noise\Noise.Tests\Noise.Tests.csproj", "{782C776C-0E66-4831-8234-5F618DE3E512}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "lib", "lib", "{F836212F-01E6-4CA7-9E38-33C5E4A15E12}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,6 +57,11 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{B9F219AA-E7BF-4A80-B4C1-DEE7B2644657} = {F836212F-01E6-4CA7-9E38-33C5E4A15E12}
+		{75BA8D23-3BD0-4C40-857D-5F97A40E6090} = {F836212F-01E6-4CA7-9E38-33C5E4A15E12}
+		{782C776C-0E66-4831-8234-5F618DE3E512} = {F836212F-01E6-4CA7-9E38-33C5E4A15E12}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {EEFF3B3A-327F-4951-BFDA-7931BFDB52BC}

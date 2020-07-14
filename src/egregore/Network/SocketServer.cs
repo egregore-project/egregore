@@ -1,33 +1,37 @@
 ﻿using System;
 using System.IO;
-using System.Net;
-using System.Net.Sockets;
-using System.Text;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using egregore.Extensions;
+using NetMQ;
+using NetMQ.Sockets;
 
 namespace egregore.Network
 {
-    public sealed class SocketServer : IDisposable, IChannel
+    public sealed class SocketServer : IDisposable
     {
-        private readonly Encoding _encoding = Encoding.UTF8;
-        private readonly ManualResetEvent _signal = new ManualResetEvent(false);
         private readonly IProtocol _protocol;
         private readonly TextWriter _out;
 
         private Task _task;
         private CancellationTokenSource _source;
         private readonly string _id;
+        private NetMQSocket _outgoing;
+        private string _address;
+
+        private readonly ManualResetEvent _stopping = new ManualResetEvent(false);
+        private readonly TimeSpan _interval;
 
         public SocketServer(IProtocol protocol, string id = default, TextWriter @out = default)
         {
             _id = id ?? "[SERVER]";
             _protocol = protocol;
             _out = @out;
+            _interval = TimeSpan.FromMilliseconds(100);
         }
         
-        public void Start(string hostNameOrIpAddress, int port, CancellationToken cancellationToken = default)
+        public void Start(int port, CancellationToken cancellationToken = default)
         {
             if (cancellationToken == default)
             {
@@ -35,136 +39,80 @@ namespace egregore.Network
                 cancellationToken = _source.Token;
             }
 
-            var ipHostInfo = Dns.GetHostEntry(hostNameOrIpAddress);
-            var ipAddress = ipHostInfo.AddressList[0];
-            var localEndPoint = new IPEndPoint(ipAddress, port);
-            _task = Task.Run(() => { AcceptConnection(ipAddress, localEndPoint, cancellationToken); }, cancellationToken);
-        }
+            _address = $"tcp://*:{port}";
+            _outgoing = new ResponseSocket();
+            
+            var options = new SocketOptions(_outgoing);
+            _protocol.Configure(options);
+            _outgoing.Bind(_address);
+            _out?.WriteInfoLine($"{_id}: Bound to {_address}");
 
-        private void AcceptConnection(IPAddress address, EndPoint endpoint, CancellationToken cancellationToken)
-        {
-            var listener = new Socket(address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            try
+            _task = Task.Run(() =>
             {
-                listener.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-                listener.Bind(endpoint);
-                listener.Listen(100);
+                EstablishHandshake();
 
-                while (true)
-                {
-                    _signal.Reset();
-                    _out?.WriteInfoLine($"{_id}: Waiting for a connection...");
-                    var ar = listener.BeginAccept(AcceptCallback, listener);
-                    while (!_signal.WaitOne(10) && !ar.IsCompleted)
-                        cancellationToken.ThrowIfCancellationRequested();
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                _out?.WriteInfoLine($"{_id}: Server thread was cancelled.");
-            }
-            catch (Exception e)
-            {
-                _out?.WriteErrorLine($"{_id}: {e}");
-            }
-            finally
-            {
-                _out?.WriteInfo($"{_id}: Closing connection... ");
-                listener.Close();
-                listener.Dispose();
-                _out?.WriteInfoLine("done.");
-            }
-        }
-        
-        public void AcceptCallback(IAsyncResult ar)
-        {
-            _signal.Set();
-            try
-            {
-                var listener = (Socket) ar.AsyncState;
-                var socket = listener.EndAccept(ar);
-                _out?.WriteInfoLine($"{_id}: Connected to {socket.RemoteEndPoint}");
-                if (!_protocol.HasTransport)
+                while (!cancellationToken.IsCancellationRequested)
                 {
                     try
                     {
-                        _protocol.Handshake(this, socket);
+                        if (_outgoing.IsDisposed)
+                            continue;
+                        if (!_outgoing.TryReceiveFrameBytes(_interval, out var message))
+                            continue;
+                        _protocol.OnMessageReceived(_outgoing, message);
                     }
                     catch (Exception e)
                     {
-                        _out?.WriteErrorLine($"{_id}: Failed to establish handshake: {e}");
-                        socket.Close();
+                        _out?.WriteErrorLine($"{_id}: Error during message receive loop: {e}");
+                        break;
                     }
                 }
-                else
-                {
-                    var socketState = new SocketState {Handler = socket};
-                    socket.BeginReceive(socketState.buffer, 0, SocketState.BufferSize, 0, ReadCallback, socketState);    
-                }
-            }
-            catch (ObjectDisposedException e)
-            {
-                if (e.ObjectName != "System.Net.Sockets.Socket")
-                    throw;
-            }
+
+                _stopping.Set();
+            }, cancellationToken);
         }
 
-        public void ReadCallback(IAsyncResult ar)
-        {
-            var socketState = (SocketState) ar.AsyncState;
-            var handler = socketState.Handler;
-
-            var bytesRead = handler.EndReceive(ar);
-            if (bytesRead <= 0)
-                return;
-
-            socketState.sb.Append(_encoding.GetString(socketState.buffer, 0, bytesRead));
-            var message = socketState.sb.ToString();
-            if (_protocol.IsEndOfMessage(message))
-            {
-                _out?.WriteLine($"{_id}: Read {bytesRead} bytes from socket.");
-                _protocol.OnMessageReceived(this, handler, Encoding.UTF8.GetBytes(message));
-            }
-            else
-            {
-                handler.BeginReceive(socketState.buffer, 0, SocketState.BufferSize, 0, ReadCallback, socketState);
-            }
-        }
-
-        public void Send(Socket handler, string message)
-        {
-            var byteData = Encoding.UTF8.GetBytes(message);
-            handler.BeginSend(byteData, 0, byteData.Length, 0, SendCallback, handler);
-        }
-
-        public void Send(Socket handler, ReadOnlySpan<byte> message)
-        {
-            var byteData = message.ToArray();
-            handler.BeginSend(byteData, 0, byteData.Length, 0, SendCallback, handler);
-        }
-        
-        private void SendCallback(IAsyncResult ar)
+        private void EstablishHandshake()
         {
             try
             {
-                var handler = (Socket) ar.AsyncState;
-                var sent = handler.EndSend(ar);
-                _out?.WriteInfoLine($"{_id}: Sent {sent} bytes to client.");
-                handler.Shutdown(SocketShutdown.Both);
-                handler.Close();
+                if (!_protocol.Handshake(_outgoing))
+                    throw new InvalidOperationException($"{_id}: Handshake failed");
+            }
+            catch (CryptographicException e)
+            {
+                _out?.WriteErrorLine($"{_id}: Handshake cryptography is invalid: {e.Message}");
+                _source?.Cancel(true);
             }
             catch (Exception e)
             {
-                _out?.WriteErrorLine($"{_id}: {e}");
+                _out?.WriteErrorLine($"{_id}: Failed to establish handshake: {e}");
+                _source?.Cancel(true);
             }
         }
 
+        public void Send(string message)
+        {
+            if (_outgoing.IsDisposed)
+                return;
+            _outgoing.TrySendFrame(_interval, message);
+        }
+
+        public void Send(ReadOnlySpan<byte> message)
+        {
+            if (_outgoing.IsDisposed)
+                return;
+            var data = message.ToArray();
+            _outgoing.TrySendFrame(_interval, data);
+        }
+        
         public void Dispose()
         {
             _source?.Cancel(true);
             while (!_task.IsCanceled && !_task.IsCompleted && !_task.IsFaulted)
-                _signal.WaitOne(10);
-            _signal?.Dispose();
+                _stopping.WaitOne(10);
+            _outgoing.Dispose();
+            _stopping?.Dispose();
             _task?.Dispose();
         }
     }

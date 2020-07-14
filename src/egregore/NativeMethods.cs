@@ -55,6 +55,12 @@ namespace egregore
         public static extern unsafe int crypto_sign_ed25519_sk_to_pk(byte* pk, byte* sk);
 
         /// <summary>
+        ///     <see href="https://libsodium.gitbook.io/doc/public-key_cryptography/public-key_signatures" />
+        /// </summary>
+        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern unsafe int crypto_sign_ed25519_pk_to_curve25519(byte* x25519Pk, byte* ed25519Pk);
+
+        /// <summary>
         ///     <see href="https://libsodium.gitbook.io/doc/public-key_cryptography/public-key_signatures#detached-mode" />
         /// </summary>
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]

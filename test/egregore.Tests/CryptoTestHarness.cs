@@ -20,7 +20,7 @@ namespace egregore.Tests
                 var error = new XunitDuplexTextWriter(output, Console.Error);
                 Assert.True(KeyFileManager.TryGenerateKeyFile(service.GetKeyFileStream(), @out, error, capture));
                 capture.Reset();
-                return Crypto.PublicKeyFromSecretKey(service, capture);
+                return Crypto.SigningPublicKeyFromSigningKey(service, capture);
             }
         }
     }

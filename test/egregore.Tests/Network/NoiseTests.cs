@@ -21,28 +21,45 @@ namespace egregore.Tests.Network
             _hostName = "localhost";
             _port = 11000;
         }
-        
+
         [Fact]
-        public void Can_handshake_on_connect()
+        public void Can_handshake_on_connect_and_send_encrypted_payload()
         {
             var @out = new XunitDuplexTextWriter(_console, Console.Out);
 
-            using var clientKeyPair = KeyPair.Generate();
-            using var serverKeyPair = KeyPair.Generate();
             unsafe
             {
+                using var ckp = GenerateEncryptionKey();
+                using var skp = GenerateEncryptionKey();
+
                 var psk1 = PskRef.Create();
                 var psk2 = PskRef.Create(psk1.ptr);
 
-                var sp = new NoiseProtocol(false, serverKeyPair.PrivateKey, psk1.ptr);
+                var sp = new NoiseProtocol(false, skp.PrivateKey, psk1, default, "[SERVER]", @out);
                 using var server = new SocketServer(sp, default, @out);
-                server.Start(_hostName, _port);
+                server.Start(_port);
 
-                var cp = new NoiseProtocol(true, clientKeyPair.PrivateKey, psk2.ptr, serverKeyPair.PublicKey);
+                var cp = new NoiseProtocol(true, ckp.PrivateKey, psk2, skp.PublicKey, "[CLIENT]", @out);
                 var client = new SocketClient(cp, default, @out);
                 client.Connect(_hostName, _port);
+                client.Send("This is an encrypted message");
+                client.Receive();
                 client.Disconnect();
             }
+        }
+
+        private static unsafe KeyPair GenerateEncryptionKey()
+        {
+            // convert 64 byte signing key to 32 byte encryption key
+            Crypto.GenerateKeyPair(out var spk, out var sk);
+            var ek = Crypto.SigningKeyToEncryptionKey(sk);
+            NativeMethods.sodium_free(sk);
+
+            // create key pair using the encryption key pair
+            var epk = new byte[Crypto.PublicKeyBytes];
+            Crypto.EncryptionPublicKeyFromSigningPublicKey(spk, epk);
+            var kp = new KeyPair(ek, (int) Crypto.EncryptionKeyBytes, epk);
+            return kp;
         }
     }
 }

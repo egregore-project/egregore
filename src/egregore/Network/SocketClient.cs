@@ -3,228 +3,99 @@
 
 using System;
 using System.IO;
-using System.Net;
-using System.Net.Sockets;
 using System.Text;
-using System.Threading;
 using egregore.Extensions;
+using NetMQ;
+using NetMQ.Sockets;
 
 namespace egregore.Network
 {
-    public sealed class SocketClient : IChannel
+    public sealed class SocketClient : IDisposable
     {
-        private readonly ManualResetEvent _connected = new ManualResetEvent(false);
-        private readonly ManualResetEvent _sent = new ManualResetEvent(false);
-        private readonly ManualResetEvent _received = new ManualResetEvent(false);
-        private readonly Encoding _encoding = Encoding.UTF8;
-
-        private string _response = string.Empty;
         private readonly IProtocol _protocol;
         private readonly TextWriter _out;
-        private Socket _socket;
         private readonly string _id;
+        private readonly RequestSocket _incoming;
+        private string _address;
 
         public SocketClient(IProtocol protocol, string id = default, TextWriter @out = default)
         {
             _id = id ?? "[CLIENT]";
             _protocol = protocol;
             _out = @out;
+            _incoming = new RequestSocket();
         }
 
-        public void Connect(string hostNameOrAddress, int port)
+        public void Connect(string hostName, int port)
         {
-            var ipHostInfo = Dns.GetHostEntry(hostNameOrAddress);
-            var ipAddress = ipHostInfo.AddressList[0];
-            var endpoint = new IPEndPoint(ipAddress, port);
-
             try
             {
-                var client = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                client.BeginConnect(endpoint, ConnectCallback, client);
-                _connected.WaitOne();
+                _address = $"tcp://{hostName}:{port}";
+                _incoming.Connect(_address);
+
+                _out?.WriteInfoLine($"{_id}: Socket connected to {_address}");
+                if (!_protocol.Handshake(_incoming))
+                    throw new InvalidOperationException($"{_id}: Handshake failed");
             }
             catch (Exception e)
             {
                 _out?.WriteErrorLine($"{_id}: {e}");
-            }
-        }
-
-        public void SendTestMessage()
-        {
-            if (_socket == default)
-                throw new InvalidOperationException($"{_id}: Must be connected before sending a message");
-
-            try
-            {
-                Send(_socket, "This is a test<EOF>");
-                _sent.WaitOne();
-
-                ReceiveMessage(_socket);
-                _received.WaitOne();
-            }
-            catch (Exception e)
-            {
-                _out?.WriteErrorLine($"{_id}: {e}");
-            }
-            finally
-            {
-                _sent.Reset();
-                _received.Reset();
+                _incoming.Disconnect(_address);
+                Dispose();
             }
         }
 
         public void Disconnect()
         {
-            if (_socket == default)
-                throw new InvalidOperationException($"{_id}: Must be connected before disconnecting");
-
             try
             {
-                _socket.Shutdown(SocketShutdown.Both);
-                _socket.Close();
+                if(!_incoming.IsDisposed)
+                    _incoming.Disconnect(_address);
             }
             catch (Exception e)
             {
                 _out?.WriteErrorLine($"{_id}: {e}");
-            }
-            finally
-            {
-                _socket.Dispose();
-                _socket = default;
-                _connected.Reset();
+                Dispose();
             }
         }
 
-        public void ConnectAndSendTestMessage(string hostNameOrAddress, int port)
-        {
-            var ipHostInfo = Dns.GetHostEntry(hostNameOrAddress);
-            var ipAddress = ipHostInfo.AddressList[0];
-            var endpoint = new IPEndPoint(ipAddress, port);
-
-            var client = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            try
-            {
-                client.BeginConnect(endpoint, ConnectCallback, client);
-                _connected.WaitOne();
-
-                Send(client, "This is a test<EOF>");
-                _sent.WaitOne();
-
-                ReceiveMessage(client);
-                _received.WaitOne();
-
-                _out?.WriteInfoLine($"{_id}: Response received : {_response}");
-                client.Shutdown(SocketShutdown.Both);
-                client.Close();
-            }
-            catch (Exception e)
-            {
-                _out?.WriteErrorLine(e.ToString());
-                _out?.WriteErrorLine($"{_id}: {e}");
-            }
-            finally
-            {
-                client.Dispose();
-                _connected.Reset();
-                _sent.Reset();
-                _received.Reset();
-            }
-        }
-
-        private void ConnectCallback(IAsyncResult ar)
+        public byte[] Receive()
         {
             try
             {
-                var socket = (Socket) ar.AsyncState;
-                socket.EndConnect(ar);
-                _out?.WriteInfoLine($"{_id}: Socket connected to {socket.RemoteEndPoint}");
-                if (!_protocol.HasTransport)
-                {
-                    try
-                    {
-                        _protocol.Handshake(this, socket);
-                    }
-                    catch (Exception e)
-                    {
-                        _out?.WriteErrorLine($"{_id}: Failed to establish handshake: {e}");
-                    }
-                }
-                _connected.Set();
-                _socket = socket;
+                var interval = TimeSpan.FromMilliseconds(100);
+                if (!_incoming.TryReceiveFrameBytes(interval, out var message))
+                    return message;
+                _protocol.OnMessageReceived(_incoming, message);
+                return message;
             }
             catch (Exception e)
             {
                 _out?.WriteErrorLine($"{_id}: {e}");
+                return default;
             }
         }
 
-        private void ReceiveMessage(Socket client)
+        public void Send(string message)
         {
-            try
-            {
-                var state = new SocketState {Handler = client};
-                if (client.Connected)
-                {
-                    client.BeginReceive(state.buffer, 0, SocketState.BufferSize, 0, ReceiveCallback, state);
-                }
-            }
-            catch (Exception e)
-            {
-                _out?.WriteErrorLine($"{_id}: {e}");
-            }
+            if (_incoming.IsDisposed)
+                return;
+            _protocol.OnMessageSending(_incoming, Encoding.UTF8.GetBytes(message));
         }
 
-        private void ReceiveCallback(IAsyncResult ar)
+        public void Send(ReadOnlySpan<byte> message)
         {
-            try
-            {
-                var state = (SocketState) ar.AsyncState;
-                var client = state.Handler;
-
-                var bytesRead = client.EndReceive(ar);
-                if (bytesRead > 0)
-                {
-                    state.sb.Append(_encoding.GetString(state.buffer, 0, bytesRead));
-                    client.BeginReceive(state.buffer, 0, SocketState.BufferSize, 0, ReceiveCallback, state);
-                }
-                else
-                {
-                    if (state.sb.Length > 1)
-                        _response = state.sb.ToString();
-                    _received.Set();
-                }
-            }
-            catch (Exception e)
-            {
-                _out?.WriteErrorLine($"{_id}: {e}");
-            }
+            if (_incoming.IsDisposed)
+                return;
+            var data = message.ToArray();
+            _protocol.OnMessageSending(_incoming, data);
         }
 
-        public void Send(Socket handler, string message)
+        public void Dispose()
         {
-            var byteData = _encoding.GetBytes(message);
-            handler.BeginSend(byteData, 0, byteData.Length, 0, SendCallback, handler);
-        }
-
-        public void Send(Socket handler, ReadOnlySpan<byte> message)
-        {
-            var byteData = message.ToArray();
-            handler.BeginSend(byteData, 0, byteData.Length, 0, SendCallback, handler);
-        }
-
-        private void SendCallback(IAsyncResult ar)
-        {
-            try
-            {
-                var client = (Socket) ar.AsyncState;
-                var sent = client.EndSend(ar);
-                _out?.WriteInfoLine($"{_id}: Sent {sent} bytes to server.");
-                _sent.Set();
-            }
-            catch (Exception e)
-            {
-                _out?.WriteErrorLine($"{_id}: {e}");
-            }
+            if (_incoming == default || _incoming.IsDisposed)
+                return;
+            _incoming?.Dispose();
         }
     }
 }

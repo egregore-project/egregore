@@ -92,20 +92,9 @@ namespace egregore
                     if (capture is IPersistedKeyCapture persisted)
                         services.AddSingleton(persisted);
 
-                    var publicKey = new byte[Crypto.PublicKeyBytes];
-
-                    try
-                    {
-                        capture.Reset();
-                        var sk = Crypto.LoadSecretKeyPointerFromFileStream(keyFileService.GetKeyFilePath(), keyFileService.GetKeyFileStream(), capture);
-                        Crypto.PublicKeyFromSecretKey(sk, publicKey);
-                    }
-                    catch (Exception e)
-                    {
-                        Trace.TraceError(e.ToString());
-                        Environment.Exit(-1);
-                    }
-
+                    var publicKey = Crypto.SigningPublicKeyFromSigningKey(keyFileService, capture);
+                    capture.Reset();
+                    
                     var fingerprint = new byte[8];
                     var appString = $"{context.HostingEnvironment.ApplicationName}:" +
                                     $"{context.HostingEnvironment.EnvironmentName}:" +

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
 using egregore.Network;
 using Xunit;
 using Xunit.Abstractions;
@@ -24,19 +23,21 @@ namespace egregore.Tests.Network
         {
             var @out = new XunitDuplexTextWriter(_console, Console.Out);
 
-            var protocol = new EchoProtocol(@out);
-            using var server = new SocketServer(protocol, default, @out);
-            server.Start(_hostName, _port);
+            using var server = new SocketServer(new EchoProtocol(false, default, @out), default, @out);
+            server.Start(_port);
 
-            var client = new SocketClient(protocol, default, @out);
-            client.ConnectAndSendTestMessage(_hostName, _port);
-
+            using var client = new SocketClient(new EchoProtocol(true, default, @out), default, @out);
             client.Connect(_hostName, _port);
-            client.SendTestMessage();
-            client.Disconnect();
+            
+            client.Send("This is a test 1");
+            client.Receive();
 
-            client.Connect(_hostName, _port);
-            client.SendTestMessage();
+            client.Send("This is a test 2");
+            client.Receive();
+
+            client.Send("This is a test 3");
+            client.Receive();
+
             client.Disconnect();
         }
     }

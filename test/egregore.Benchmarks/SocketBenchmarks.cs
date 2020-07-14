@@ -16,21 +16,24 @@ namespace egregore.Benchmarks
         [GlobalSetup]
         public void Setup()
         {
-            _server = new SocketServer(new EchoProtocol());
-            _server.Start("localhost", 11000);
-            _client = new SocketClient(new EchoProtocol());
+            _server = new SocketServer(new EchoProtocol(false));
+            _server.Start(11000);
+            
+            _client = new SocketClient(new EchoProtocol(true));
+            _client.Connect("localhost", 11000);
         }
 
         [GlobalCleanup]
         public void Cleanup()
         {
+            _client.Disconnect();
             _server.Dispose();
         }
         
         [Benchmark]
         public void Send_and_receive_loop()
         {
-            _client.ConnectAndSendTestMessage("localhost", 11000);
+            _client.Send("This is a message");
         }
     }
 }

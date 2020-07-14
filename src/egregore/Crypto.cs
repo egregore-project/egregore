@@ -143,58 +143,49 @@ namespace egregore
             }
         }
 
-        /// <summary>
-        ///     Generate a new key pair for offline purposes. NEVER use the secret key outside of tests.
-        /// </summary>
-        public static void GenerateKeyPairDangerous(Span<byte> publicKey, Span<byte> secretKey)
-        {
-            unsafe
-            {
-                fixed (byte* pk = &publicKey.GetPinnableReference())
-                fixed (byte* sk = &secretKey.GetPinnableReference())
-                {
-                    if (NativeMethods.crypto_sign_keypair(pk, sk) != 0)
-                        throw new InvalidOperationException(nameof(NativeMethods.crypto_sign_keypair));
-                }
-            }
-        }
-
-        public static byte[] PublicKeyFromSecretKeyDangerous(ReadOnlySpan<byte> ed25519SecretKey)
-        {
-            var ed25519PublicKey = new byte[PublicKeyBytes];
-            unsafe
-            {
-                fixed (byte* sk = &ed25519SecretKey.GetPinnableReference())
-                fixed (byte* pk = &ed25519PublicKey.AsSpan().GetPinnableReference())
-                {
-                    if (NativeMethods.crypto_sign_ed25519_sk_to_pk(pk, sk) != 0)
-                        throw new InvalidOperationException(nameof(NativeMethods.crypto_sign_ed25519_sk_to_pk));
-                }
-            }
-
-            return ed25519PublicKey;
-        }
-
-        public static byte[] PublicKeyFromSecretKey(IKeyFileService keyFileService, IKeyCapture capture)
+        public static byte[] SigningPublicKeyFromSigningKey(IKeyFileService keyFileService, IKeyCapture capture)
         {
             unsafe
             {
                 var sk = keyFileService.GetSecretKeyPointer(capture);
-                var ed25519PublicKey = new byte[PublicKeyBytes];
-                PublicKeyFromSecretKey(sk, ed25519PublicKey);
-                return ed25519PublicKey;
+                try
+                {
+                    var ed25519PublicKey = new byte[PublicKeyBytes];
+                    SigningPublicKeyFromSigningKey(sk, ed25519PublicKey);
+                    return ed25519PublicKey;
+                }
+                finally
+                {
+                    NativeMethods.sodium_free(sk);
+                }
             }
         }
 
-        public static unsafe void PublicKeyFromSecretKey(byte* sk, Span<byte> ed25519PublicKey)
+        public static unsafe void SigningPublicKeyFromSigningKey(byte* sk, Span<byte> ed25519PublicKey)
         {
+            fixed (byte* pk = ed25519PublicKey)
+            {
+                if (NativeMethods.crypto_sign_ed25519_sk_to_pk(pk, sk) != 0)
+                    throw new InvalidOperationException(nameof(NativeMethods.crypto_sign_ed25519_sk_to_pk));
+            }
+        }
+
+        public static unsafe void EncryptionPublicKeyFromSigningPublicKey(Span<byte> ed25519PublicKey, Span<byte> x25519PublicKey)
+        {
+            fixed (byte* xpk = &x25519PublicKey.GetPinnableReference())
+            fixed (byte* epk = &ed25519PublicKey.GetPinnableReference())
+            {
+                if (NativeMethods.crypto_sign_ed25519_pk_to_curve25519(xpk, epk) != 0)
+                    throw new InvalidOperationException(nameof(NativeMethods.crypto_sign_ed25519_pk_to_curve25519));
+            }
+        }
+        
+        public static unsafe byte* SigningKeyToEncryptionKey(IKeyFileService keyFileService, IKeyCapture capture)
+        {
+            var sk = keyFileService.GetSecretKeyPointer(capture);
             try
             {
-                fixed (byte* pk = &ed25519PublicKey.GetPinnableReference())
-                {
-                    if (NativeMethods.crypto_sign_ed25519_sk_to_pk(pk, sk) != 0)
-                        throw new InvalidOperationException(nameof(NativeMethods.crypto_sign_ed25519_sk_to_pk));
-                }
+                return SigningKeyToEncryptionKey(sk);
             }
             finally
             {
@@ -202,24 +193,12 @@ namespace egregore
             }
         }
 
-        public static unsafe byte* SigningKeyToEncryptionKey(IKeyFileService keyFileService, IKeyCapture capture)
-        {
-            return SigningKeyToEncryptionKey(keyFileService.GetSecretKeyPointer(capture));
-        }
-
         public static unsafe byte* SigningKeyToEncryptionKey(byte* ed25519Sk)
         {
-            try
-            {
-                var x25519Sk = (byte*) NativeMethods.sodium_malloc(SecretKeyBytes);
-                if (NativeMethods.crypto_sign_ed25519_sk_to_curve25519(x25519Sk, ed25519Sk) != 0)
-                    throw new InvalidOperationException(nameof(NativeMethods.crypto_sign_ed25519_sk_to_curve25519));
-                return x25519Sk;
-            }
-            finally
-            {
-                NativeMethods.sodium_free(ed25519Sk);
-            }
+            var x25519Sk = (byte*) NativeMethods.sodium_malloc(SecretKeyBytes);
+            if (NativeMethods.crypto_sign_ed25519_sk_to_curve25519(x25519Sk, ed25519Sk) != 0)
+                throw new InvalidOperationException(nameof(NativeMethods.crypto_sign_ed25519_sk_to_curve25519));
+            return x25519Sk;
         }
 
         public static unsafe ulong SignDetached(string message, byte* sk, Span<byte> signature)

@@ -3,15 +3,21 @@
 
 using System;
 using System.Collections.Generic;
-using System.Net.Sockets;
+using System.IO;
+using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
+using egregore.Extensions;
+using NetMQ;
 using Noise;
 
 namespace egregore.Network
 {
-    internal sealed class NoiseProtocol : IProtocol
+    internal sealed class NoiseProtocol : IProtocol, IDisposable
     {
         private readonly bool _initiator;
+        private readonly string _id;
+        private readonly TextWriter _out;
 
         private static readonly Protocol Protocol = new Protocol(
             HandshakePattern.IK,
@@ -21,69 +27,119 @@ namespace egregore.Network
         );
 
         private readonly HandshakeState _state;
+        private readonly TimeSpan _interval;
+        private readonly ThreadLocal<byte[]> _buffer;
         private Transport _transport;
 
-        public unsafe NoiseProtocol(bool initiator, byte* sk, byte* psk, byte[] publicKey = default)
+        public unsafe NoiseProtocol(bool initiator, byte* sk, PskRef psk, byte[] publicKey = default, string id = default, TextWriter @out = default)
         {
             _initiator = initiator;
-            var s = Crypto.SigningKeyToEncryptionKey(sk);
-            var psks = new List<PskRef> { PskRef.Create(psk) };
-            _state = Protocol.Create(initiator, default, s, (int) Crypto.EncryptionKeyBytes, publicKey, psks);
+            _id = id ?? "[NOISE]";
+            _out = @out;
+            var psks = new List<PskRef> { psk };
+            _state = Protocol.Create(initiator, default, sk, (int) Crypto.EncryptionKeyBytes, publicKey, psks);
+            _interval = TimeSpan.FromSeconds(1);
+
+            _buffer = new ThreadLocal<byte[]>(() => new byte[Protocol.MaxMessageLength]);
         }
 
-        public bool Handshake(IChannel sender, Socket handler)
+        public void Configure(SocketOptions options)
         {
-            if (_initiator)
+            options.MaxMsgSize = Protocol.MaxMessageLength;
+            options.ReceiveBuffer = Protocol.MaxMessageLength;
+            options.SendBuffer = Protocol.MaxMessageLength;
+        }
+
+        public bool Handshake(NetMQSocket handler) => _initiator ? TryClientHandshake(handler) : TryServerHandshake(handler);
+        
+        private bool TryServerHandshake(NetMQSocket handler)
+        {
+            // Receive the first handshake message from the client.
+            _out?.WriteInfoLine($"{_id}: Waiting for first handshake");
+            if (!handler.TryReceiveFrameBytes(_interval, out var message))
+                return false;
+
+            try
             {
-                ClientToServer(sender, handler);
+                _out?.WriteInfoLine($"{_id}: Received first handshake");
+                _state.ReadMessage(message, _buffer.Value);
             }
-            else
+            catch (CryptographicException e)
             {
-                ServerToClient(sender, handler);
+                _out?.WriteErrorLine($"{_id}: First handshake failed: {e.Message}");
+                return false;
             }
+
+            // Send the second handshake message to the client.
+            _out?.WriteInfoLine($"{_id}: Sending second handshake");
+            var (bytesWritten, _, transport) = _state.WriteMessage(null, _buffer.Value);
+            var data = _buffer.Value.AsSpan(0, bytesWritten).ToArray();
+
+            if (!handler.TrySendFrame(_interval, data))
+            {
+                _out?.WriteErrorLine($"{_id}: Failed to send second handshake");
+                return false;
+            }
+
+            _transport = transport;
             return true;
         }
 
-        private void ServerToClient(IChannel sender, Socket handler)
+        private bool TryClientHandshake(NetMQSocket handler)
         {
-            var buffer = new byte[Protocol.MaxMessageLength];
-
-            // Receive the first handshake message from the client.
-            var receiveBuffer = new byte[Protocol.MaxMessageLength];
-            var bytesRead = handler.Receive(receiveBuffer);
-            var message = receiveBuffer.AsSpan(0, bytesRead);
-            _state.ReadMessage(message, buffer);
-
-            // Send the second handshake message to the client.
-            var (bytesWritten, _, transport) = _state.WriteMessage(null, buffer);
-            sender.Send(handler, buffer.AsSpan(0, bytesWritten));
-            _transport = transport;
-        }
-
-        private void ClientToServer(IChannel sender, Socket handler)
-        {
-            var buffer = new byte[Protocol.MaxMessageLength];
-
             // Send the first handshake message to the server.
-            var (bytesWritten, _, _) = _state.WriteMessage(null, buffer);
-            sender.Send(handler, buffer.AsSpan(0, bytesWritten));
+            _out?.WriteInfoLine($"{_id}: Sending first handshake");
+            var (bytesWritten, _, _) = _state.WriteMessage(null, _buffer.Value);
+            
+            var data = _buffer.Value.AsSpan(0, bytesWritten).ToArray();
+            if (!handler.TrySendFrame(_interval, data))
+                return false;
 
             // Receive the second handshake message from the server.
-            var receiveBuffer = new byte[Protocol.MaxMessageLength];
-            var bytesRead = handler.Receive(receiveBuffer);
+            _out?.WriteInfoLine($"{_id}: Waiting for second handshake");
+            if (!handler.TryReceiveFrameBytes(_interval, out var message))
+                return false;
 
-            var (_, _, transport) = _state.ReadMessage(receiveBuffer.AsSpan(0, bytesRead), buffer);
+            _out?.WriteInfoLine($"{_id}: Received second handshake");
+            var (_, _, transport) = _state.ReadMessage(message, _buffer.Value);
             _transport = transport;
+            return true;
         }
 
-        public void OnMessageReceived(IChannel sender, Socket handler, ReadOnlySpan<byte> message)
+        public void OnMessageReceived(NetMQSocket handler, ReadOnlySpan<byte> payload)
         {
-            var buffer = new byte[Protocol.MaxMessageLength];
-            var bytesRead = _transport.ReadMessage(message, buffer);
-            Console.WriteLine(Encoding.UTF8.GetString(buffer.AsSpan().Slice(0, bytesRead)));
+            var message = Decrypt(payload);
+            _out.WriteInfoLine($"{_id}: Received encrypted payload");
+            if(!_initiator)
+                OnMessageSending(handler, Encoding.UTF8.GetBytes("OK"));
         }
 
-        public bool IsEndOfMessage(string message) => true;
-        public bool HasTransport => _transport != null;
+        public void OnMessageSending(NetMQSocket handler, ReadOnlySpan<byte> payload)
+        {
+            var message = Encrypt(payload);
+            if(handler.TrySendFrame(_interval, message))
+                _out.WriteInfoLine($"{_id}: Sent encrypted payload");
+        }
+
+        private byte[] Encrypt(ReadOnlySpan<byte> payload)
+        {
+            var bytesWritten = _transport.WriteMessage(payload, _buffer.Value);
+            var data = _buffer.Value.AsSpan().Slice(0, bytesWritten);
+            var message = data.ToArray();
+            return message;
+        }
+
+        private byte[] Decrypt(ReadOnlySpan<byte> payload)
+        {
+            var bytesRead = _transport.ReadMessage(payload, _buffer.Value);
+            var data = _buffer.Value.AsSpan().Slice(0, bytesRead);
+            return data.ToArray();
+        }
+
+        public void Dispose()
+        {
+            _state?.Dispose();
+            _transport?.Dispose();
+        }
     }
 }

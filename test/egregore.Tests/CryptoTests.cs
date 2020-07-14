@@ -70,7 +70,7 @@ namespace egregore.Tests
         }
 
         [Fact]
-        public void Can_swap_signing_key_for_encryption_key()
+        public void Can_swap_signing_key_for_encryption_key_on_disk()
         {
             unsafe
             {
@@ -78,8 +78,36 @@ namespace egregore.Tests
                 var service = new TempKeyFileService();
                 CryptoTestHarness.GenerateKeyFile(_output, capture, service);
                 capture.Reset();
-                var sk = Crypto.SigningKeyToEncryptionKey(service, capture);
-                Assert.True(sk != default(byte*));
+
+                var ek = Crypto.SigningKeyToEncryptionKey(service, capture);
+                try
+                {
+                    Assert.True(ek != default(byte*));
+                }
+                finally
+                {
+                    NativeMethods.sodium_free(ek);
+                }
+                
+            }
+        }
+
+        [Fact]
+        public void Can_swap_signing_key_for_encryption_key_in_memory()
+        {
+            unsafe
+            {
+                Crypto.GenerateKeyPair(out var pk, out var sk);
+                var ek = Crypto.SigningKeyToEncryptionKey(sk);
+                try
+                {
+                    Assert.True(ek != default(byte*));
+                }
+                finally
+                {
+                    NativeMethods.sodium_free(ek);
+                    NativeMethods.sodium_free(sk);
+                }
             }
         }
 
@@ -89,9 +117,16 @@ namespace egregore.Tests
             unsafe
             {
                 Crypto.GenerateKeyPair(out var pk, out var sk);
-                var publicKey = new byte[Crypto.PublicKeyBytes];
-                Crypto.PublicKeyFromSecretKey(sk, publicKey);
-                Assert.True(publicKey.SequenceEqual(pk));
+                try
+                {
+                    var publicKey = new byte[Crypto.PublicKeyBytes];
+                    Crypto.SigningPublicKeyFromSigningKey(sk, publicKey);
+                    Assert.True(publicKey.SequenceEqual(pk));
+                }
+                finally
+                {
+                    NativeMethods.sodium_free(sk);
+                }
             }
         }
 
