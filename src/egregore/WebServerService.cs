@@ -6,6 +6,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using egregore.Configuration;
+using egregore.Network;
 using egregore.Ontology;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -15,12 +16,15 @@ namespace egregore
 {
     internal sealed class WebServerStartup : IHostedService
     {
-        private readonly ILogger<WebServerStartup> _logger;
-        private readonly IOptionsMonitor<WebServerOptions> _options;
+        private readonly PeerBus _bus;
         private OntologyLog _ontology;
 
-        public WebServerStartup(IOptionsMonitor<WebServerOptions> options, ILogger<WebServerStartup> logger)
+        private readonly ILogger<WebServerStartup> _logger;
+        private readonly IOptionsMonitor<WebServerOptions> _options;
+        
+        public WebServerStartup(PeerBus bus, IOptionsMonitor<WebServerOptions> options, ILogger<WebServerStartup> logger)
         {
+            _bus = bus;
             _options = options;
             _logger = logger;
         }
@@ -50,6 +54,16 @@ namespace egregore
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
+            try
+            {
+                _bus?.Dispose();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+            
             return Task.CompletedTask;
         }
     }

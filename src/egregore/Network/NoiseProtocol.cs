@@ -109,8 +109,13 @@ namespace egregore.Network
         public void OnMessageReceived(NetMQSocket handler, ReadOnlySpan<byte> payload)
         {
             var message = Decrypt(payload);
+            HandleMessage(handler, message);
+        }
+
+        private void HandleMessage(NetMQSocket handler, ReadOnlySpan<byte> message)
+        {
             _out?.WriteInfoLine($"{_id}: Received encrypted payload");
-            if(!_initiator)
+            if (!_initiator)
                 OnMessageSending(handler, Encoding.UTF8.GetBytes("OK"));
         }
 

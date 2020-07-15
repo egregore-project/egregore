@@ -8,5 +8,6 @@ namespace egregore.Configuration
         public byte[] PublicKey { get; set; }
         public string ServerId { get; set; }
         public string EggPath { get; set; }
+        public short BeaconPort { get; set; }
     }
 }

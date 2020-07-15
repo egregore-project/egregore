@@ -28,7 +28,7 @@ namespace egregore.Tests
             Program.keyFilePath = keyFilePath;
             Program.keyFileStream = new FileStream(Program.keyFilePath, FileMode.Open, FileAccess.Read, FileShare.None);
             
-            return WebServer.CreateHostBuilder(eggPath, capture);
+            return WebServer.CreateHostBuilder(null, eggPath, capture);
         }
     }
 }

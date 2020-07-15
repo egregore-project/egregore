@@ -4,6 +4,7 @@
 using System.Diagnostics;
 using System.Net;
 using egregore.Models;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -40,13 +41,24 @@ namespace egregore.Controllers
         [Route("error/{statusCode?}")]
         public IActionResult Error(int statusCode = 500)
         {
-            if (statusCode == (int) HttpStatusCode.TooManyRequests)
-                return View("TooManyRequests");
-
-            return View(new ErrorViewModel
+            switch (statusCode)
             {
-                RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier
-            });
+                case 404:
+                    return NotFound();
+                case (int) HttpStatusCode.TooManyRequests:
+                    return View("TooManyRequests");
+            }
+
+            var feature = HttpContext.Features.Get<IExceptionHandlerFeature>();
+
+            var model = new ErrorViewModel
+            {
+                StatusCode = statusCode,
+                RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier ?? "<None>",
+                ErrorMessage = feature?.Error?.Message ?? "<None>"
+            };
+
+            return View(model);
         }
     }
 }

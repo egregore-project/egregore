@@ -3,13 +3,18 @@
 
 using System;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Security.Authentication;
 using System.Text;
 using egregore.Configuration;
 using egregore.IO;
+using egregore.Network;
 using egregore.Ontology;
 using egregore.Security;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -25,11 +30,11 @@ namespace egregore
 
         public IConfiguration Configuration { get; }
 
-        public static void Run(string eggPath, IKeyCapture capture, params string[] args)
+        public static void Run(int? port, string eggPath, IKeyCapture capture, params string[] args)
         {
             PrintMasthead();
 
-            var builder = CreateHostBuilder(eggPath, capture, args);
+            var builder = CreateHostBuilder(port, eggPath, capture, args);
             var host = builder.Build();
             host.Run();
         }
@@ -58,7 +63,8 @@ namespace egregore
             Console.ResetColor();
         }
 
-        internal static unsafe IHostBuilder CreateHostBuilder(string eggPath, IKeyCapture capture, params string[] args)
+        internal static unsafe IHostBuilder CreateHostBuilder(int? port, string eggPath, IKeyCapture capture,
+            params string[] args)
         {
             var builder = Host.CreateDefaultBuilder(args);
             
@@ -66,15 +72,26 @@ namespace egregore
             {
                 Activity.DefaultIdFormat = ActivityIdFormat.W3C;
 
+                webBuilder.ConfigureAppConfiguration((context, configBuilder) =>
+                {
+                    configBuilder
+                        .AddEnvironmentVariables();
+                });
                 webBuilder.ConfigureKestrel((context, options) =>
                 {
                     options.AddServerHeader = false;
+                    var x509 = CertificateBuilder.GetOrCreateSelfSignedCert(Console.Out);
+                    options.ListenLocalhost(port.GetValueOrDefault(5001), x =>
+                    {
+                        x.Protocols = HttpProtocols.Http2;
+                        x.UseHttps(a =>
+                        {
+                            a.SslProtocols = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? SslProtocols.Tls12 : SslProtocols.Tls13;
+                            a.ServerCertificate = x509;
+                        });
+                    });
                 });
                 webBuilder.ConfigureLogging((context, loggingBuilder) => { });
-                webBuilder.ConfigureAppConfiguration((context, configBuilder) =>
-                {
-                    configBuilder.AddEnvironmentVariables();
-                });
                 webBuilder.ConfigureServices((context, services) =>
                 {
                     services.AddCors(o => o.AddDefaultPolicy(b =>
@@ -110,13 +127,23 @@ namespace egregore
                     }
 
                     var serverId = Crypto.ToHexString(fingerprint);
-
+                    services.Configure<WebServerOptions>(context.Configuration.GetSection("WebServer"));
                     services.Configure<WebServerOptions>(o =>
                     {
                         o.PublicKey = publicKey;
                         o.ServerId = serverId;
                         o.EggPath = eggPath;
                     });
+
+                    services.AddAntiforgery(options =>
+                    {
+                        options.Cookie.Name = $"_{serverId}_xsrf";
+                        options.Cookie.HttpOnly = true;
+                        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                        options.HeaderName = "X-XSRF-Token";
+                    });
+
+                    services.AddSingleton<PeerBus>();
                 });
                 webBuilder.Configure((context, appBuilder) => { appBuilder.UseCors(); });
                 webBuilder.UseStartup<WebServer>();
@@ -143,7 +170,7 @@ namespace egregore
         {
             // manually instanced singletons are not cleaned up by DI on application exit
             app.ApplicationServices.GetRequiredService<IHostApplicationLifetime>().ApplicationStopping.Register(() =>
-                app.ApplicationServices.GetRequiredService<IPersistedKeyCapture>().Dispose());
+                app.ApplicationServices.GetService<IPersistedKeyCapture>()?.Dispose());
 
             if (env.IsDevelopment())
             {
@@ -152,10 +179,10 @@ namespace egregore
             else
             {
                 app.UseExceptionHandler("/error");
+                app.UseStatusCodePagesWithReExecute("/error/{0}");
                 app.UseHsts();
             }
             
-            app.UseStatusCodePagesWithReExecute("/error/{0}");
             app.UseHttpsRedirection();
             app.UseSecurityHeaders();
             app.UseStaticFiles();

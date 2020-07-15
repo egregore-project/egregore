@@ -17,6 +17,7 @@ namespace egregore
     {
         internal static string keyFilePath;
         internal static FileStream keyFileStream;
+        private static int _port;
 
         [ExcludeFromCodeCoverage]
         public static void Main(params string[] args)
@@ -34,27 +35,8 @@ namespace egregore
                 };
 
                 var arguments = new Queue<string>(args);
-                switch (arguments.Count)
-                {
-                    case 0:
-                        Console.Out.WriteInfoLine("Starting server in non-interactive mode.");
-                        var password = Environment.GetEnvironmentVariable(Constants.EnvVars.KeyFilePassword);
-                        if (string.IsNullOrWhiteSpace(password))
-                        {
-                            Console.Error.WriteErrorLine($"Could not locate '{Constants.EnvVars.KeyFilePassword}' variable for container deployment.");
-                            Console.Out.WriteInfoLine("To run the server interactively to input a password, use the --server argument.");
-                            Environment.Exit(-1);
-                        }
-                        else
-                        {
-                            RunAsServer(args, arguments, new PlaintextKeyCapture(password, password));
-                        }
-
-                        break;
-                    default:
-                        ProcessCommandLineArguments(args, arguments);
-                        break;
-                }
+                if(ProcessCommandLineArguments(arguments))
+                    NonInteractiveStartup(_port, args, arguments);
             }
             finally
             {
@@ -62,49 +44,83 @@ namespace egregore
             }
         }
 
-        private static void ProcessCommandLineArguments(string[] args, Queue<string> arguments)
+        private static void NonInteractiveStartup(int? port, string[] args, Queue<string> arguments)
+        {
+            Console.Out.WriteInfoLine("Starting server in non-interactive mode.");
+            var password = Environment.GetEnvironmentVariable(Constants.EnvVars.KeyFilePassword);
+            if (string.IsNullOrWhiteSpace(password))
+            {
+                Console.Error.WriteErrorLine($"Could not locate '{Constants.EnvVars.KeyFilePassword}' variable for container deployment.");
+                Console.Out.WriteInfoLine("To run the server interactively to input a password, use the --server argument.");
+                Environment.Exit(-1);
+            }
+            else
+            {
+                RunAsServer(port, arguments, new PlaintextKeyCapture(password, password), false);
+            }
+        }
+
+        private static bool ProcessCommandLineArguments(Queue<string> arguments)
         {
             while (arguments.Count > 0)
             {
                 var arg = arguments.Dequeue();
                 switch (arg.ToLower())
                 {
+                    case "--cert":
+                    case "--certs":
+                    case "-c":
+                    {
+                        var freshOrClear = arguments.EndOfSubArguments() ? "false" : arguments.Dequeue();
+                        if(freshOrClear?.Equals("clear", StringComparison.OrdinalIgnoreCase) ?? false)
+                            CertificateBuilder.ClearAll(Console.Out);
+                        else
+                            CertificateBuilder.GetOrCreateSelfSignedCert(Console.Out, freshOrClear?.Equals("fresh", StringComparison.OrdinalIgnoreCase) ?? false);
+                        return false;
+                    }
+                    case "--port":
+                    case "-p":
+                    {
+                        var portString = arguments.Dequeue();
+                        int.TryParse(portString, out _port);
+                        break;
+                    }
                     case "--server":
                     case "-s":
                     {
-                        if (!RunAsServer(args, arguments, null))
-                            return;
-                        break;
+                        RunAsServer(null, arguments, null, true);
+                        return false;
                     }
                     case "--keygen":
                     case "-k":
                     {
                         var keyPath = arguments.EndOfSubArguments() ? Constants.DefaultKeyFilePath : arguments.Dequeue();
-                        if (KeyFileManager.Create(keyPath, true, false, Constants.ConsoleKeyCapture))
-                            return;
-                        break;
+                        KeyFileManager.Create(keyPath, true, false, Constants.ConsoleKeyCapture);
+                        return false;
                     }
                     case "--egg":
                     case "-e":
                     {
                         var eggPath = arguments.EndOfSubArguments() ? Constants.DefaultEggPath : arguments.Dequeue();
                         EggFileManager.Create(eggPath);
-                        break;
+                        return false;
                     }
                     case "--append":
                     case "-a":
                         Append(arguments);
-                        break;
+                        return false;
                 }
             }
+
+            return true;
         }
 
-        private static bool RunAsServer(string[] args, Queue<string> arguments, IKeyCapture capture)
+        private static void RunAsServer(int? port, Queue<string> arguments, IKeyCapture capture, bool interactive)
         {
             var keyPath = arguments.EndOfSubArguments() ? Constants.DefaultKeyFilePath : arguments.Dequeue();
 
             if (!KeyFileManager.TryResolveKeyPath(keyPath, out keyFilePath, false, true))
-                return false;
+                return;
 
             var shouldCreateKeyFile = !File.Exists(keyFilePath) || new FileInfo(keyFilePath).Length == 0;
             if (shouldCreateKeyFile)
@@ -115,7 +131,7 @@ namespace egregore
             if (shouldCreateKeyFile && !KeyFileManager.Create(keyFilePath, false, true, capture ?? Constants.ConsoleKeyCapture))
             {
                 Console.Error.WriteErrorLine("Cannot start server without a key file");
-                return false;
+                return;
             }
 
             try
@@ -125,7 +141,7 @@ namespace egregore
             catch (IOException)
             {
                 Console.Error.WriteErrorLine("Could not obtain exclusive lock on key file");
-                return false;
+                return;
             }
 
             var eggPath = Environment.GetEnvironmentVariable(Constants.EnvVars.EggFilePath);
@@ -138,8 +154,13 @@ namespace egregore
                 Console.Error.WriteWarningLine("Server started without an egg");
 
             capture?.Reset();
-            WebServer.Run(eggPath, capture, args);
-            return true;
+
+            if (!interactive)
+            {
+                LaunchBrowserUrl($"https://localhost:{port.GetValueOrDefault(5001)}");
+            }
+
+            WebServer.Run(port, eggPath, capture, arguments.ToArray());
         }
 
         private static void Append(Queue<string> arguments)
@@ -200,5 +221,22 @@ namespace egregore
 
             Console.WriteLine("TODO: append privilege to ontology");
         }
+
+        public static void LaunchBrowserUrl(string url)
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                Process.Start("xdg-open", url);
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                Process.Start("open", url);
+            }
+        }
     }
+
 }

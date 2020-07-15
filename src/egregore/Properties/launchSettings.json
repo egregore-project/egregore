@@ -7,7 +7,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development",
         "EGREGORE_KEY_FILE_PASSWORD": "test123!"
       },
-      "applicationUrl": "https://localhost:5001"
+      "commandLineArgs": "--port 5001" 
     },
     "Docker": {
       "commandName": "Docker",
