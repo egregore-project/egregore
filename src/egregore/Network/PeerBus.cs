@@ -3,7 +3,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using egregore.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -126,15 +128,18 @@ namespace egregore.Network
             }
             else
             {
+                _logger?.LogDebug($"{_id}: Updating keep-alive for peer '{{PeerAddress}}'", peer.Address);
                 _info[peer] = readyTime;
             }
         }
 
         private void Cleanup(object sender, NetMQTimerEventArgs e)
         {
+            _logger?.LogDebug($"{_id}: Running peer cleanup on thread {Thread.CurrentThread.Name}"); 
+
             var unresponsivePeers = _info.
                 Where(n => DateTimeOffset.Now > n.Value + _lifetime)
-                .Select(n => n.Key).ToArray();
+                .Select(n => n.Key);
 
             foreach (var peer in unresponsivePeers)
             {

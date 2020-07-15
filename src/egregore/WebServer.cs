@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Authentication;
 using System.Text;
@@ -146,6 +147,22 @@ namespace egregore
                     services.AddSingleton<PeerBus>();
                 });
                 webBuilder.Configure((context, appBuilder) => { appBuilder.UseCors(); });
+
+                #if DEBUG
+                
+                // This is glue for development only, when running in the /bin folder but wwwroot is a few directories back
+
+                var contentRoot = Directory.GetCurrentDirectory();
+                var webRoot = Path.Combine(contentRoot, "wwwroot");
+                
+                if (!File.Exists(Path.Combine(webRoot, "css", "signin.css")))
+                    webRoot = Path.Combine(contentRoot, "..", "..", "..", "wwwroot");
+
+                webBuilder.UseContentRoot(contentRoot);
+                webBuilder.UseWebRoot(webRoot);
+
+                #endif
+
                 webBuilder.UseStartup<WebServer>();
             });
 

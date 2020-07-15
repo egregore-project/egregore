@@ -67,6 +67,9 @@ namespace egregore
                 var arg = arguments.Dequeue();
                 switch (arg.ToLower())
                 {
+                    case "--nolock":
+                        _exclusiveLock = false;
+                        break;
                     case "--cert":
                     case "--certs":
                     case "-c":
@@ -115,6 +118,8 @@ namespace egregore
             return true;
         }
 
+        private static bool _exclusiveLock = true;
+
         private static void RunAsServer(int? port, Queue<string> arguments, IKeyCapture capture, bool interactive)
         {
             var keyPath = arguments.EndOfSubArguments() ? Constants.DefaultKeyFilePath : arguments.Dequeue();
@@ -134,16 +139,31 @@ namespace egregore
                 return;
             }
 
-            try
+            if (_exclusiveLock)
             {
-                keyFileStream = new FileStream(keyFilePath, FileMode.Open, FileAccess.Read, FileShare.None);
+                try
+                {
+                    keyFileStream = new FileStream(keyFilePath, FileMode.Open, FileAccess.Read, FileShare.None);
+                }
+                catch (IOException)
+                {
+                    Console.Error.WriteErrorLine("Could not obtain exclusive lock on key file");
+                    return;
+                }
             }
-            catch (IOException)
+            else
             {
-                Console.Error.WriteErrorLine("Could not obtain exclusive lock on key file");
-                return;
+                try
+                {
+                    keyFileStream = new FileStream(keyFilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                }
+                catch (IOException)
+                {
+                    Console.Error.WriteErrorLine("Could not open key file");
+                    return;
+                }
             }
-
+            
             var eggPath = Environment.GetEnvironmentVariable(Constants.EnvVars.EggFilePath);
             if (string.IsNullOrWhiteSpace(eggPath))
                 eggPath = Constants.DefaultEggPath;
