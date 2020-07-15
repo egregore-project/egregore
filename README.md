@@ -2,6 +2,8 @@
 
 The reference implementation of the Egregore project.
 
+![.NET Core](https://github.com/egregore-project/egregore/workflows/.NET%20Core/badge.svg?branch=master)
+
 #### Deploying to Azure
 
 Pass no arguments to run in uninteractive server mode. Your application must have configuration settings available as environment variables, for the
