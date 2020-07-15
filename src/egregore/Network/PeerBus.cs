@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using egregore.Configuration;
@@ -22,22 +21,23 @@ namespace egregore.Network
         public const string PublishCommand = "P";
         public const string GetHostAddressCommand = "GetHostAddress";
         
-        private readonly TimeSpan _lifetime = TimeSpan.FromSeconds(10);
-        
-        private readonly NetMQActor _actor;
         private PublisherSocket _publisher;
         private SubscriberSocket _subscriber;
-
         private NetMQBeacon _beacon;
         private NetMQPoller _poll;
         private PairSocket _shim;
         private int _port;
 
+        private readonly TimeSpan _peerLifetime = TimeSpan.FromSeconds(10);
+        private readonly TimeSpan _cleanupInterval = TimeSpan.FromSeconds(5);
+        private readonly TimeSpan _beaconInterval = TimeSpan.FromSeconds(1);
+        private readonly NetMQActor _actor;
+        
         private readonly Dictionary<PeerInfo, DateTimeOffset> _info;
         private readonly int _beaconPort;
         private readonly ILogger<PeerBus> _logger;
         private readonly string _id;
-
+        
         public PeerBus(IOptions<WebServerOptions> options, ILogger<PeerBus> logger)
         {
             _id = $"[{options.Value.ServerId}]";
@@ -60,20 +60,16 @@ namespace egregore.Network
 
                     _subscriber.Subscribe(string.Empty);
                     _port = _subscriber.BindRandomPort("tcp://*");
-                    _logger?.LogInformation($"{_id}: Bus subscriber is bound to {{SubscriberPort}}", _subscriber.Options.LastEndpoint);
+                    _logger?.LogInformation($"{_id}: Peer bus is bound to {{BusPort}}", _port);
                     _subscriber.ReceiveReady += OnSubscriberReady;
 
-                    _logger?.LogInformation($"{_id}: Beacon is being configured to UDP port {{BeaconPort}}", _beaconPort);
+                    _logger?.LogInformation($"{_id}: Peer is broadcasting UDP on port {{BeaconPort}}", _beaconPort);
                     _beacon.Configure(_beaconPort);
-
-                    _logger?.LogInformation($"{_id}: Beacon is publishing the Bus subscriber port {{BusPort}}", _subscriber.Options.LastEndpoint);
-                    _beacon.Publish(_port.ToString(), TimeSpan.FromSeconds(1));
-
-                    _logger?.LogInformation($"{_id}: Beacon is subscribing to all beacons on UDP port {{BeaconPort}}", _beaconPort);
+                    _beacon.Publish(_port.ToString(), _beaconInterval);
                     _beacon.Subscribe(string.Empty);
                     _beacon.ReceiveReady += OnBeaconReady;
 
-                    var cleanupTimer = new NetMQTimer(TimeSpan.FromSeconds(1));
+                    var cleanupTimer = new NetMQTimer(_cleanupInterval);
                     cleanupTimer.Elapsed += Cleanup;
 
                     _poll = new NetMQPoller { _shim, _subscriber, _beacon, cleanupTimer };
@@ -138,7 +134,7 @@ namespace egregore.Network
             _logger?.LogDebug($"{_id}: Running peer cleanup on thread {Thread.CurrentThread.Name}"); 
 
             var unresponsivePeers = _info.
-                Where(n => DateTimeOffset.Now > n.Value + _lifetime)
+                Where(n => DateTimeOffset.Now > n.Value + _peerLifetime)
                 .Select(n => n.Key);
 
             foreach (var peer in unresponsivePeers)

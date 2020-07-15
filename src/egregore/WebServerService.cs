@@ -56,12 +56,12 @@ namespace egregore
         {
             try
             {
+                _logger.LogDebug("Cleaning up peer bus...");
                 _bus?.Dispose();
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
-                throw;
+                _logger.LogError(e, "Error occurred during peer bus cleanup");
             }
             
             return Task.CompletedTask;
