@@ -41,6 +41,8 @@ namespace egregore.Controllers
         [Route("error/{statusCode?}")]
         public IActionResult Error(int statusCode = 500)
         {
+            Response.StatusCode = statusCode;
+
             switch (statusCode)
             {
                 case 404:

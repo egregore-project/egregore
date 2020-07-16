@@ -1,0 +1,18 @@
+﻿/* 
+    toastr uses base64 images by default, which are not allowed per our CSP, so they are overwritten here
+*/
+#toast-container > .toast-info {
+    background-image: url(/img/toastr-info.png) !important
+}
+
+#toast-container > .toast-error {
+    background-image: url(/img/toastr-error.png) !important
+}
+
+#toast-container > .toast-success {
+    background-image: url(/img/toastr-success.png) !important
+}
+
+#toast-container > .toast-warning {
+    background-image: url(/img/toastr-warning.png) !important
+}

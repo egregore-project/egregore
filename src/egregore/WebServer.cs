@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Security.Authentication;
 using System.Text;
 using egregore.Configuration;
+using egregore.Hubs;
 using egregore.IO;
 using egregore.Network;
 using egregore.Ontology;
@@ -16,6 +17,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -84,7 +86,7 @@ namespace egregore
                     var x509 = CertificateBuilder.GetOrCreateSelfSignedCert(Console.Out);
                     options.ListenLocalhost(port.GetValueOrDefault(5001), x =>
                     {
-                        x.Protocols = HttpProtocols.Http2;
+                        x.Protocols = HttpProtocols.Http1AndHttp2;
                         x.UseHttps(a =>
                         {
                             a.SslProtocols = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? SslProtocols.Tls12 : SslProtocols.Tls13;
@@ -173,6 +175,7 @@ namespace egregore
         {
             services.AddMemoryCache(o => { });
             services.AddSingleton<ThrottleFilter>();
+            services.AddSignalR();
             services.AddControllersWithViews();
             services.AddRouting(o =>
             {
@@ -202,14 +205,17 @@ namespace egregore
             
             app.UseHttpsRedirection();
             app.UseSecurityHeaders();
-            app.UseStaticFiles();
+
+            var provider = new FileExtensionContentTypeProvider();
+            provider.Mappings[".webmanifest"] = "application/manifest+json";
+            app.UseStaticFiles(new StaticFileOptions { ContentTypeProvider = provider});
+
             app.UseRouting();
             app.UseAuthorization();
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapControllerRoute(
-                    "default",
-                    "{controller=Home}/{action=Index}/{id?}");
+                endpoints.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
+                endpoints.MapHub<NotificationHub>("/notify");
             });
         }
     }

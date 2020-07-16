@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using egregore.Configuration;
+using egregore.Hubs;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NetMQ;
@@ -35,14 +37,16 @@ namespace egregore.Network
         
         private readonly Dictionary<PeerInfo, DateTimeOffset> _info;
         private readonly int _beaconPort;
+        private readonly IHubContext<NotificationHub> _hub;
         private readonly ILogger<PeerBus> _logger;
         private readonly string _id;
         
-        public PeerBus(IOptions<WebServerOptions> options, ILogger<PeerBus> logger)
+        public PeerBus(IHubContext<NotificationHub> hub, IOptions<WebServerOptions> options, ILogger<PeerBus> logger)
         {
             _id = $"[{options.Value.ServerId}]";
             _info = new Dictionary<PeerInfo, DateTimeOffset>();
             _beaconPort = options.Value.BeaconPort;
+            _hub = hub;
             _logger = logger;
             _actor = NetMQActor.Create(RunActor);
         }
@@ -117,10 +121,12 @@ namespace egregore.Network
             var peer = new PeerInfo(message.PeerHost, port);
             if (!_info.ContainsKey(peer))
             {
-                _logger?.LogInformation($"{_id}: Adding new peer from '{{PeerAddress}}'", peer.Address);
                 _info.Add(peer, readyTime);
                 _publisher.Connect(peer.Address);
                 _shim.SendMoreFrame("A").SendFrame(peer.Address);
+
+                _logger?.LogInformation($"{_id}: Added new peer from '{{PeerAddress}}'", peer.Address);
+                _hub?.Clients.All.SendAsync("ReceiveMessage", "success", $"Adding new peer from '{peer.Address}'");
             }
             else
             {
@@ -139,10 +145,12 @@ namespace egregore.Network
 
             foreach (var peer in unresponsivePeers)
             {
-                _logger?.LogInformation($"{_id}: Removing unresponsive peer at '{{PeerAddress}}'", peer.Address);
                 _info.Remove(peer);
                 _publisher.Disconnect(peer.Address);
                 _shim.SendMoreFrame("R").SendFrame(peer.Address);
+
+                _logger?.LogInformation($"{_id}: Removed unresponsive peer at '{{PeerAddress}}'", peer.Address);
+                _hub?.Clients.All.SendAsync("ReceiveMessage", "warning", $"Removing unresponsive peer at '{peer.Address}'");
             }
         }
 
