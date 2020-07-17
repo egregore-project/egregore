@@ -1,5 +1,8 @@
 ﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// 
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System;
 using System.Threading.Tasks;
@@ -13,24 +16,12 @@ namespace egregore.Tests
 {
     public class OntologyTests
     {
-        private readonly ITestOutputHelper _output;
-
         public OntologyTests(ITestOutputHelper output)
         {
             _output = output;
         }
-        
-        [Fact]
-        public void Empty_ontology_has_default_namespace()
-        {
-            unsafe
-            {
-                Crypto.GenerateKeyPair(out var pk, out _);
-                var ontology = new OntologyLog(pk);
-                Assert.Single(ontology.Namespaces);
-                Assert.Equal("default", ontology.Namespaces[0].Value, StringComparer.OrdinalIgnoreCase);
-            }
-        }
+
+        private readonly ITestOutputHelper _output;
 
         [Fact]
         public async Task Can_rehydrate_ontology_from_log_stream()
@@ -42,8 +33,8 @@ namespace egregore.Tests
             var @namespace = LogEntryFactory.CreateNamespaceEntry(ns, default);
             await fixture.Store.AddEntryAsync(@namespace);
 
-            var schema = new Schema { Name = "Customer" };
-            schema.Properties.Add(new SchemaProperty { Name = "Name", Type = "string" });
+            var schema = new Schema {Name = "Customer"};
+            schema.Properties.Add(new SchemaProperty {Name = "Name", Type = "string"});
             await fixture.Store.AddEntryAsync(LogEntryFactory.CreateEntry(schema, @namespace.Hash));
 
             unsafe
@@ -51,7 +42,8 @@ namespace egregore.Tests
                 Crypto.GenerateKeyPair(out var pk, out _);
                 var ontology = new OntologyLog(pk, fixture.Store);
                 Assert.Equal(2, ontology.Namespaces.Count);
-                Assert.Equal(Constants.DefaultNamespace, ontology.Namespaces[0].Value, StringComparer.OrdinalIgnoreCase);
+                Assert.Equal(Constants.DefaultNamespace, ontology.Namespaces[0].Value,
+                    StringComparer.OrdinalIgnoreCase);
                 Assert.Equal(ns, ontology.Namespaces[1].Value, StringComparer.OrdinalIgnoreCase);
 
                 Assert.Single(ontology.Roles[Constants.DefaultNamespace]);
@@ -78,6 +70,18 @@ namespace egregore.Tests
 
             await fixture.Store.AddEntryAsync(LogEntryFactory.CreateEntry(revoke));
             Assert.Throws<CannotRemoveSingleOwnerException>(() => { ontology.Materialize(fixture.Store); });
+        }
+
+        [Fact]
+        public void Empty_ontology_has_default_namespace()
+        {
+            unsafe
+            {
+                Crypto.GenerateKeyPair(out var pk, out _);
+                var ontology = new OntologyLog(pk);
+                Assert.Single(ontology.Namespaces);
+                Assert.Equal("default", ontology.Namespaces[0].Value, StringComparer.OrdinalIgnoreCase);
+            }
         }
     }
 }

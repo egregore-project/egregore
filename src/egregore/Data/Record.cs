@@ -1,5 +1,8 @@
 ﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// 
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System;
 using System.Collections.Generic;
@@ -8,15 +11,15 @@ namespace egregore.Data
 {
     public sealed class Record : ILogSerialized
     {
-        public ulong? Index { get; set; }
-        public string Type { get; set; }
-        public Guid Uuid { get; set; }
-        public List<RecordColumn> Columns { get; }
-
         public Record()
         {
             Columns = new List<RecordColumn>();
         }
+
+        public ulong? Index { get; set; }
+        public string Type { get; set; }
+        public Guid Uuid { get; set; }
+        public List<RecordColumn> Columns { get; }
 
         #region Serialization
 
@@ -34,7 +37,7 @@ namespace egregore.Data
             Type = context.br.ReadString();
             Uuid = new Guid(context.br.ReadBytes(16));
             var columns = context.br.ReadInt32();
-            for(var i = 0; i < columns; i++)
+            for (var i = 0; i < columns; i++)
                 Columns.Add(new RecordColumn(context));
         }
 

@@ -1,9 +1,11 @@
 ﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// 
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System;
 using System.IO;
-using System.Net.Sockets;
 using System.Text;
 using egregore.Extensions;
 using NetMQ;
@@ -11,13 +13,13 @@ using NetMQ;
 namespace egregore.Network
 {
     /// <summary>
-    /// The simplest possible protocol that takes delimited input and echos it back to the connected client.
+    ///     The simplest possible protocol that takes delimited input and echos it back to the connected client.
     /// </summary>
     internal sealed class EchoProtocol : IProtocol
     {
+        private readonly string _id;
         private readonly bool _initiator;
         private readonly TextWriter _out;
-        private readonly string _id;
 
         public EchoProtocol(bool initiator, string id = default, TextWriter @out = default)
         {
@@ -26,9 +28,15 @@ namespace egregore.Network
             _id = id ?? "[ECHO]";
         }
 
-        public void Configure(SocketOptions options) { }
-        public bool Handshake(NetMQSocket handler) => true;
-        
+        public void Configure(SocketOptions options)
+        {
+        }
+
+        public bool Handshake(NetMQSocket handler)
+        {
+            return true;
+        }
+
         public void OnMessageReceived(NetMQSocket handler, ReadOnlySpan<byte> payload)
         {
             if (_initiator)

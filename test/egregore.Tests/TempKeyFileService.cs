@@ -1,5 +1,8 @@
 ﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// 
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System;
 using System.Diagnostics;
@@ -19,15 +22,17 @@ namespace egregore.Tests
             _fileStream = File.Open(_filePath, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
         }
 
-        public string GetKeyFilePath() => _filePath;
-
         public FileStream GetKeyFileStream()
         {
             _fileStream.Seek(0, SeekOrigin.Begin);
             return _fileStream;
         }
 
-        public unsafe byte* GetSecretKeyPointer(IKeyCapture capture, [CallerMemberName] string callerMemberName = null) => Crypto.LoadSecretKeyPointerFromFileStream(GetKeyFilePath(), GetKeyFileStream(), capture, callerMemberName);
+        public unsafe byte* GetSecretKeyPointer(IKeyCapture capture, [CallerMemberName] string callerMemberName = null)
+        {
+            return Crypto.LoadSecretKeyPointerFromFileStream(GetKeyFilePath(), GetKeyFileStream(), capture,
+                callerMemberName);
+        }
 
         public void Dispose()
         {
@@ -40,6 +45,11 @@ namespace egregore.Tests
             {
                 Trace.TraceError(e.ToString());
             }
+        }
+
+        public string GetKeyFilePath()
+        {
+            return _filePath;
         }
     }
 }

@@ -1,7 +1,9 @@
 ﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// 
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-using System;
 using System.Threading.Tasks;
 using egregore.Data;
 using Xunit;
@@ -12,21 +14,13 @@ namespace egregore.Tests.Data
     public class RecordStoreTests
     {
         [Fact]
-        public async Task Empty_store_has_zero_length()
-        {
-            using var fixture = new RecordStoreFixture();
-            var count = await fixture.Store.GetLengthAsync();
-            Assert.Equal(0UL, count);
-        }
-
-        [Fact]
         public async Task Can_append_record_and_retrieve_by_uuid()
         {
             using var fixture = new RecordStoreFixture();
 
             var record = new Record {Type = "Customer"};
             record.Columns.Add(new RecordColumn(0, "Order", "int", "123"));
-            
+
             var next = await fixture.Store.AddRecordAsync(record);
             Assert.Equal(0UL, record.Index);
             Assert.Equal(1UL, next);
@@ -49,7 +43,7 @@ namespace egregore.Tests.Data
 
             var record = new Record {Type = "Customer"};
             record.Columns.Add(new RecordColumn(0, "Order", "int", "123"));
-            
+
             var next = await fixture.Store.AddRecordAsync(record);
             Assert.Equal(0UL, record.Index);
             Assert.Equal(1UL, next);
@@ -62,6 +56,14 @@ namespace egregore.Tests.Data
 
             var missing = await fixture.Store.GetByColumnValueAsync("Customer", "Order", "234");
             Assert.Empty(missing);
+        }
+
+        [Fact]
+        public async Task Empty_store_has_zero_length()
+        {
+            using var fixture = new RecordStoreFixture();
+            var count = await fixture.Store.GetLengthAsync();
+            Assert.Equal(0UL, count);
         }
     }
 }

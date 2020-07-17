@@ -9,38 +9,38 @@
     <meta name="author" content="">
     <title>Sign in</title>
     <link rel="canonical" href="~/signin/">
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/signin.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="~/css/signin.css"/>
 </head>
 <body class="text-center">
-    <form class="form-signin">
-        <img class="mb-4" src="https://getbootstrap.com/docs/4.0/assets/brand/bootstrap-solid.svg" alt="" width="72" height="72">
-        <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
+<form class="form-signin">
+    <img class="mb-4" src="https://getbootstrap.com/docs/4.0/assets/brand/bootstrap-solid.svg" alt="" width="72" height="72">
+    <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
 
-        <div class="input-group mb-3">
-            <label for="challenge" class="sr-only">@(nameof(Model.Challenge))</label>
-            <input type="text" id="challenge" class="form-control" placeholder="Challenge" required readonly value="@Model.Challenge">
-            <div class="input-group-append">
-                <button type="button" id="copy-button" class="btn btn-outline-secondary" data-toggle="tooltip" data-placement="button" title="Copy to clipboard">Copy</button>
-            </div>
+    <div class="input-group mb-3">
+        <label for="challenge" class="sr-only">@(nameof(Model.Challenge))</label>
+        <input type="text" id="challenge" class="form-control" placeholder="Challenge" required readonly value="@Model.Challenge">
+        <div class="input-group-append">
+            <button type="button" id="copy-button" class="btn btn-outline-secondary" data-toggle="tooltip" data-placement="button" title="Copy to clipboard">Copy</button>
         </div>
+    </div>
 
-        <label for="publicKey" class="sr-only">@(nameof(Model.PublicKey))</label>
-        <input type="text" id="publicKey" class="form-control" placeholder="Public Key" required autofocus>
+    <label for="publicKey" class="sr-only">@(nameof(Model.PublicKey))</label>
+    <input type="text" id="publicKey" class="form-control" placeholder="Public Key" required autofocus>
 
-        <label for="signature" class="sr-only">@(nameof(Model.Signature))</label>
-        <input type="text" id="signature" class="form-control" placeholder="Signature" required>
+    <label for="signature" class="sr-only">@(nameof(Model.Signature))</label>
+    <input type="text" id="signature" class="form-control" placeholder="Signature" required>
 
-        <div class="checkbox mb-3">
-            <label>
-                <input type="checkbox" value="remember-me"> Remember me
-            </label>
-        </div>
-        <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
-        <p class="mt-5 mb-3 text-muted text-center">Server ID: @Model.ServerId</p>
-    </form>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/signin.js"></script>
+    <div class="checkbox mb-3">
+        <label>
+            <input type="checkbox" value="remember-me"> Remember me
+        </label>
+    </div>
+    <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+    <p class="mt-5 mb-3 text-muted text-center">Server ID: @Model.ServerId</p>
+</form>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/signin.js"></script>
 </body>
 </html>

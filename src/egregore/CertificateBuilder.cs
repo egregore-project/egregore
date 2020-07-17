@@ -1,5 +1,8 @@
 ﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// 
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System;
 using System.Globalization;
@@ -29,19 +32,17 @@ namespace egregore
             {
                 store.Open(OpenFlags.ReadWrite | OpenFlags.OpenExistingOnly);
                 foreach (var result in store.Certificates.Find(X509FindType.FindByIssuerName, IssuerName, true))
-                {
                     if (fresh || IsExpired(result, now))
                     {
                         @out?.WriteInfoLine($"Removing root certificate '{result.Thumbprint}'");
                         store.Remove(result);
                     }
-                }
             }
             finally
             {
-                store.Close();    
+                store.Close();
             }
-            
+
             try
             {
                 store.Open(OpenFlags.ReadOnly | OpenFlags.OpenExistingOnly);
@@ -53,7 +54,7 @@ namespace egregore
             }
             finally
             {
-                store.Close();    
+                store.Close();
             }
 
             @out?.WriteInfo("Generating new root certificate... ");
@@ -79,7 +80,8 @@ namespace egregore
                 : ECDsa.Create(ECDiffieHellman.Create().ExportParameters(true));
 
             var request = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                ? new CertificateRequest(distinguishedName, (RSA) alg, HashAlgorithmName.SHA512, RSASignaturePadding.Pkcs1)
+                ? new CertificateRequest(distinguishedName, (RSA) alg, HashAlgorithmName.SHA512,
+                    RSASignaturePadding.Pkcs1)
                 : new CertificateRequest(distinguishedName, (ECDsa) alg, HashAlgorithmName.SHA512);
 
             // omit usage for encryption as RSA has vulnerabilities there
@@ -88,10 +90,12 @@ namespace egregore
 
             // extend as certificate authority
             request.CertificateExtensions.Add(new X509KeyUsageExtension(usages, false));
-            request.CertificateExtensions.Add(new X509BasicConstraintsExtension(true, true, 1, true)); // identify as a CA
-            request.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension(new OidCollection {new Oid(ServerAuthenticationOid)}, false));
+            request.CertificateExtensions.Add(
+                new X509BasicConstraintsExtension(true, true, 1, true)); // identify as a CA
+            request.CertificateExtensions.Add(
+                new X509EnhancedKeyUsageExtension(new OidCollection {new Oid(ServerAuthenticationOid)}, false));
             request.CertificateExtensions.Add(sanBuilder.Build());
-                    
+
             var after = now.Timestamp.AddDays(-1).AddDays(2); // possibly annoying, but better than keeping roots around
             var before = now.Timestamp;
             var certificate = request.CreateSelfSigned(before, after);
@@ -104,14 +108,13 @@ namespace egregore
                 store.Open(OpenFlags.ReadWrite);
                 store.Add(cert);
 
-                @out?.WriteInfoLine($"done");
+                @out?.WriteInfoLine("done");
                 @out?.WriteInfoLine($"Using root certificate '{cert.Thumbprint}'");
                 return cert;
             }
             finally
             {
-               
-                store.Close();  
+                store.Close();
             }
         }
 
@@ -138,7 +141,7 @@ namespace egregore
             }
             finally
             {
-                store.Close();    
+                store.Close();
             }
         }
     }

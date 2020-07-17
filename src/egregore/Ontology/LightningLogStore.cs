@@ -1,5 +1,8 @@
 ﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// 
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System;
 using System.Collections.Generic;
@@ -12,10 +15,10 @@ namespace egregore.Ontology
 {
     public sealed class LightningLogStore : LightningDataStore, ILogStore
     {
-        private readonly ILogObjectTypeProvider _typeProvider;
         private readonly ILogEntryHashProvider _hashProvider;
         private readonly SequentialKeyBuilder _keyBuilder;
         private readonly ISequenceProvider _sequence;
+        private readonly ILogObjectTypeProvider _typeProvider;
 
         public LightningLogStore(string path) : base(path)
         {
@@ -40,9 +43,9 @@ namespace egregore.Ontology
             using var db = tx.OpenDatabase();
 
             var key = _keyBuilder.BuildKey(index, entry);
-            if(key.Length >= MaxKeySizeBytes)
+            if (key.Length >= MaxKeySizeBytes)
                 throw new InvalidOperationException($"Keys must be less than {MaxKeySizeBytes} bytes in length.");
-            
+
             tx.Put(db, key, value);
             tx.Commit();
 
@@ -70,7 +73,7 @@ namespace egregore.Ontology
                 using var br = new BinaryReader(ms);
                 var context = new LogDeserializeContext(br, _typeProvider);
                 var entry = new LogEntry(context);
-                
+
                 if (previousEntry != default)
                     entry.EntryCheck(previousEntry, _hashProvider);
                 yield return entry;
@@ -81,7 +84,7 @@ namespace egregore.Ontology
 
         protected override void Dispose(bool disposing)
         {
-            if(disposing)
+            if (disposing)
                 _sequence.Dispose();
             base.Dispose(disposing);
         }

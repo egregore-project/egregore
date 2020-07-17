@@ -1,5 +1,8 @@
 ﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// 
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System.Collections.Generic;
 using System.IO;
@@ -26,6 +29,50 @@ namespace egregore
         public byte[] HashRoot { get; set; }
         public UInt128 Timestamp { get; set; }
         public byte[] Nonce { get; set; }
+
+        #region Validation
+
+        public void EntryCheck(LogEntry previous, ILogEntryHashProvider hashProvider)
+        {
+            if (previous.Index + 1 != Index)
+            {
+                var message = $"Invalid index: expected '{previous.Index + 1}' but was '{Index}'";
+                throw new LogException(message);
+            }
+
+            if (!previous.Hash.SequenceEqual(PreviousHash))
+            {
+                var message =
+                    $"Invalid previous hash: expected '{Crypto.ToHexString(previous.Hash)}' but was '{Crypto.ToHexString(PreviousHash)}'";
+                throw new LogException(message);
+            }
+
+            var hashRoot = hashProvider.ComputeHashRootBytes(this);
+            if (!hashRoot.SequenceEqual(HashRoot))
+            {
+                var message =
+                    $"Invalid hash root: expected '{Crypto.ToHexString(hashRoot)}' but was '{Crypto.ToHexString(HashRoot)}'";
+                throw new LogException(message);
+            }
+
+            for (var i = 0; i < Objects.Count; i++)
+            {
+                if (Objects[i].Index == i)
+                    continue;
+                var message = $"Invalid object index: expected '{i}' but was '{Objects[i].Index}'";
+                throw new LogException(message);
+            }
+
+            var hash = hashProvider.ComputeHashBytes(this);
+            if (!hash.SequenceEqual(Hash))
+            {
+                var message =
+                    $"Invalid hash: expected '{Crypto.ToHexString(hash)}' but was '{Crypto.ToHexString(Hash)}'";
+                throw new LogException(message);
+            }
+        }
+
+        #endregion
 
         #region Serialization
 
@@ -96,7 +143,9 @@ namespace egregore
             LogEntry deserialized;
             if (nonce != null)
             {
-                using var dms = new MemoryStream(SecretStream.DecryptMessage(deserializeContext.br.ReadVarBuffer(), nonce, secretKey));
+                using var dms =
+                    new MemoryStream(SecretStream.DecryptMessage(deserializeContext.br.ReadVarBuffer(), nonce,
+                        secretKey));
                 using var dbr = new BinaryReader(dms);
                 var dc = new LogDeserializeContext(dbr, typeProvider);
                 deserialized = new LogEntry(dc);
@@ -121,47 +170,6 @@ namespace egregore
             {
                 secondSerializeContext.bw.Write(false);
                 deserialized.Serialize(secondSerializeContext, false);
-            }
-        }
-
-        #endregion
-
-        #region Validation
-
-        public void EntryCheck(LogEntry previous, ILogEntryHashProvider hashProvider)
-        {
-            if (previous.Index + 1 != Index)
-            {
-                var message = $"Invalid index: expected '{previous.Index + 1}' but was '{Index}'";
-                throw new LogException(message);
-            }
-
-            if (!previous.Hash.SequenceEqual(PreviousHash))
-            {
-                var message = $"Invalid previous hash: expected '{Crypto.ToHexString(previous.Hash)}' but was '{Crypto.ToHexString(this.PreviousHash)}'";
-                throw new LogException(message);
-            }
-
-            var hashRoot = hashProvider.ComputeHashRootBytes(this);
-            if (!hashRoot.SequenceEqual(HashRoot))
-            {
-                var message = $"Invalid hash root: expected '{Crypto.ToHexString(hashRoot)}' but was '{Crypto.ToHexString(this.HashRoot)}'";
-                throw new LogException(message);
-            }
-
-            for (var i = 0; i < Objects.Count; i++)
-            {
-                if (Objects[i].Index == i)
-                    continue;
-                var message = $"Invalid object index: expected '{i}' but was '{this.Objects[i].Index}'";
-                throw new LogException(message);
-            }
-
-            var hash = hashProvider.ComputeHashBytes(this);
-            if (!hash.SequenceEqual(Hash))
-            {
-                var message = $"Invalid hash: expected '{Crypto.ToHexString(hash)}' but was '{Crypto.ToHexString(this.Hash)}'";
-                throw new LogException(message);
             }
         }
 

@@ -1,5 +1,8 @@
 ﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// 
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 // Encryption based on process followed in Frank Denis' minisign:
 // https://github.com/jedisct1/minisign/blob/master/LICENSE
@@ -416,7 +419,8 @@ namespace egregore.IO
             }
         }
 
-        public static unsafe bool TryLoadKeyFile(FileStream keyFileStream, TextWriter @out, TextWriter error, out byte* secretKey, IPersistedKeyCapture capture)
+        public static unsafe bool TryLoadKeyFile(FileStream keyFileStream, TextWriter @out, TextWriter error,
+            out byte* secretKey, IPersistedKeyCapture capture)
         {
             if (capture == default)
                 throw new InvalidOperationException(Strings.InvalidKeyCapture);
@@ -660,10 +664,11 @@ namespace egregore.IO
         {
             fullKeyPath = default;
 
-            if(pathArgument == Constants.DefaultKeyFilePath)
+            if (pathArgument == Constants.DefaultKeyFilePath)
                 Directory.CreateDirectory(".egregore");
 
-            if (pathArgument != Constants.DefaultKeyFilePath && Path.GetFileName(pathArgument).IndexOfAny(Path.GetInvalidFileNameChars()) > -1)
+            if (pathArgument != Constants.DefaultKeyFilePath &&
+                Path.GetFileName(pathArgument).IndexOfAny(Path.GetInvalidFileNameChars()) > -1)
             {
                 Console.Error.WriteErrorLine(Strings.InvalidCharactersInPath);
                 return false;

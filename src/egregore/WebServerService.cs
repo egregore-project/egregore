@@ -1,5 +1,8 @@
 ﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// 
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System;
 using System.IO;
@@ -17,12 +20,13 @@ namespace egregore
     internal sealed class WebServerStartup : IHostedService
     {
         private readonly PeerBus _bus;
-        private OntologyLog _ontology;
 
         private readonly ILogger<WebServerStartup> _logger;
         private readonly IOptionsMonitor<WebServerOptions> _options;
-        
-        public WebServerStartup(PeerBus bus, IOptionsMonitor<WebServerOptions> options, ILogger<WebServerStartup> logger)
+        private OntologyLog _ontology;
+
+        public WebServerStartup(PeerBus bus, IOptionsMonitor<WebServerOptions> options,
+            ILogger<WebServerStartup> logger)
         {
             _bus = bus;
             _options = options;
@@ -63,7 +67,7 @@ namespace egregore
             {
                 _logger.LogError(e, "Error occurred during peer bus cleanup");
             }
-            
+
             return Task.CompletedTask;
         }
     }

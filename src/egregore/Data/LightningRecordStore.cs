@@ -1,5 +1,8 @@
 ﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// 
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System;
 using System.Collections.Generic;
@@ -11,11 +14,11 @@ namespace egregore.Data
 {
     internal sealed class LightningRecordStore : LightningDataStore, IRecordStore
     {
-        private readonly ILogObjectTypeProvider _typeProvider;
-        private readonly ISequenceProvider _sequence;
+        private readonly RecordColumnKeyBuilder _columnKeyBuilder;
 
         private readonly RecordKeyBuilder _recordKeyBuilder;
-        private readonly RecordColumnKeyBuilder _columnKeyBuilder;
+        private readonly ISequenceProvider _sequence;
+        private readonly ILogObjectTypeProvider _typeProvider;
 
         public LightningRecordStore(string path, string sequence = Constants.DefaultSequence) : base(path)
         {
@@ -25,10 +28,32 @@ namespace egregore.Data
             _sequence = new GlobalSequenceProvider(sequence);
         }
 
-        public async Task<ulong> AddRecordAsync(Record record, byte[] secretKey = null) => AddRecord(record, await _sequence.GetNextValueAsync());
-        public Task<Record> GetByIdAsync(Guid uuid) => Task.FromResult(GetByIndex(_recordKeyBuilder.ReverseRecordKey(uuid)));
-        public Task<ulong> GetCountAsync(string type) => Task.FromResult(GetCount(type));
-        public Task<IEnumerable<Record>> GetByColumnValueAsync(string type, string name, string value) => Task.FromResult(GetByColumnValue(type, name, value));
+        public async Task<ulong> AddRecordAsync(Record record, byte[] secretKey = null)
+        {
+            return AddRecord(record, await _sequence.GetNextValueAsync());
+        }
+
+        public Task<Record> GetByIdAsync(Guid uuid)
+        {
+            return Task.FromResult(GetByIndex(_recordKeyBuilder.ReverseRecordKey(uuid)));
+        }
+
+        public Task<ulong> GetCountAsync(string type)
+        {
+            return Task.FromResult(GetCount(type));
+        }
+
+        public Task<IEnumerable<Record>> GetByColumnValueAsync(string type, string name, string value)
+        {
+            return Task.FromResult(GetByColumnValue(type, name, value));
+        }
+
+        public void Destroy(bool destroySequence)
+        {
+            Destroy();
+            if (destroySequence)
+                _sequence.Destroy();
+        }
 
         public ulong GetCount(string type)
         {
@@ -57,7 +82,7 @@ namespace egregore.Data
             var context = new LogSerializeContext(bw, _typeProvider);
             record.Serialize(context, false);
 
-            
+
             var value = ms.ToArray();
 
             using var tx = env.Value.BeginTransaction(TransactionBeginFlags.None);
@@ -83,7 +108,10 @@ namespace egregore.Data
 
         private unsafe Record GetByIndex(ReadOnlySpan<byte> index, LightningTransaction parent = null)
         {
-            using var tx = env.Value.BeginTransaction(parent == null ? TransactionBeginFlags.ReadOnly : TransactionBeginFlags.None);
+            using var tx =
+                env.Value.BeginTransaction(parent == null
+                    ? TransactionBeginFlags.ReadOnly
+                    : TransactionBeginFlags.None);
             using var db = tx.OpenDatabase();
             using var cursor = tx.CreateCursor(db);
 
@@ -102,6 +130,7 @@ namespace egregore.Data
                 return record;
             }
         }
+
         private IEnumerable<Record> GetByColumnValue(string type, string name, string value)
         {
             using var tx = env.Value.BeginTransaction(TransactionBeginFlags.ReadOnly);
@@ -117,13 +146,6 @@ namespace egregore.Data
                 var record = idx.Value.AsSpan();
                 yield return GetByIndex(record, tx);
             }
-        }
-
-        public void Destroy(bool destroySequence)
-        {
-            Destroy();
-            if (destroySequence)
-                _sequence.Destroy();
         }
 
         protected override void Dispose(bool disposing)

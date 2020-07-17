@@ -1,5 +1,8 @@
 ﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// 
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System;
 using System.Collections.Generic;
@@ -14,7 +17,9 @@ namespace egregore
         private readonly HashAlgorithm _algorithm;
         private readonly ILogObjectTypeProvider _typeProvider;
 
-        public LogEntryHashProvider(ILogObjectTypeProvider typeProvider) : this(typeProvider, SHA256.Create()) { }
+        public LogEntryHashProvider(ILogObjectTypeProvider typeProvider) : this(typeProvider, SHA256.Create())
+        {
+        }
 
         internal LogEntryHashProvider(ILogObjectTypeProvider typeProvider, HashAlgorithm algorithm)
         {

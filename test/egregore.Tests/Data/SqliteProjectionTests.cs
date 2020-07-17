@@ -1,7 +1,12 @@
-﻿using Dapper;
+﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
+// 
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+using Dapper;
 using egregore.Data;
 using Xunit;
-
 using Record = egregore.Data.Record;
 
 // ReSharper disable ClassNeverInstantiated.Local
@@ -11,26 +16,6 @@ namespace egregore.Tests.Data
 {
     public class SqliteProjectionTests
     {
-        [Fact]
-        public void Can_project_data_structure_changes_over_time()
-        {
-            var fixture = new SqliteProjectionFixture();
-
-            // CustomerV1 (Order INT)
-            Create_customer_v1_record(fixture);
-
-            // CustomerV2 (Name TEXT, Order INT)
-            Create_customer_v2_record(fixture);
-
-            // CustomerV3 (Name TEXT)
-            Create_customer_v3_record(fixture);
-
-            // CustomerV4 (Name TEXT, Order TEXT)
-            Create_customer_v4_record(fixture);
-        }
-        
-        #region CustomerV1
-
         private static void Create_customer_v1_record(SqliteProjectionFixture fixture)
         {
             var record = new Record {Type = "Customer"};
@@ -49,10 +34,6 @@ namespace egregore.Tests.Data
             public int Order { get; set; }
         }
 
-        #endregion
-
-        #region CustomerV2 (add a column)
-
         private static void Create_customer_v2_record(SqliteProjectionFixture fixture)
         {
             var record = new Record {Type = "Customer"};
@@ -62,7 +43,7 @@ namespace egregore.Tests.Data
             fixture.Projection.Visit(record);
 
             using var db = fixture.Projection.OpenConnection();
-            
+
             var v2 = db.Query<CustomerV2>("SELECT * FROM \"Customer\"").AsList();
             Assert.Equal(2, v2.Count);
             Assert.Equal(123, v2[0].Order);
@@ -76,10 +57,6 @@ namespace egregore.Tests.Data
             public string Name { get; set; }
             public int Order { get; set; }
         }
-
-        #endregion
-
-        #region CustomerV3 (drop a column)
 
         private static void Create_customer_v3_record(SqliteProjectionFixture fixture)
         {
@@ -102,10 +79,6 @@ namespace egregore.Tests.Data
             public string Name { get; set; }
         }
 
-        #endregion
-
-        #region CustomerV4 (add back a previously added column with a changed type)
-
         private static void Create_customer_v4_record(SqliteProjectionFixture fixture)
         {
             var record = new Record {Type = "Customer"};
@@ -126,7 +99,7 @@ namespace egregore.Tests.Data
 
             Assert.Equal("Bobby Fables", v4[2].Name);
             Assert.Equal("XYZ000", v4[2].Order);
-            
+
             Assert.Equal("Bobby Cables", v4[3].Name);
             Assert.Equal("ABC123", v4[3].Order);
         }
@@ -137,6 +110,22 @@ namespace egregore.Tests.Data
             public string Order { get; set; }
         }
 
-        #endregion
+        [Fact]
+        public void Can_project_data_structure_changes_over_time()
+        {
+            var fixture = new SqliteProjectionFixture();
+
+            // CustomerV1 (Order INT)
+            Create_customer_v1_record(fixture);
+
+            // CustomerV2 (Name TEXT, Order INT)
+            Create_customer_v2_record(fixture);
+
+            // CustomerV3 (Name TEXT)
+            Create_customer_v3_record(fixture);
+
+            // CustomerV4 (Name TEXT, Order TEXT)
+            Create_customer_v4_record(fixture);
+        }
     }
 }

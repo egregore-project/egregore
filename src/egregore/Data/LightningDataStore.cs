@@ -1,9 +1,11 @@
 ﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// 
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 using LightningDB;
 
@@ -17,8 +19,6 @@ namespace egregore.Data
         private const int DefaultMaxDatabases = 5;
         private const long DefaultMapSize = 10_485_760;
 
-        public string DataFile { get; private set; }
-
         protected Lazy<LightningEnvironment> env;
 
         protected LightningDataStore(string path)
@@ -27,7 +27,7 @@ namespace egregore.Data
             {
                 var config = new EnvironmentConfiguration
                 {
-                    MaxDatabases = DefaultMaxDatabases, 
+                    MaxDatabases = DefaultMaxDatabases,
                     MaxReaders = DefaultMaxReaders,
                     MapSize = DefaultMapSize
                 };
@@ -36,6 +36,14 @@ namespace egregore.Data
                 CreateIfNotExists(environment);
                 return environment;
             });
+        }
+
+        public string DataFile { get; private set; }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         public void Init()
@@ -51,12 +59,16 @@ namespace egregore.Data
             try
             {
                 using (tx.OpenDatabase(null, new DatabaseConfiguration()))
+                {
                     tx.Commit();
+                }
             }
             catch (LightningException)
             {
-                using (tx.OpenDatabase(null, new DatabaseConfiguration { Flags = DatabaseOpenFlags.Create }))
+                using (tx.OpenDatabase(null, new DatabaseConfiguration {Flags = DatabaseOpenFlags.Create}))
+                {
                     tx.Commit();
+                }
             }
         }
 
@@ -67,7 +79,7 @@ namespace egregore.Data
             var count = (ulong) tx.GetEntriesCount(db); // entries also contains handles to databases
             return Task.FromResult(count);
         }
-        
+
         public void Destroy()
         {
             using (var tx = env.Value.BeginTransaction())
@@ -76,6 +88,7 @@ namespace egregore.Data
                 tx.DropDatabase(db);
                 tx.Commit();
             }
+
             env.Value.Dispose();
             Directory.Delete(env.Value.Path, true);
         }
@@ -84,14 +97,8 @@ namespace egregore.Data
         {
             if (!disposing)
                 return;
-            if(env.IsValueCreated)
+            if (env.IsValueCreated)
                 env.Value.Dispose();
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
         }
     }
 }

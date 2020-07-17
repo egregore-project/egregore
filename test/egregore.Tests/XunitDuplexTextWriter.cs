@@ -1,5 +1,8 @@
 ﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// 
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System.IO;
 using System.Text;
@@ -9,9 +12,9 @@ namespace egregore.Tests
 {
     internal sealed class XunitDuplexTextWriter : TextWriter
     {
-        private readonly ITestOutputHelper _output;
-        private readonly TextWriter _inner;
         private readonly StringBuilder _buffer;
+        private readonly TextWriter _inner;
+        private readonly ITestOutputHelper _output;
 
         public XunitDuplexTextWriter(ITestOutputHelper output, TextWriter inner)
         {

@@ -1,4 +1,10 @@
-﻿using System;
+﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
+// 
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+using System;
 using System.IO;
 using System.Security.Cryptography;
 using System.Threading;
@@ -11,17 +17,17 @@ namespace egregore.Network
 {
     public sealed class SocketServer : IDisposable
     {
-        private readonly IProtocol _protocol;
-        private readonly TextWriter _out;
-
-        private Task _task;
-        private CancellationTokenSource _source;
         private readonly string _id;
-        private NetMQSocket _outgoing;
-        private string _address;
+        private readonly TimeSpan _interval;
+        private readonly TextWriter _out;
+        private readonly IProtocol _protocol;
 
         private readonly ManualResetEvent _stopping = new ManualResetEvent(false);
-        private readonly TimeSpan _interval;
+        private string _address;
+        private NetMQSocket _outgoing;
+        private CancellationTokenSource _source;
+
+        private Task _task;
 
         public SocketServer(IProtocol protocol, string id = default, TextWriter @out = default)
         {
@@ -30,7 +36,17 @@ namespace egregore.Network
             _out = @out;
             _interval = TimeSpan.FromMilliseconds(100);
         }
-        
+
+        public void Dispose()
+        {
+            _source?.Cancel(true);
+            while (!_task.IsCanceled && !_task.IsCompleted && !_task.IsFaulted)
+                _stopping.WaitOne(10);
+            _outgoing.Dispose();
+            _stopping?.Dispose();
+            _task?.Dispose();
+        }
+
         public void Start(int port, CancellationToken cancellationToken = default)
         {
             if (cancellationToken == default)
@@ -41,7 +57,7 @@ namespace egregore.Network
 
             _address = $"tcp://*:{port}";
             _outgoing = new ResponseSocket();
-            
+
             var options = new SocketOptions(_outgoing);
             _protocol.Configure(options);
             _outgoing.Bind(_address);
@@ -52,7 +68,6 @@ namespace egregore.Network
                 EstablishHandshake();
 
                 while (!cancellationToken.IsCancellationRequested)
-                {
                     try
                     {
                         if (_outgoing.IsDisposed)
@@ -66,7 +81,6 @@ namespace egregore.Network
                         _out?.WriteErrorLine($"{_id}: Error during message receive loop: {e}");
                         break;
                     }
-                }
 
                 _stopping.Set();
             }, cancellationToken);
@@ -104,16 +118,6 @@ namespace egregore.Network
                 return;
             var data = message.ToArray();
             _outgoing.TrySendFrame(_interval, data);
-        }
-        
-        public void Dispose()
-        {
-            _source?.Cancel(true);
-            while (!_task.IsCanceled && !_task.IsCompleted && !_task.IsFaulted)
-                _stopping.WaitOne(10);
-            _outgoing.Dispose();
-            _stopping?.Dispose();
-            _task?.Dispose();
         }
     }
 }

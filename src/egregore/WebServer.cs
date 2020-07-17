@@ -1,5 +1,8 @@
 ﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// 
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System;
 using System.Diagnostics;
@@ -70,7 +73,7 @@ namespace egregore
             params string[] args)
         {
             var builder = Host.CreateDefaultBuilder(args);
-            
+
             builder.ConfigureWebHostDefaults(webBuilder =>
             {
                 Activity.DefaultIdFormat = ActivityIdFormat.W3C;
@@ -89,7 +92,9 @@ namespace egregore
                         x.Protocols = HttpProtocols.Http1AndHttp2;
                         x.UseHttps(a =>
                         {
-                            a.SslProtocols = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? SslProtocols.Tls12 : SslProtocols.Tls13;
+                            a.SslProtocols = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                                ? SslProtocols.Tls12
+                                : SslProtocols.Tls13;
                             a.ServerCertificate = x509;
                         });
                     });
@@ -114,18 +119,19 @@ namespace egregore
 
                     var publicKey = Crypto.SigningPublicKeyFromSigningKey(keyFileService, capture);
                     capture.Reset();
-                    
+
                     var fingerprint = new byte[8];
                     var appString = $"{context.HostingEnvironment.ApplicationName}:" +
                                     $"{context.HostingEnvironment.EnvironmentName}:" +
                                     $"{webBuilder.GetSetting("https_port")}";
                     var app = Encoding.UTF8.GetBytes(appString);
 
-                    fixed(byte* pk = publicKey)
-                    fixed(byte* id = fingerprint)
-                    fixed(byte* key = app)
+                    fixed (byte* pk = publicKey)
+                    fixed (byte* id = fingerprint)
+                    fixed (byte* key = app)
                     {
-                        if (NativeMethods.crypto_generichash(id, fingerprint.Length, pk, Crypto.PublicKeyBytes, key, app.Length) != 0)
+                        if (NativeMethods.crypto_generichash(id, fingerprint.Length, pk, Crypto.PublicKeyBytes, key,
+                            app.Length) != 0)
                             throw new InvalidOperationException(nameof(NativeMethods.crypto_generichash));
                     }
 
@@ -150,20 +156,20 @@ namespace egregore
                 });
                 webBuilder.Configure((context, appBuilder) => { appBuilder.UseCors(); });
 
-                #if DEBUG
-                
+#if DEBUG
+
                 // This is glue for development only, when running in the /bin folder but wwwroot is a few directories back
 
                 var contentRoot = Directory.GetCurrentDirectory();
                 var webRoot = Path.Combine(contentRoot, "wwwroot");
-                
+
                 if (!File.Exists(Path.Combine(webRoot, "css", "signin.css")))
                     webRoot = Path.Combine(contentRoot, "..", "..", "..", "wwwroot");
 
                 webBuilder.UseContentRoot(contentRoot);
                 webBuilder.UseWebRoot(webRoot);
 
-                #endif
+#endif
 
                 webBuilder.UseStartup<WebServer>();
             });
@@ -202,13 +208,13 @@ namespace egregore
                 app.UseStatusCodePagesWithReExecute("/error/{0}");
                 app.UseHsts();
             }
-            
+
             app.UseHttpsRedirection();
             app.UseSecurityHeaders();
 
             var provider = new FileExtensionContentTypeProvider();
             provider.Mappings[".webmanifest"] = "application/manifest+json";
-            app.UseStaticFiles(new StaticFileOptions { ContentTypeProvider = provider});
+            app.UseStaticFiles(new StaticFileOptions {ContentTypeProvider = provider});
 
             app.UseRouting();
             app.UseAuthorization();

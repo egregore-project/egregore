@@ -1,5 +1,8 @@
 ﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// 
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System;
 using System.IO;
@@ -12,10 +15,10 @@ namespace egregore.Network
 {
     public sealed class SocketClient : IDisposable
     {
-        private readonly IProtocol _protocol;
-        private readonly TextWriter _out;
         private readonly string _id;
         private readonly RequestSocket _incoming;
+        private readonly TextWriter _out;
+        private readonly IProtocol _protocol;
         private string _address;
 
         public SocketClient(IProtocol protocol, string id = default, TextWriter @out = default)
@@ -24,6 +27,13 @@ namespace egregore.Network
             _protocol = protocol;
             _out = @out;
             _incoming = new RequestSocket();
+        }
+
+        public void Dispose()
+        {
+            if (_incoming == default || _incoming.IsDisposed)
+                return;
+            _incoming?.Dispose();
         }
 
         public void Connect(string hostName, int port)
@@ -49,7 +59,7 @@ namespace egregore.Network
         {
             try
             {
-                if(!_incoming.IsDisposed)
+                if (!_incoming.IsDisposed)
                     _incoming.Disconnect(_address);
             }
             catch (Exception e)
@@ -89,13 +99,6 @@ namespace egregore.Network
                 return;
             var data = message.ToArray();
             _protocol.OnMessageSending(_incoming, data);
-        }
-
-        public void Dispose()
-        {
-            if (_incoming == default || _incoming.IsDisposed)
-                return;
-            _incoming?.Dispose();
         }
     }
 }

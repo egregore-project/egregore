@@ -1,5 +1,8 @@
 ﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// 
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System;
 using System.Collections.Generic;
@@ -19,6 +22,8 @@ namespace egregore
         internal static FileStream keyFileStream;
         private static int _port;
 
+        private static bool _exclusiveLock = true;
+
         [ExcludeFromCodeCoverage]
         public static void Main(params string[] args)
         {
@@ -35,7 +40,7 @@ namespace egregore
                 };
 
                 var arguments = new Queue<string>(args);
-                if(ProcessCommandLineArguments(arguments))
+                if (ProcessCommandLineArguments(arguments))
                     NonInteractiveStartup(_port, args, arguments);
             }
             finally
@@ -50,8 +55,10 @@ namespace egregore
             var password = Environment.GetEnvironmentVariable(Constants.EnvVars.KeyFilePassword);
             if (string.IsNullOrWhiteSpace(password))
             {
-                Console.Error.WriteErrorLine($"Could not locate '{Constants.EnvVars.KeyFilePassword}' variable for container deployment.");
-                Console.Out.WriteInfoLine("To run the server interactively to input a password, use the --server argument.");
+                Console.Error.WriteErrorLine(
+                    $"Could not locate '{Constants.EnvVars.KeyFilePassword}' variable for container deployment.");
+                Console.Out.WriteInfoLine(
+                    "To run the server interactively to input a password, use the --server argument.");
                 Environment.Exit(-1);
             }
             else
@@ -75,10 +82,11 @@ namespace egregore
                     case "-c":
                     {
                         var freshOrClear = arguments.EndOfSubArguments() ? "false" : arguments.Dequeue();
-                        if(freshOrClear?.Equals("clear", StringComparison.OrdinalIgnoreCase) ?? false)
+                        if (freshOrClear?.Equals("clear", StringComparison.OrdinalIgnoreCase) ?? false)
                             CertificateBuilder.ClearAll(Console.Out);
                         else
-                            CertificateBuilder.GetOrCreateSelfSignedCert(Console.Out, freshOrClear?.Equals("fresh", StringComparison.OrdinalIgnoreCase) ?? false);
+                            CertificateBuilder.GetOrCreateSelfSignedCert(Console.Out,
+                                freshOrClear?.Equals("fresh", StringComparison.OrdinalIgnoreCase) ?? false);
                         return false;
                     }
                     case "--port":
@@ -97,7 +105,9 @@ namespace egregore
                     case "--keygen":
                     case "-k":
                     {
-                        var keyPath = arguments.EndOfSubArguments() ? Constants.DefaultKeyFilePath : arguments.Dequeue();
+                        var keyPath = arguments.EndOfSubArguments()
+                            ? Constants.DefaultKeyFilePath
+                            : arguments.Dequeue();
                         KeyFileManager.Create(keyPath, true, false, Constants.ConsoleKeyCapture);
                         return false;
                     }
@@ -118,8 +128,6 @@ namespace egregore
             return true;
         }
 
-        private static bool _exclusiveLock = true;
-
         private static void RunAsServer(int? port, Queue<string> arguments, IKeyCapture capture, bool interactive)
         {
             var keyPath = arguments.EndOfSubArguments() ? Constants.DefaultKeyFilePath : arguments.Dequeue();
@@ -133,14 +141,14 @@ namespace egregore
 
             Console.Out.WriteInfoLine($"Key file path resolved to '{keyFilePath}'");
 
-            if (shouldCreateKeyFile && !KeyFileManager.Create(keyFilePath, false, true, capture ?? Constants.ConsoleKeyCapture))
+            if (shouldCreateKeyFile &&
+                !KeyFileManager.Create(keyFilePath, false, true, capture ?? Constants.ConsoleKeyCapture))
             {
                 Console.Error.WriteErrorLine("Cannot start server without a key file");
                 return;
             }
 
             if (_exclusiveLock)
-            {
                 try
                 {
                     keyFileStream = new FileStream(keyFilePath, FileMode.Open, FileAccess.Read, FileShare.None);
@@ -150,9 +158,7 @@ namespace egregore
                     Console.Error.WriteErrorLine("Could not obtain exclusive lock on key file");
                     return;
                 }
-            }
             else
-            {
                 try
                 {
                     keyFileStream = new FileStream(keyFilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
@@ -162,8 +168,7 @@ namespace egregore
                     Console.Error.WriteErrorLine("Could not open key file");
                     return;
                 }
-            }
-            
+
             var eggPath = Environment.GetEnvironmentVariable(Constants.EnvVars.EggFilePath);
             if (string.IsNullOrWhiteSpace(eggPath))
                 eggPath = Constants.DefaultEggPath;
@@ -175,10 +180,7 @@ namespace egregore
 
             capture?.Reset();
 
-            if (!interactive)
-            {
-                LaunchBrowserUrl($"https://localhost:{port.GetValueOrDefault(5001)}");
-            }
+            if (!interactive) LaunchBrowserUrl($"https://localhost:{port.GetValueOrDefault(5001)}");
 
             WebServer.Run(port, eggPath, capture, arguments.ToArray());
         }
@@ -194,7 +196,7 @@ namespace egregore
             var command = arguments.Dequeue();
             switch (command)
             {
-                case  Constants.Commands.GrantRole:
+                case Constants.Commands.GrantRole:
                     GrantRole(arguments);
                     break;
             }
@@ -245,18 +247,10 @@ namespace egregore
         public static void LaunchBrowserUrl(string url)
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
-            }
+                Process.Start(new ProcessStartInfo(url) {UseShellExecute = true});
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
                 Process.Start("xdg-open", url);
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                Process.Start("open", url);
-            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) Process.Start("open", url);
         }
     }
-
 }

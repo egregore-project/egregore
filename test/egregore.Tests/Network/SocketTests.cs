@@ -1,4 +1,10 @@
-﻿using System;
+﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
+// 
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+using System;
 using egregore.Network;
 using Xunit;
 using Xunit.Abstractions;
@@ -7,17 +13,17 @@ namespace egregore.Tests.Network
 {
     public class SocketTests
     {
-        private readonly ITestOutputHelper _console;
-        private readonly string _hostName;
-        private readonly int _port;
-
         public SocketTests(ITestOutputHelper console)
         {
             _console = console;
             _hostName = "localhost";
             _port = 11000;
         }
-        
+
+        private readonly ITestOutputHelper _console;
+        private readonly string _hostName;
+        private readonly int _port;
+
         [Fact]
         public void Can_send_and_receive_from_socket()
         {
@@ -28,7 +34,7 @@ namespace egregore.Tests.Network
 
             using var client = new SocketClient(new EchoProtocol(true, default, @out), default, @out);
             client.Connect(_hostName, _port);
-            
+
             client.Send("This is a test 1");
             client.Receive();
 

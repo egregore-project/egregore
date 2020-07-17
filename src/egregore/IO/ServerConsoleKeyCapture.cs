@@ -1,5 +1,8 @@
 ﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// 
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System;
 using System.IO;
@@ -21,7 +24,9 @@ namespace egregore.IO
             Console.Clear();
         }
 
-        public void OnKeyRead(TextWriter @out) { }
+        public void OnKeyRead(TextWriter @out)
+        {
+        }
 
         public unsafe void Sink(byte* password, int passwordLength)
         {

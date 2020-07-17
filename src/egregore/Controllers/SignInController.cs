@@ -1,4 +1,10 @@
-﻿using System;
+﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
+// 
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+using System;
 using System.Text;
 using egregore.Configuration;
 using egregore.Models;
@@ -20,12 +26,15 @@ namespace egregore.Controllers
             _options = options;
         }
 
-        [AllowAnonymous, HttpGet("signin"), ServiceFilter(typeof(ThrottleFilter), IsReusable = true)]
+        [AllowAnonymous]
+        [HttpGet("signin")]
+        [ServiceFilter(typeof(ThrottleFilter), IsReusable = true)]
         public IActionResult Index()
         {
             // FIXME: avoid allocation, also reuse the value in the filter and pass as a method parameter
-            var hash = BitConverter.GetBytes(WyHash64.ComputeHash64(Request.HttpContext.Connection.RemoteIpAddress.GetAddressBytes(), Seed));
-            
+            var hash = BitConverter.GetBytes(
+                WyHash64.ComputeHash64(Request.HttpContext.Connection.RemoteIpAddress.GetAddressBytes(), Seed));
+
             // Challenge = sha256(wyhash(IP)[8]:ServerId[16]:Nonce[24])
             var buffer = Crypto.Nonce(48);
             for (var i = 0; i < _options.Value.ServerId.Length; i++)

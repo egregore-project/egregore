@@ -1,4 +1,10 @@
-﻿using System;
+﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
+// 
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.MemoryMappedFiles;
@@ -9,14 +15,9 @@ namespace egregore.Network
     /// <summary> Provides an atomic, incrementing value that's globally scoped and persisted to disk. </summary>
     public class Sequence : IDisposable
     {
+        private readonly long _incrementBy;
         private readonly string _name;
         private readonly long _startWith;
-        private readonly long _incrementBy;
-
-        public long Current => GetCurrentValue();
-
-        private string SequenceName => $@"egregore_sequence_{_name}";
-        private string MutexName => $@"egregore_mutex_{_name}";
 
         public Sequence(string name, long startWith = -1, long incrementBy = 1)
         {
@@ -25,7 +26,6 @@ namespace egregore.Network
             _incrementBy = incrementBy;
 
             if (TryAcquireOutOfProcessLock(out var mutex))
-            {
                 try
                 {
                     if (!File.Exists(SequenceName))
@@ -35,12 +35,20 @@ namespace egregore.Network
                 {
                     mutex.ReleaseMutex();
                 }
-            }
 
             var current = Current;
             if (current < _startWith)
                 throw new ArgumentOutOfRangeException(
                     $"You cannot change starting value to '{_startWith}' for an existing sequence whose current value is {current}");
+        }
+
+        public long Current => GetCurrentValue();
+
+        private string SequenceName => $@"egregore_sequence_{_name}";
+        private string MutexName => $@"egregore_mutex_{_name}";
+
+        public void Dispose()
+        {
         }
 
         private static MemoryMappedFile OpenExistingMapSource(string mapName)
@@ -67,7 +75,10 @@ namespace egregore.Network
                 using var vs = mmf.CreateViewStream();
                 long current;
                 using (var reader = new BinaryReader(vs))
+                {
                     current = reader.ReadInt64();
+                }
+
                 return current;
             }
             finally
@@ -141,11 +152,6 @@ namespace egregore.Network
             {
                 mutex.ReleaseMutex();
             }
-        }
-
-        public void Dispose()
-        {
-
         }
     }
 }

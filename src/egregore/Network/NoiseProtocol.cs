@@ -1,5 +1,8 @@
 ﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// 
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System;
 using System.Collections.Generic;
@@ -15,10 +18,6 @@ namespace egregore.Network
 {
     internal sealed class NoiseProtocol : IProtocol, IDisposable
     {
-        private readonly bool _initiator;
-        private readonly string _id;
-        private readonly TextWriter _out;
-
         private static readonly Protocol Protocol = new Protocol(
             HandshakePattern.IK,
             CipherFunction.ChaChaPoly,
@@ -26,21 +25,32 @@ namespace egregore.Network
             PatternModifiers.Psk2
         );
 
-        private readonly HandshakeState _state;
-        private readonly TimeSpan _interval;
         private readonly ThreadLocal<byte[]> _buffer;
+        private readonly string _id;
+        private readonly bool _initiator;
+        private readonly TimeSpan _interval;
+        private readonly TextWriter _out;
+
+        private readonly HandshakeState _state;
         private Transport _transport;
 
-        public unsafe NoiseProtocol(bool initiator, byte* sk, PskRef psk, byte[] publicKey = default, string id = default, TextWriter @out = default)
+        public unsafe NoiseProtocol(bool initiator, byte* sk, PskRef psk, byte[] publicKey = default,
+            string id = default, TextWriter @out = default)
         {
             _initiator = initiator;
             _id = id ?? "[NOISE]";
             _out = @out;
-            var psks = new List<PskRef> { psk };
+            var psks = new List<PskRef> {psk};
             _state = Protocol.Create(initiator, default, sk, (int) Crypto.EncryptionKeyBytes, publicKey, psks);
             _interval = TimeSpan.FromSeconds(1);
 
             _buffer = new ThreadLocal<byte[]>(() => new byte[Protocol.MaxMessageLength]);
+        }
+
+        public void Dispose()
+        {
+            _state?.Dispose();
+            _transport?.Dispose();
         }
 
         public void Configure(SocketOptions options)
@@ -50,8 +60,24 @@ namespace egregore.Network
             options.SendBuffer = Protocol.MaxMessageLength;
         }
 
-        public bool Handshake(NetMQSocket handler) => _initiator ? TryClientHandshake(handler) : TryServerHandshake(handler);
-        
+        public bool Handshake(NetMQSocket handler)
+        {
+            return _initiator ? TryClientHandshake(handler) : TryServerHandshake(handler);
+        }
+
+        public void OnMessageReceived(NetMQSocket handler, ReadOnlySpan<byte> payload)
+        {
+            var message = Decrypt(payload);
+            HandleMessage(handler, message);
+        }
+
+        public void OnMessageSending(NetMQSocket handler, ReadOnlySpan<byte> payload)
+        {
+            var message = Encrypt(payload);
+            if (handler.TrySendFrame(_interval, message))
+                _out?.WriteInfoLine($"{_id}: Sent encrypted payload");
+        }
+
         private bool TryServerHandshake(NetMQSocket handler)
         {
             // Receive the first handshake message from the client.
@@ -90,7 +116,7 @@ namespace egregore.Network
             // Send the first handshake message to the server.
             _out?.WriteInfoLine($"{_id}: Sending first handshake");
             var (bytesWritten, _, _) = _state.WriteMessage(null, _buffer.Value);
-            
+
             var data = _buffer.Value.AsSpan(0, bytesWritten).ToArray();
             if (!handler.TrySendFrame(_interval, data))
                 return false;
@@ -106,24 +132,11 @@ namespace egregore.Network
             return true;
         }
 
-        public void OnMessageReceived(NetMQSocket handler, ReadOnlySpan<byte> payload)
-        {
-            var message = Decrypt(payload);
-            HandleMessage(handler, message);
-        }
-
         private void HandleMessage(NetMQSocket handler, ReadOnlySpan<byte> message)
         {
             _out?.WriteInfoLine($"{_id}: Received encrypted payload");
             if (!_initiator)
                 OnMessageSending(handler, Encoding.UTF8.GetBytes("OK"));
-        }
-
-        public void OnMessageSending(NetMQSocket handler, ReadOnlySpan<byte> payload)
-        {
-            var message = Encrypt(payload);
-            if(handler.TrySendFrame(_interval, message))
-                _out?.WriteInfoLine($"{_id}: Sent encrypted payload");
         }
 
         private byte[] Encrypt(ReadOnlySpan<byte> payload)
@@ -139,12 +152,6 @@ namespace egregore.Network
             var bytesRead = _transport.ReadMessage(payload, _buffer.Value);
             var data = _buffer.Value.AsSpan().Slice(0, bytesRead);
             return data.ToArray();
-        }
-
-        public void Dispose()
-        {
-            _state?.Dispose();
-            _transport?.Dispose();
         }
     }
 }

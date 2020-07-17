@@ -1,5 +1,8 @@
 ﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// 
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System;
 using System.IO;
@@ -16,6 +19,19 @@ namespace egregore
         public const uint PublicKeyBytes = 32U;
         public const uint SecretKeyBytes = 64U;
         public const uint EncryptionKeyBytes = 32U;
+
+        private static int _initialized;
+
+        public static void Initialize()
+        {
+            if (Interlocked.CompareExchange(ref _initialized, 1, 0) == 0)
+                unsafe
+                {
+                    NativeLibrary.SetDllImportResolver(typeof(Crypto).Assembly, IntegrityCheck.Preload);
+                    NativeMethods.sodium_init();
+                    NativeMethods.sodium_free(NativeMethods.sodium_malloc(0));
+                }
+        }
 
         #region Utilities
 
@@ -170,7 +186,8 @@ namespace egregore
             }
         }
 
-        public static unsafe void EncryptionPublicKeyFromSigningPublicKey(Span<byte> ed25519PublicKey, Span<byte> x25519PublicKey)
+        public static unsafe void EncryptionPublicKeyFromSigningPublicKey(Span<byte> ed25519PublicKey,
+            Span<byte> x25519PublicKey)
         {
             fixed (byte* xpk = &x25519PublicKey.GetPinnableReference())
             fixed (byte* epk = &ed25519PublicKey.GetPinnableReference())
@@ -179,7 +196,7 @@ namespace egregore
                     throw new InvalidOperationException(nameof(NativeMethods.crypto_sign_ed25519_pk_to_curve25519));
             }
         }
-        
+
         public static unsafe byte* SigningKeyToEncryptionKey(IKeyFileService keyFileService, IKeyCapture capture)
         {
             var sk = keyFileService.GetSecretKeyPointer(capture);
@@ -274,19 +291,5 @@ namespace egregore
         }
 
         #endregion
-        
-        private static int _initialized;
-        public static void Initialize()
-        {
-            if (Interlocked.CompareExchange(ref _initialized, 1, 0) == 0)
-            {
-                unsafe
-                {
-                    NativeLibrary.SetDllImportResolver(typeof(Crypto).Assembly, IntegrityCheck.Preload);
-                    NativeMethods.sodium_init();
-                    NativeMethods.sodium_free(NativeMethods.sodium_malloc(0));
-                }
-            }
-        }
     }
 }

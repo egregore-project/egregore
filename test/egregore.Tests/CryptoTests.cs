@@ -1,5 +1,8 @@
 ﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// 
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System.Linq;
 using System.Text;
@@ -11,11 +14,30 @@ namespace egregore.Tests
 {
     public class CryptoTests
     {
-        private readonly ITestOutputHelper _output;
-
         public CryptoTests(ITestOutputHelper output)
         {
             _output = output;
+        }
+
+        private readonly ITestOutputHelper _output;
+
+        [Fact]
+        public void Can_derive_public_key_from_secret_key()
+        {
+            unsafe
+            {
+                Crypto.GenerateKeyPair(out var pk, out var sk);
+                try
+                {
+                    var publicKey = new byte[Crypto.PublicKeyBytes];
+                    Crypto.SigningPublicKeyFromSigningKey(sk, publicKey);
+                    Assert.True(publicKey.SequenceEqual(pk));
+                }
+                finally
+                {
+                    NativeMethods.sodium_free(sk);
+                }
+            }
         }
 
         [Fact]
@@ -30,13 +52,14 @@ namespace egregore.Tests
         }
 
         [Fact]
-        public void Can_partially_fill_buffer_with_random_bytes()
+        public void Can_generate_key_pair()
         {
-            var target = new byte[256U];
-            var empty = new byte[128U];
-            Crypto.FillNonZeroBytes(target, 128U);
-            Assert.True(target.Skip(128).SequenceEqual(empty)); // second half empty
-            Assert.False(target.Take(128).SequenceEqual(empty)); // first half full
+            unsafe
+            {
+                Crypto.GenerateKeyPair(out var pk, out var sk);
+                Assert.NotEmpty(pk);
+                Assert.False(sk == default(byte*));
+            }
         }
 
         [Fact]
@@ -48,14 +71,13 @@ namespace egregore.Tests
         }
 
         [Fact]
-        public void Can_generate_key_pair()
+        public void Can_partially_fill_buffer_with_random_bytes()
         {
-            unsafe
-            {
-                Crypto.GenerateKeyPair(out var pk, out var sk);
-                Assert.NotEmpty(pk);
-                Assert.False(sk == default(byte*));    
-            }
+            var target = new byte[256U];
+            var empty = new byte[128U];
+            Crypto.FillNonZeroBytes(target, 128U);
+            Assert.True(target.Skip(128).SequenceEqual(empty)); // second half empty
+            Assert.False(target.Take(128).SequenceEqual(empty)); // first half full
         }
 
         [Fact]
@@ -70,25 +92,18 @@ namespace egregore.Tests
         }
 
         [Fact]
-        public void Can_swap_signing_key_for_encryption_key_on_disk()
+        public void Can_sign_and_verify_detached_message()
         {
+            const string message = "Hello, world!";
+
             unsafe
             {
-                var capture = new PlaintextKeyCapture("rosebud", "rosebud");
-                var service = new TempKeyFileService();
-                CryptoTestHarness.GenerateKeyFile(_output, capture, service);
-                capture.Reset();
+                Crypto.GenerateKeyPair(out var pk, out var sk);
 
-                var ek = Crypto.SigningKeyToEncryptionKey(service, capture);
-                try
-                {
-                    Assert.True(ek != default(byte*));
-                }
-                finally
-                {
-                    NativeMethods.sodium_free(ek);
-                }
-                
+                var signature = new byte[Crypto.SecretKeyBytes];
+                Crypto.SignDetached(message, sk, signature);
+
+                Assert.True(Crypto.VerifyDetached(message, signature, pk));
             }
         }
 
@@ -112,37 +127,24 @@ namespace egregore.Tests
         }
 
         [Fact]
-        public void Can_derive_public_key_from_secret_key()
+        public void Can_swap_signing_key_for_encryption_key_on_disk()
         {
             unsafe
             {
-                Crypto.GenerateKeyPair(out var pk, out var sk);
+                var capture = new PlaintextKeyCapture("rosebud", "rosebud");
+                var service = new TempKeyFileService();
+                CryptoTestHarness.GenerateKeyFile(_output, capture, service);
+                capture.Reset();
+
+                var ek = Crypto.SigningKeyToEncryptionKey(service, capture);
                 try
                 {
-                    var publicKey = new byte[Crypto.PublicKeyBytes];
-                    Crypto.SigningPublicKeyFromSigningKey(sk, publicKey);
-                    Assert.True(publicKey.SequenceEqual(pk));
+                    Assert.True(ek != default(byte*));
                 }
                 finally
                 {
-                    NativeMethods.sodium_free(sk);
+                    NativeMethods.sodium_free(ek);
                 }
-            }
-        }
-
-        [Fact]
-        public void Can_sign_and_verify_detached_message()
-        {
-            const string message = "Hello, world!";
-            
-            unsafe
-            {
-                Crypto.GenerateKeyPair(out var pk, out var sk);
-
-                var signature = new byte[Crypto.SecretKeyBytes];
-                Crypto.SignDetached(message, sk, signature);
-
-                Assert.True(Crypto.VerifyDetached(message, signature, pk));
             }
         }
     }

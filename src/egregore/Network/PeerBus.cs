@@ -1,5 +1,8 @@
 ﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// 
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System;
 using System.Collections.Generic;
@@ -16,31 +19,31 @@ using NetMQ.Sockets;
 namespace egregore.Network
 {
     /// <summary>
-    /// Originally based on NetMQ beacon example: https://netmq.readthedocs.io/en/latest/beacon/
+    ///     Originally based on NetMQ beacon example: https://netmq.readthedocs.io/en/latest/beacon/
     /// </summary>
     internal sealed class PeerBus : IDisposable
     {
         public const string PublishCommand = "P";
         public const string GetHostAddressCommand = "GetHostAddress";
-        
-        private PublisherSocket _publisher;
-        private SubscriberSocket _subscriber;
-        private NetMQBeacon _beacon;
-        private NetMQPoller _poll;
-        private PairSocket _shim;
-        private int _port;
+        private readonly NetMQActor _actor;
+        private readonly TimeSpan _beaconInterval = TimeSpan.FromSeconds(1);
+        private readonly int _beaconPort;
+        private readonly TimeSpan _cleanupInterval = TimeSpan.FromSeconds(5);
+        private readonly IHubContext<NotificationHub> _hub;
+        private readonly string _id;
+
+        private readonly Dictionary<PeerInfo, DateTimeOffset> _info;
+        private readonly ILogger<PeerBus> _logger;
 
         private readonly TimeSpan _peerLifetime = TimeSpan.FromSeconds(10);
-        private readonly TimeSpan _cleanupInterval = TimeSpan.FromSeconds(5);
-        private readonly TimeSpan _beaconInterval = TimeSpan.FromSeconds(1);
-        private readonly NetMQActor _actor;
-        
-        private readonly Dictionary<PeerInfo, DateTimeOffset> _info;
-        private readonly int _beaconPort;
-        private readonly IHubContext<NotificationHub> _hub;
-        private readonly ILogger<PeerBus> _logger;
-        private readonly string _id;
-        
+        private NetMQBeacon _beacon;
+        private NetMQPoller _poll;
+        private int _port;
+
+        private PublisherSocket _publisher;
+        private PairSocket _shim;
+        private SubscriberSocket _subscriber;
+
         public PeerBus(IHubContext<NotificationHub> hub, IOptions<WebServerOptions> options, ILogger<PeerBus> logger)
         {
             _id = $"[{options.Value.ServerId}]";
@@ -49,6 +52,16 @@ namespace egregore.Network
             _hub = hub;
             _logger = logger;
             _actor = NetMQActor.Create(RunActor);
+        }
+
+        public void Dispose()
+        {
+            _actor?.Dispose();
+            _publisher?.Dispose();
+            _subscriber?.Dispose();
+            _beacon?.Dispose();
+            _poll?.Dispose();
+            _shim?.Dispose();
         }
 
         private void RunActor(PairSocket shim)
@@ -76,7 +89,7 @@ namespace egregore.Network
                     var cleanupTimer = new NetMQTimer(_cleanupInterval);
                     cleanupTimer.Elapsed += Cleanup;
 
-                    _poll = new NetMQPoller { _shim, _subscriber, _beacon, cleanupTimer };
+                    _poll = new NetMQPoller {_shim, _subscriber, _beacon, cleanupTimer};
                     _shim.SignalOK();
                     _poll.Run();
                 }
@@ -137,10 +150,9 @@ namespace egregore.Network
 
         private void Cleanup(object sender, NetMQTimerEventArgs e)
         {
-            _logger?.LogDebug($"{_id}: Running peer cleanup on thread {Thread.CurrentThread.Name}"); 
+            _logger?.LogDebug($"{_id}: Running peer cleanup on thread {Thread.CurrentThread.Name}");
 
-            var unresponsivePeers = _info.
-                Where(n => DateTimeOffset.Now > n.Value + _peerLifetime)
+            var unresponsivePeers = _info.Where(n => DateTimeOffset.Now > n.Value + _peerLifetime)
                 .Select(n => n.Key);
 
             foreach (var peer in unresponsivePeers)
@@ -150,18 +162,9 @@ namespace egregore.Network
                 _shim.SendMoreFrame("R").SendFrame(peer.Address);
 
                 _logger?.LogInformation($"{_id}: Removed unresponsive peer at '{{PeerAddress}}'", peer.Address);
-                _hub?.Clients.All.SendAsync("ReceiveMessage", "warning", $"Removing unresponsive peer at '{peer.Address}'");
+                _hub?.Clients.All.SendAsync("ReceiveMessage", "warning",
+                    $"Removing unresponsive peer at '{peer.Address}'");
             }
-        }
-
-        public void Dispose()
-        {
-            _actor?.Dispose();
-            _publisher?.Dispose();
-            _subscriber?.Dispose();
-            _beacon?.Dispose();
-            _poll?.Dispose();
-            _shim?.Dispose();
         }
     }
 }

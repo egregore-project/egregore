@@ -1,5 +1,8 @@
 ﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// 
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System;
 using System.Threading.Tasks;
@@ -10,11 +13,35 @@ namespace egregore.Tests.Network
 {
     public sealed class SequenceTests : IClassFixture<SequenceFixture>
     {
-        private readonly SequenceFixture _fixture;
-
         public SequenceTests(SequenceFixture fixture)
         {
             _fixture = fixture;
+        }
+
+        private readonly SequenceFixture _fixture;
+
+        [Theory]
+        [InlineData(1, 1, 2)]
+        [InlineData(1, 2, 3)]
+        [InlineData(2, 1, 3)]
+        [InlineData(2, 2, 4)]
+        public void Can_start_with_and_increment_by(long startWith, long incrementBy, long afterIncrement)
+        {
+            var sequenceName = $"{Guid.NewGuid()}";
+            try
+            {
+                using var sequence = new Sequence(sequenceName, startWith, incrementBy);
+                Assert.Equal(afterIncrement, sequence.GetNextValue());
+            }
+            finally
+            {
+                var destroyMe = new Sequence(sequenceName);
+                using (destroyMe)
+                {
+                }
+
+                destroyMe.Destroy();
+            }
         }
 
         [Fact]
@@ -55,7 +82,9 @@ namespace egregore.Tests.Network
                 await one;
 
                 using (var sequence = new Sequence(sequenceName))
+                {
                     Assert.Equal(2, sequence.Current);
+                }
             }
             finally
             {
@@ -84,33 +113,11 @@ namespace egregore.Tests.Network
                 {
                     return Task.Run(() =>
                     {
-                        using (new Sequence(sequenceName, 5)) { }
+                        using (new Sequence(sequenceName, 5))
+                        {
+                        }
                     });
                 });
-            }
-            finally
-            {
-                var destroyMe = new Sequence(sequenceName);
-                using (destroyMe)
-                {
-                }
-
-                destroyMe.Destroy();
-            }
-        }
-
-        [Theory]
-        [InlineData(1, 1, 2)]
-        [InlineData(1, 2, 3)]
-        [InlineData(2, 1, 3)]
-        [InlineData(2, 2, 4)]
-        public void Can_start_with_and_increment_by(long startWith, long incrementBy, long afterIncrement)
-        {
-            var sequenceName = $"{Guid.NewGuid()}";
-            try
-            {
-                using var sequence = new Sequence(sequenceName, startWith: startWith, incrementBy: incrementBy);
-                Assert.Equal(afterIncrement, sequence.GetNextValue());
             }
             finally
             {

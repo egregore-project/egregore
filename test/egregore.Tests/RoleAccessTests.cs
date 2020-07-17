@@ -1,5 +1,8 @@
 ﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// 
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System.Linq;
 using egregore.IO;
@@ -11,19 +14,19 @@ namespace egregore.Tests
 {
     public class RoleAccessTests
     {
-        private readonly ITestOutputHelper _output;
-
         public RoleAccessTests(ITestOutputHelper output)
         {
             _output = output;
         }
+
+        private readonly ITestOutputHelper _output;
 
         [Fact]
         public void Can_grant_and_revoke_roles_between_users()
         {
             var capture = new PlaintextKeyCapture("rosebud", "rosebud");
             var service = new TempKeyFileService();
-            
+
             var rootPubKey = CryptoTestHarness.GenerateKeyFile(_output, capture, service);
             capture.Reset();
 

@@ -1,5 +1,8 @@
 ﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// 
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System;
 using egregore.Network;
@@ -11,15 +14,29 @@ namespace egregore.Tests.Network
 {
     public class NoiseTests
     {
-        private readonly ITestOutputHelper _console;
-        private readonly string _hostName;
-        private readonly int _port;
-
         public NoiseTests(ITestOutputHelper console)
         {
             _console = console;
             _hostName = "localhost";
             _port = 11000;
+        }
+
+        private readonly ITestOutputHelper _console;
+        private readonly string _hostName;
+        private readonly int _port;
+
+        private static unsafe KeyPair GenerateEncryptionKey()
+        {
+            // convert 64 byte signing key to 32 byte encryption key
+            Crypto.GenerateKeyPair(out var spk, out var sk);
+            var ek = Crypto.SigningKeyToEncryptionKey(sk);
+            NativeMethods.sodium_free(sk);
+
+            // create key pair using the encryption key pair
+            var epk = new byte[Crypto.PublicKeyBytes];
+            Crypto.EncryptionPublicKeyFromSigningPublicKey(spk, epk);
+            var kp = new KeyPair(ek, (int) Crypto.EncryptionKeyBytes, epk);
+            return kp;
         }
 
         [Fact]
@@ -46,20 +63,6 @@ namespace egregore.Tests.Network
                 client.Receive();
                 client.Disconnect();
             }
-        }
-
-        private static unsafe KeyPair GenerateEncryptionKey()
-        {
-            // convert 64 byte signing key to 32 byte encryption key
-            Crypto.GenerateKeyPair(out var spk, out var sk);
-            var ek = Crypto.SigningKeyToEncryptionKey(sk);
-            NativeMethods.sodium_free(sk);
-
-            // create key pair using the encryption key pair
-            var epk = new byte[Crypto.PublicKeyBytes];
-            Crypto.EncryptionPublicKeyFromSigningPublicKey(spk, epk);
-            var kp = new KeyPair(ek, (int) Crypto.EncryptionKeyBytes, epk);
-            return kp;
         }
     }
 }

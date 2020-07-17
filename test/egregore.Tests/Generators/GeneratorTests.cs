@@ -1,4 +1,10 @@
-﻿using egregore.Generators;
+﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
+// 
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+using egregore.Generators;
 using egregore.Ontology;
 using Xunit;
 using Xunit.Abstractions;
@@ -7,19 +13,19 @@ namespace egregore.Tests.Generators
 {
     public class GeneratorTests
     {
-        private readonly ITestOutputHelper _output;
-
         public GeneratorTests(ITestOutputHelper output)
         {
             _output = output;
         }
 
+        private readonly ITestOutputHelper _output;
+
         [Fact]
         public void Can_generate_models_from_schema()
         {
-            var schema = new Schema { Name = "Customer" };
-            schema.Properties.Add(new SchemaProperty { Name = "Name", Type = "string" });
-            
+            var schema = new Schema {Name = "Customer"};
+            schema.Properties.Add(new SchemaProperty {Name = "Name", Type = "string"});
+
             var sb = new IndentAwareStringBuilder();
             var generator = new ModelGenerator();
             generator.Generate(sb, new Namespace(Constants.DefaultNamespace), 1, schema);
