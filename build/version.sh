@@ -27,10 +27,9 @@ full_name=$GITHUB_REPOSITORY
 git_refs_url=$(jq .repository.git_refs_url $GITHUB_EVENT_PATH | tr -d '"' | sed 's/{\/sha}//g')
 
 echo "$dt: pushing tag $new to repo $full_name"
-#echo $git_refs_url
+echo $git_refs_url
 cat $GITHUB_EVENT_PATH | jq '.'
 
-echo "Authorization: token $VERSION_STAMP_TOKEN"
 curl -s -X POST $git_refs_url \
 -H "Authorization: token $VERSION_STAMP_TOKEN" \
 -d @- << EOF
