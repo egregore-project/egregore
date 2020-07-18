@@ -21,6 +21,7 @@ jobs:
         with:
             PROJECT_FILE_PATH: src/egregore/egregore.csproj
             NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+            VERSION_STATIC: $NBGV_Version
         
       - name: Publish win-x64
         run: dotnet publish -c Release -r win-x64 /p:PublishSingleFile=true -o "dist/win-x64"
