@@ -25,6 +25,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Noise.Tests", "submodules\n
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "lib", "lib", "{F836212F-01E6-4CA7-9E38-33C5E4A15E12}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{70DA898A-AE42-4F63-9B12-5E720DC713A3}"
+	ProjectSection(SolutionItems) = preProject
+		build\version.json = build\version.json
+		build\version.sh = build\version.sh
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
