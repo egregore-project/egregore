@@ -41,7 +41,7 @@ namespace egregore.Tests
             Assert.True(grant.Verify(), "grant was not verified");
 
             capture.Reset();
-            var revoke = new RevokeRole(Constants.OwnerRole, rootPubKey, userPubKey);
+            var revoke = new RevokeRole(Constants.DefaultOwnerRole, rootPubKey, userPubKey);
             revoke.Sign(service, capture);
 
             Assert.True(revoke.Authority.SequenceEqual(rootPubKey));

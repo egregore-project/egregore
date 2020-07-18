@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Source: https://gist.github.com/fredeil/26df20ef664b46f5ced338d5a8d8e8e9
+
 # Get the latest tag
 tag=$(git describe --tags `git rev-list --tags --max-count=1`)
 tag_commit=$(git rev-list -n 1 $tag)

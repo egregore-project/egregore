@@ -74,9 +74,29 @@ namespace egregore
                 var arg = arguments.Dequeue();
                 switch (arg.ToLower())
                 {
+                    #region Unattended Commands
+
                     case "--nolock":
                         _exclusiveLock = false;
                         break;
+
+                    case "--port":
+                    case "-p":
+                    {
+                        var portString = arguments.Dequeue();
+                        int.TryParse(portString, out _port);
+                        break;
+                    }
+
+                    #endregion
+
+                    #region CLI Commands
+
+                    case "--append":
+                    case "-a":
+                        Append(arguments);
+                        return false;
+
                     case "--cert":
                     case "--certs":
                     case "-c":
@@ -89,19 +109,15 @@ namespace egregore
                                 freshOrClear?.Equals("fresh", StringComparison.OrdinalIgnoreCase) ?? false);
                         return false;
                     }
-                    case "--port":
-                    case "-p":
+
+                    case "--egg":
+                    case "-e":
                     {
-                        var portString = arguments.Dequeue();
-                        int.TryParse(portString, out _port);
-                        break;
-                    }
-                    case "--server":
-                    case "-s":
-                    {
-                        RunAsServer(null, arguments, null, true);
+                        var eggPath = arguments.EndOfSubArguments() ? Constants.DefaultEggPath : arguments.Dequeue();
+                        EggFileManager.Create(eggPath);
                         return false;
                     }
+
                     case "--keygen":
                     case "-k":
                     {
@@ -111,17 +127,15 @@ namespace egregore
                         KeyFileManager.Create(keyPath, true, false, Constants.ConsoleKeyCapture);
                         return false;
                     }
-                    case "--egg":
-                    case "-e":
+
+                    case "--server":
+                    case "-s":
                     {
-                        var eggPath = arguments.EndOfSubArguments() ? Constants.DefaultEggPath : arguments.Dequeue();
-                        EggFileManager.Create(eggPath);
+                        RunAsServer(null, arguments, null, true);
                         return false;
                     }
-                    case "--append":
-                    case "-a":
-                        Append(arguments);
-                        return false;
+
+                    #endregion
                 }
             }
 
@@ -180,7 +194,7 @@ namespace egregore
 
             capture?.Reset();
 
-            if (!interactive) LaunchBrowserUrl($"https://localhost:{port.GetValueOrDefault(5001)}");
+            if (!interactive) LaunchBrowserUrl($"https://localhost:{port.GetValueOrDefault(Constants.DefaultPort)}");
 
             WebServer.Run(port, eggPath, capture, arguments.ToArray());
         }

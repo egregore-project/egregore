@@ -40,6 +40,12 @@ namespace egregore.IO
                 return false;
             }
 
+            if (File.Exists(eggPath))
+            {
+                Console.Error.WriteErrorLine("Egg file already exists at this path. For safety, you must manually remove it before generating a new egg with this path.");
+                return false;
+            }
+
             Monitor.Enter(Lock);
             try
             {
@@ -51,11 +57,7 @@ namespace egregore.IO
             catch (SqliteException e)
             {
                 Trace.TraceError(e.ToString());
-                Console.Error.WriteErrorLine(
-                    RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
-                        ? $"Failed to create egg file at '{eggPath}'. SQLite must run on a volume with nobrl enabled. Use the '{Constants.EnvVars.EggFilePath}' environment variable to specify a compatible storage path. {e}"
-                        : $"Failed to create egg file at '{eggPath}': {e}");
-
+                Console.Error.WriteErrorLine($"Failed to create egg file at '{eggPath}': {e}");
                 return false;
             }
             catch (Exception e)

@@ -59,7 +59,7 @@ namespace egregore.Tests
             var publicKey = CryptoTestHarness.GenerateKeyFile(_output, capture, service);
             capture.Reset();
 
-            var revoke = new RevokeRole(Constants.OwnerRole, publicKey, publicKey);
+            var revoke = new RevokeRole(Constants.DefaultOwnerRole, publicKey, publicKey);
             revoke.Sign(service, capture);
             Assert.True(revoke.Verify(), "revocation did not verify");
 

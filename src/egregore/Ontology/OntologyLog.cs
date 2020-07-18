@@ -30,12 +30,12 @@ namespace egregore.Ontology
             Revisions.TryAdd(Constants.DefaultNamespace, new Dictionary<string, ulong>());
 
             Roles = new Dictionary<string, List<string>>();
-            Roles.TryAdd(Constants.DefaultNamespace, new List<string> {Constants.OwnerRole});
+            Roles.TryAdd(Constants.DefaultNamespace, new List<string> {Constants.DefaultOwnerRole});
 
             RoleGrants = new Dictionary<string, Dictionary<string, List<string>>>();
             RoleGrants.TryAdd(Constants.DefaultNamespace, new Dictionary<string, List<string>>
             {
-                {Constants.OwnerRole, new List<string> {publicKey.ToHexString()}}
+                {Constants.DefaultOwnerRole, new List<string> {publicKey.ToHexString()}}
             });
         }
 
@@ -101,7 +101,7 @@ namespace egregore.Ontology
 
                             if (RoleGrants.TryGetValue(_namespace.Value, out var lookup) &&
                                 lookup.Count == 1 &&
-                                lookup[Constants.OwnerRole].Count == 1)
+                                lookup[Constants.DefaultOwnerRole].Count == 1)
                                 throw new CannotRemoveSingleOwnerException("cannot revoke admin rights of only owner");
 
                             break;

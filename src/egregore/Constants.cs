@@ -13,8 +13,10 @@ namespace egregore
     {
         public const string DefaultNamespace = "Default";
         public const string DefaultSequence = "global";
-        public const string OwnerRole = "owner";
+        public const string DefaultOwnerRole = "owner";
 
+        public const int DefaultPort = 5001;
+        
         public static readonly string DefaultKeyFilePath = Path.Combine(".egregore", "egregore.key");
         public static readonly string DefaultEggPath = Path.Combine(".egregore", "default.egg");
         public static readonly IKeyCapture ConsoleKeyCapture = new ConsoleKeyCapture();
