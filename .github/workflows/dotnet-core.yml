@@ -41,6 +41,8 @@ jobs:
     
     - name: Execute shell script
       run: ./build/version.sh
+      env:
+        VERSION_STAMP_TOKEN: ${{ secrets.VERSION_STAMP_TOKEN }}
       shell: bash
       # END
         
