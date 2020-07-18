@@ -26,7 +26,8 @@ jobs:
       run: dotnet tool install --global dotnet-reportgenerator-globaltool
     
       # BEGIN (Source: https://gist.github.com/fredeil/26df20ef664b46f5ced338d5a8d8e8e9)
-    - uses: aarnott/nbgv@master
+    - name: Install versioning tool 
+      uses: aarnott/nbgv@master
       with:
         setAllVars: true
     
