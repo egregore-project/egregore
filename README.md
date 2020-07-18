@@ -21,7 +21,7 @@ For deployments, running unattended is necessary to avoid prompting for a passwo
 
 - `--nolock`: This flag prevents the server attempting to obtain an exclusive lock on the keyfile prior to booting. This should not be used except when testing multiple servers instances in development environment, as not-obtaining an exclusive lock on the file allows others to modify or remove the file while the server is running.
 
-- `--port`: Specified the port the server listens on for incoming requests. Defaults to '5001'.
+- `--port`: Specified the port the server listens on for incoming requests. Defaults to `5001`.
 
 In addition, your environment must have configuration settings exposed as environment variables, for the following keys:
 
