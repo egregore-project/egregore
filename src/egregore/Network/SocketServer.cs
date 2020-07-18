@@ -40,9 +40,9 @@ namespace egregore.Network
         public void Dispose()
         {
             _source?.Cancel(true);
-            while (!_task.IsCanceled && !_task.IsCompleted && !_task.IsFaulted)
+            while (_task != default && !_task.IsCanceled && !_task.IsCompleted && !_task.IsFaulted)
                 _stopping.WaitOne(10);
-            _outgoing.Dispose();
+            _outgoing?.Dispose();
             _stopping?.Dispose();
             _task?.Dispose();
         }
