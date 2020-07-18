@@ -31,7 +31,7 @@ echo $git_refs_url
 cat $GITHUB_EVENT_PATH | jq '.'
 
 curl -s -X POST $git_refs_url \
--H "Authorization: token $VERSION_STAMP_TOKEN" \
+-H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
 -d @- << EOF
 
 {
