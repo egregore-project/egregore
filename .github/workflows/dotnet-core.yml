@@ -1,5 +1,4 @@
-name: .NET Core
-
+name: Build & Test
 on:
   push:
     branches: [ master ]
@@ -39,14 +38,5 @@ jobs:
       uses: actions/upload-artifact@master
       with:
         name: Coverage
-        path: coverage-reports
-        
-    - name: Publish win-x64
-      run: dotnet publish -c Release -o "dist/win-x64"
-    
-    - name: Upload win-x64
-      uses: actions/upload-artifact@master
-      with:
-        name: win-x64
-        path: dist/win-x64
+        path: coverage-reports    
     
