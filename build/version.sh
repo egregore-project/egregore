@@ -30,6 +30,7 @@ echo "$dt: pushing tag $new to repo $full_name"
 echo $git_refs_url
 cat $GITHUB_EVENT_PATH | jq '.'
 
+echo "debug token: $VERSION_STAMP_TOKEN"
 curl -s -X POST $git_refs_url \
 -H "Authorization: token $VERSION_STAMP_TOKEN" \
 -d @- << EOF
