@@ -12,7 +12,7 @@ if [ "$tag_commit" == "$commit" ]; then
     exit 1
 fi
 
-if [ ! -f "version.json" ]; then
+if [ ! -f "./build/version.json" ]; then
     echo "Could not find version.json file.."
     exit 1
 fi
