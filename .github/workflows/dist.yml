@@ -1,0 +1,33 @@
+name: Publish distros
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - master
+jobs:
+  deploy-win-x64:
+    runs-on: windows-latest
+    if: github.event.pull_request.merged
+    steps:
+      - name: checkout
+        if: github.event.pull_request.merged
+        uses: actions/checkout@v1
+        with:
+          ref: master
+
+      - name: Publish NuGet
+        uses: brandedoutcast/publish-nuget@v2.5.2
+        with:
+            PROJECT_FILE_PATH: src/egregore/egregore.csproj
+            NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+        
+      - name: Publish win-x64
+        run: dotnet publish -c Release -r win-x64 /p:PublishSingleFile=true -o "dist/win-x64"
+
+      - name: Upload win-x64
+        uses: actions/upload-artifact@master
+        with:
+          name: win-x64
+          path: dist/win-x64
+    
