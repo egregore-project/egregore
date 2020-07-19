@@ -11,22 +11,11 @@ namespace egregore.Tests.Compliance
     {
         private readonly ITestOutputHelper _console;
 
-        private static readonly string[] DependencyPackageIds = { "Dapper", "libsodium", "LightningDB", "NetMQ", "WyHash"};
-        private static readonly string[] DependencyPackageVersions = { "2.0.35", "1.0.18", "0.12.0", "4.0.0.207", "1.0.4"};
-
+        private static readonly string[] DependencyPackageIds = { "egregore"};
+        
         public ThirdPartyFileGenerator(ITestOutputHelper console)
         {
             _console = console;
-        }
-
-        [Fact]
-        public async Task Shallow_license_scan()
-        {
-            var @out = new XunitDuplexTextWriter(_console, Console.Out);
-            await OpenSourceCompliance.ShallowLicenseScan(
-                DependencyPackageIds, 
-                DependencyPackageVersions,
-                @out);
         }
 
         [Fact]

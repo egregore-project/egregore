@@ -24,7 +24,7 @@ namespace egregore.Tests.Compliance
                 var dependencySources = await NuGetClient.SearchForDependencyInfoAsync(packageId);
 
                 if (versions[i] == null || versions[i] == "latest")
-                    dependencySources = dependencySources.OrderByDescending(x => x.Identity.Version).Take(1);
+                    dependencySources = dependencySources.OrderByDescending(x => x.Identity.Version).Where(x => x.Listed).Take(1);
                 else
                     dependencySources = dependencySources.Where(x => x.Identity.Version.ToString() == versions[i]).Take(1);
 
@@ -91,8 +91,9 @@ namespace egregore.Tests.Compliance
 
             const string header = @"##################################################################
 
-egregore-project uses third-party libraries and other materials, distributed 
-under different licenses than egregore-project licensed components.
+egregore-project uses third-party libraries and other materials, 
+distributed under different licenses than egregore-project licensed
+components.
 
 If we have omitted a notice here, please let us know by submitting
 an issue on GitHub.
@@ -105,7 +106,7 @@ an issue on GitHub.
 
             var unlicensed = new HashSet<LicenseEntry>();
 
-            await using var fs = File.OpenWrite(fileName);
+            await using var fs = File.OpenWrite(Path.Combine("..\\..\\..\\..\\..\\", fileName));
             await using var sw = new StreamWriter(fs, Encoding.UTF8);
 
             sw.WriteLine(header);
@@ -216,11 +217,14 @@ an issue on GitHub.
                 }
             }
 
-            sw.WriteLine();
-            sw.WriteLine("Unlicensed Dependencies:");
-            sw.WriteLine("------------------------");
-            foreach (var item in unlicensed)
-                sw.WriteLine($"{item.PackageDependency.Id} {item.PackageDependency.VersionRange.ToNormalizedString()}");
+            if (unlicensed.Count > 0)
+            {
+                sw.WriteLine();
+                sw.WriteLine("Unlicensed Dependencies:");
+                sw.WriteLine("------------------------");
+                foreach (var item in unlicensed)
+                    sw.WriteLine($"{item.PackageDependency.Id} {item.PackageDependency.VersionRange.ToNormalizedString()}");
+            }
         }
 
         private static string GetDotNetLibraryLicense()
