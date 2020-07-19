@@ -43,10 +43,7 @@ jobs:
       # END
       
       - name: Pack NuGet
-        run: dotnet pack ./src/egregore/egregore.csproj /p:FileVersion=$NBGV_ASSEMBLYFILEVERSION /p:InformationalVersion=$NBGV_AssemblyInformationalVersion /p:AssemblyVersion=$NBGV_ASSEMBLYVERSION /p:PackageVersion=$NBGV_NuGetPackageVersion --configuration Release --include-source --include-symbols -o ./artifacts
-
-      - name: Pack NuGet (implicit build and restore)
-        run: dotnet pack -c Release --include-source --include-symbols
+        run: dotnet pack ./src/egregore/egregore.csproj -p:FileVersion=${{env.NBGV_AssemblyFileVersion}} -p:InformationalVersion=${{env.NBGV_AssemblyInformationalVersion}} -p:AssemblyVersion=${{env.NBGV_AssemblyVersion}} -p:PackageVersion=${{env.NBGV_NuGetPackageVersion}} --configuration Release --include-source --include-symbols -o ./artifacts
 
       - name: Publish NuGet
         run: dotnet nuget push ./artifacts/egregore.*.nupkg -k ${{secrets.NUGET_API_KEY}} -s https://api.nuget.org/v3/index.json --skip-duplicate
