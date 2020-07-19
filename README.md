@@ -2,7 +2,7 @@
 
 The reference implementation of the Egregore project.
 
-![.NET Core](https://github.com/egregore-project/egregore/workflows/.NET%20Core/badge.svg?branch=master)
+![Build & Test](https://github.com/egregore-project/egregore/workflows/Build%20&%20Test/badge.svg)
 
 
 #### CLI commands
