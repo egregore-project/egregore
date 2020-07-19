@@ -46,7 +46,10 @@ jobs:
         run: dotnet pack ./src/egregore/egregore.csproj -p:FileVersion=${{env.NBGV_AssemblyFileVersion}} -p:InformationalVersion=${{env.NBGV_AssemblyInformationalVersion}} -p:AssemblyVersion=${{env.NBGV_AssemblyVersion}} -p:PackageVersion=${{env.NBGV_NuGetPackageVersion}} --configuration Release --include-source --include-symbols -o ./artifacts
 
       - name: Publish NuGet
-        run: dotnet nuget push ./artifacts/egregore.*.nupkg -k ${{secrets.NUGET_API_KEY}} -s https://api.nuget.org/v3/index.json --skip-duplicate
+        run: dotnet nuget push ./artifacts/*.nupkg -k ${{secrets.NUGET_API_KEY}} -s https://api.nuget.org/v3/index.json --skip-duplicate
+
+      - name: Publish NuGet Symbols
+        run: dotnet nuget push ./artifacts/*.snupkg -k ${{secrets.NUGET_API_KEY}} -s https://api.nuget.org/v3/index.json --skip-duplicate
         
   deploy-win-x64:
     runs-on: windows-latest
