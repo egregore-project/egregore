@@ -8,6 +8,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using egregore.Data;
+using egregore.Tests.Data;
 
 namespace egregore.Tests.Helpers
 {
