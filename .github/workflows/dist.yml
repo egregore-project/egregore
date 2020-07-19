@@ -1,4 +1,4 @@
-name: Publish distros
+name: Publish
 
 on:
   pull_request:
@@ -6,7 +6,7 @@ on:
     branches:
       - master
 jobs:
-publish-nuget:
+  publish-nuget:
     runs-on: windows-latest
     if: github.event.pull_request.merged
     steps:
@@ -49,7 +49,7 @@ publish-nuget:
       - name: Publish NuGet
         run: dotnet nuget push ./artifacts/egregore.*.nupkg -k ${{secrets.NUGET_API_KEY}} -s https://api.nuget.org/v3/index.json --skip-duplicate
         
-deploy-win-x64:
+  deploy-win-x64:
     runs-on: windows-latest
     if: github.event.pull_request.merged
     steps:
@@ -74,7 +74,7 @@ deploy-win-x64:
           name: win-x64
           path: dist/win-x64
 
-deploy-ubuntu-x64:
+  deploy-ubuntu-x64:
     runs-on: ubuntu-latest
     if: github.event.pull_request.merged
     steps:
