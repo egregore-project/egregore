@@ -8,6 +8,8 @@ on:
 jobs:
   publish-nuget:
     runs-on: windows-latest
+    env:
+      DOTNET_NOLOGO: true
     if: github.event.pull_request.merged
     steps:
       - name: checkout
@@ -51,6 +53,8 @@ jobs:
         
   deploy-win-x64:
     runs-on: windows-latest
+    env:
+      DOTNET_NOLOGO: true
     needs: publish-nuget
     if: github.event.pull_request.merged
     steps:
@@ -77,6 +81,8 @@ jobs:
 
   deploy-ubuntu-x64:
     runs-on: ubuntu-latest
+    env:
+      DOTNET_NOLOGO: true
     needs: deploy-win-x64
     if: github.event.pull_request.merged
     steps:
