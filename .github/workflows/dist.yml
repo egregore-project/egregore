@@ -50,7 +50,7 @@ jobs:
         run: dotnet nuget push ./artifacts/egregore.${{env.NBGV_NuGetPackageVersion}}.nupkg -k ${{secrets.NUGET_API_KEY}} -s https://api.nuget.org/v3/index.json --skip-duplicate
 
       - name: Set NBGV_GitCommitIdShort
-        run: echo '::set-env name=NBGV_GitCommitIdShort::${{env.NBGV_GitCommitIdShort}}'
+        run: echo "$NBGV_GitCommitIdShort" > .version/commit.txt
 
   deploy-win-x64:
     runs-on: windows-latest
@@ -70,6 +70,9 @@ jobs:
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: 3.1.x
+
+      - name: Get NBGV_GitCommitIdShort
+        run: echo "::set-env name=NBGV_GitCommitIdShort::$(<.version/commit.txt)"
       
       - name: Publish win-x64
         run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r win-x64 -p:PublishReadyToRun=true -p:PublishReadyToRunShowWarnings=true -p:PublishSingleFile=true -p:PublishTrimmed=true -o "dist/win-x64-${{env.NBGV_GitCommitIdShort}}"
@@ -97,6 +100,9 @@ jobs:
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: 3.1.x
+
+      - name: Get NBGV_GitCommitIdShort
+        run: echo "::set-env name=NBGV_GitCommitIdShort::$(<.version/commit.txt)"
         
       - name: Publish linux-x64
         run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r linux-x64 -p:PublishReadyToRun=true -p:PublishReadyToRunShowWarnings=true -p:PublishSingleFile=true -p:PublishTrimmed=true -o "dist/linux-x64-${{env.NBGV_GitCommitIdShort}}" 
@@ -125,6 +131,9 @@ jobs:
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: 3.1.x
+
+      - name: Get NBGV_GitCommitIdShort
+        run: echo "::set-env name=NBGV_GitCommitIdShort::$(<.version/commit.txt)"
         
       - name: Publish osx-x64
         run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r osx-x64 -p:PublishReadyToRun=true -p:PublishSingleFile=true -p:PublishTrimmed=true -o "dist/osx-x64-${{env.NBGV_GitCommitIdShort}}" 
