@@ -43,27 +43,6 @@ jobs:
       - name: Pack NuGet (implicit build and restore)
         run: dotnet pack -c Release --include-source --include-symbols
 
-      # BEGIN (Source: https://gist.github.com/fredeil/26df20ef664b46f5ced338d5a8d8e8e9)
-      - name: Install versioning tool 
-        uses: aarnott/nbgv@master
-        with:
-        setAllVars: true
-    
-      - name: Chmod shell script
-        run: chmod +x ./build/version.sh
-        shell: bash
-        continue-on-error: true
-    
-      - name: Execute shell script
-        run: ./build/version.sh
-        env:
-          VERSION_STAMP_TOKEN: ${{ secrets.VERSION_STAMP_TOKEN }}
-        shell: bash
-      # END
-
-      - name: Pack NuGet (implicit build and restore)
-        run: dotnet pack -c Release --include-source --include-symbols
-
       - name: Publish NuGet
         uses: brandedoutcast/publish-nuget@v2.5.2
         with:
