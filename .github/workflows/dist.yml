@@ -14,7 +14,13 @@ jobs:
         if: github.event.pull_request.merged
         uses: actions/checkout@v1
         with:
-          ref: master
+          ref: master    
+          submodules: 'recursive'
+      
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 3.1.101
 
       # BEGIN (Source: https://gist.github.com/fredeil/26df20ef664b46f5ced338d5a8d8e8e9)
       - name: Install versioning tool 
@@ -33,6 +39,9 @@ jobs:
           VERSION_STAMP_TOKEN: ${{ secrets.VERSION_STAMP_TOKEN }}
         shell: bash
       # END
+        
+      - name: Pack NuGet (implicit build & restore)
+        run: dotnet pack -c Release
 
       - name: Publish NuGet
         uses: brandedoutcast/publish-nuget@v2.5.2
