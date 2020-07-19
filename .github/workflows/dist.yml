@@ -47,7 +47,7 @@ jobs:
 
       - name: Publish NuGet Packages
         run: dotnet nuget push ./artifacts/egregore.${{env.NBGV_NuGetPackageVersion}}.nupkg -k ${{secrets.NUGET_API_KEY}} -s https://api.nuget.org/v3/index.json --skip-duplicate
-        
+  
   deploy-win-x64:
     runs-on: windows-latest
     env:
