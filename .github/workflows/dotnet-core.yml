@@ -8,7 +8,8 @@ on:
 jobs:
   build:
     runs-on: windows-latest
-    
+    env:
+      DOTNET_NOLOGO: true
     steps:
     - uses: actions/checkout@v2
       with: 
@@ -17,7 +18,7 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 3.1.302
+        dotnet-version: 3.1.x
 
     - name: Install dependencies
       run: dotnet restore
@@ -26,10 +27,10 @@ jobs:
       run: dotnet tool install --global dotnet-reportgenerator-globaltool     
         
     - name: Build
-      run: dotnet build --configuration Release --no-restore
+      run: dotnet build ./src/egregore/egregore.csproj --configuration Release --no-restore
       
     - name: Test
-      run: dotnet test --no-restore --verbosity normal --collect:"XPlat Code Coverage"
+      run: dotnet test ./test/egregore.Tests/egregore.Tests.csproj --no-restore --verbosity normal --collect:"XPlat Code Coverage"
       continue-on-error: true     
 
     - name: Coverage Report

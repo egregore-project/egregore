@@ -8,6 +8,8 @@ on:
 jobs:
   publish-nuget:
     runs-on: windows-latest
+    env:
+      DOTNET_NOLOGO: true
     if: github.event.pull_request.merged
     steps:
       - name: checkout
@@ -20,7 +22,7 @@ jobs:
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: 3.1.302
+          dotnet-version: 3.1.x
 
       # BEGIN (Source: https://gist.github.com/fredeil/26df20ef664b46f5ced338d5a8d8e8e9)
       - name: Install versioning tool 
@@ -41,7 +43,7 @@ jobs:
       # END
       
       - name: Pack NuGet
-        run: dotnet pack ./src/egregore/egregore.csproj -p:PackageVersion=$NBGV_Version --configuration Release --include-source --include-symbols -o ./artifacts
+        run: dotnet pack ./src/egregore/egregore.csproj -p:PackageVersion=$(NBGV_NuGetPackageVersion) --configuration Release --include-source --include-symbols -o ./artifacts
 
       - name: Pack NuGet (implicit build and restore)
         run: dotnet pack -c Release --include-source --include-symbols
@@ -51,6 +53,9 @@ jobs:
         
   deploy-win-x64:
     runs-on: windows-latest
+    env:
+      DOTNET_NOLOGO: true
+    needs: publish-nuget
     if: github.event.pull_request.merged
     steps:
       - name: checkout
@@ -63,10 +68,10 @@ jobs:
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: 3.1.302
+          dotnet-version: 3.1.x
       
       - name: Publish win-x64
-        run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r win-x64 /p:PublishSingleFile=true -o "dist/win-x64"
+        run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r win-x64 /p:PublishSingleFile=true /p:PublishTrimmed=true -o "dist/win-x64"
 
       - name: Upload win-x64
         uses: actions/upload-artifact@master
@@ -76,6 +81,9 @@ jobs:
 
   deploy-ubuntu-x64:
     runs-on: ubuntu-latest
+    env:
+      DOTNET_NOLOGO: true
+    needs: deploy-win-x64
     if: github.event.pull_request.merged
     steps:
       - name: checkout
@@ -88,7 +96,7 @@ jobs:
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: 3.1.302
+          dotnet-version: 3.1.x
         
       - name: Publish linux-x64
         run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r linux-x64 /p:PublishSingleFile=true -o "dist/linux-x64"
