@@ -6,11 +6,13 @@
 
 using System.Threading.Tasks;
 using egregore.Data;
+using egregore.Tests.Helpers;
 using Xunit;
 using Record = egregore.Data.Record;
 
 namespace egregore.Tests.Data
 {
+    [Collection("Serial")]
     public class RecordStoreTests
     {
         [Fact]

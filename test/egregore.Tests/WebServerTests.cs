@@ -5,10 +5,12 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System.Threading.Tasks;
+using egregore.Tests.Helpers;
 using Xunit;
 
 namespace egregore.Tests
 {
+    [Collection("Serial")]
     public sealed class WebServerTests : IClassFixture<WebServerFactory>
     {
         private readonly WebServerFactory _factory;

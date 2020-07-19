@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Hosting;
 using Xunit;
 
-namespace egregore.Tests
+namespace egregore.Tests.Helpers
 {
     public sealed class WebServerFactory : WebApplicationFactory<WebServer>
     {

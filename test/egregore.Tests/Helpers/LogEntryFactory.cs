@@ -6,7 +6,7 @@
 
 using egregore.Ontology;
 
-namespace egregore.Tests
+namespace egregore.Tests.Helpers
 {
     internal static class LogEntryFactory
     {

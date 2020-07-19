@@ -9,7 +9,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 
-namespace egregore.Tests
+namespace egregore.Tests.Helpers
 {
     internal sealed class TempKeyFileService : IKeyFileService
     {

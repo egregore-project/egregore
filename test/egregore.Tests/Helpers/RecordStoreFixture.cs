@@ -7,7 +7,7 @@
 using System;
 using egregore.Data;
 
-namespace egregore.Tests.Data
+namespace egregore.Tests.Helpers
 {
     public sealed class RecordStoreFixture : IDisposable
     {
