@@ -1,7 +1,5 @@
-name: Build & Test
+name: PR Checks
 on:
-  push:
-    branches: [ master ]
   pull_request:
     branches: [ master ]
 
