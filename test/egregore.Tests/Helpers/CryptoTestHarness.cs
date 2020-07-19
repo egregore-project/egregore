@@ -9,7 +9,7 @@ using egregore.IO;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace egregore.Tests
+namespace egregore.Tests.Helpers
 {
     public static class CryptoTestHarness
     {

@@ -6,6 +6,7 @@
 
 using Dapper;
 using egregore.Data;
+using egregore.Tests.Helpers;
 using Xunit;
 using Record = egregore.Data.Record;
 
@@ -14,6 +15,7 @@ using Record = egregore.Data.Record;
 
 namespace egregore.Tests.Data
 {
+    [Collection("Serial")]
     public class SqliteProjectionTests
     {
         private static void Create_customer_v1_record(SqliteProjectionFixture fixture)

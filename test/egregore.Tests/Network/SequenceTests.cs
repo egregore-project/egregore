@@ -7,10 +7,12 @@
 using System;
 using System.Threading.Tasks;
 using egregore.Network;
+using egregore.Tests.Helpers;
 using Xunit;
 
 namespace egregore.Tests.Network
 {
+    [Collection("Serial")]
     public sealed class SequenceTests : IClassFixture<SequenceFixture>
     {
         public SequenceTests(SequenceFixture fixture)

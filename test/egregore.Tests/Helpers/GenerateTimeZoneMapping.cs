@@ -14,7 +14,7 @@ using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace egregore.Tests.Data
+namespace egregore.Tests.Helpers
 {
     public class GenerateTimeZoneMapping
     {

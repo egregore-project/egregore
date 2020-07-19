@@ -7,10 +7,12 @@
 using System.Linq;
 using System.Threading.Tasks;
 using egregore.Ontology;
+using egregore.Tests.Helpers;
 using Xunit;
 
 namespace egregore.Tests.Ontology
 {
+    [Collection("Serial")]
     public class LogStoreTests
     {
         [Fact]

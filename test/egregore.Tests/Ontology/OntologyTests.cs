@@ -9,11 +9,13 @@ using System.Threading.Tasks;
 using egregore.IO;
 using egregore.Ontology;
 using egregore.Ontology.Exceptions;
+using egregore.Tests.Helpers;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace egregore.Tests
+namespace egregore.Tests.Ontology
 {
+    [Collection("Serial")]
     public class OntologyTests
     {
         public OntologyTests(ITestOutputHelper output)

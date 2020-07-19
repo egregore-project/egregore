@@ -7,11 +7,13 @@
 using System;
 using System.IO;
 using egregore.IO;
+using egregore.Tests.Helpers;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace egregore.Tests
 {
+    [Collection("Serial")]
     public class PasswordStorageTests
     {
         private readonly ITestOutputHelper _output;

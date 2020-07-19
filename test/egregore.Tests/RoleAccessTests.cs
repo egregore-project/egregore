@@ -7,11 +7,13 @@
 using System.Linq;
 using egregore.IO;
 using egregore.Ontology;
+using egregore.Tests.Helpers;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace egregore.Tests
 {
+    [Collection("Serial")]
     public class RoleAccessTests
     {
         public RoleAccessTests(ITestOutputHelper output)

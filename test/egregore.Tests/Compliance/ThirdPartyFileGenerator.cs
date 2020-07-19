@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using egregore.Tests.Helpers;
 using Xunit;
 using Xunit.Abstractions;
 

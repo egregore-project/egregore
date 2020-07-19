@@ -7,11 +7,13 @@
 using System.Linq;
 using System.Text;
 using egregore.IO;
+using egregore.Tests.Helpers;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace egregore.Tests
 {
+    [Collection("Serial")]
     public class CryptoTests
     {
         public CryptoTests(ITestOutputHelper output)
@@ -112,7 +114,7 @@ namespace egregore.Tests
         {
             unsafe
             {
-                Crypto.GenerateKeyPair(out var pk, out var sk);
+                Crypto.GenerateKeyPair(out _, out var sk);
                 var ek = Crypto.SigningKeyToEncryptionKey(sk);
                 try
                 {

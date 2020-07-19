@@ -6,11 +6,13 @@
 
 using System;
 using egregore.Network;
+using egregore.Tests.Helpers;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace egregore.Tests.Network
 {
+    [Collection("Serial")]
     public class SocketTests
     {
         public SocketTests(ITestOutputHelper console)

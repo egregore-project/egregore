@@ -6,12 +6,14 @@
 
 using System;
 using egregore.Network;
+using egregore.Tests.Helpers;
 using Noise;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace egregore.Tests.Network
 {
+    [Collection("Serial")]
     public class NoiseTests
     {
         public NoiseTests(ITestOutputHelper console)

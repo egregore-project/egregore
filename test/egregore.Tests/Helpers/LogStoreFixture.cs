@@ -7,7 +7,7 @@
 using System;
 using egregore.Ontology;
 
-namespace egregore.Tests
+namespace egregore.Tests.Helpers
 {
     public sealed class LogStoreFixture : IDisposable
     {

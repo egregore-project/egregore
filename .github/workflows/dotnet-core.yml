@@ -31,7 +31,6 @@ jobs:
       
     - name: Test
       run: dotnet test ./test/egregore.Tests/egregore.Tests.csproj --no-restore --verbosity normal --collect:"XPlat Code Coverage"
-      continue-on-error: true     
 
     - name: Coverage Report
       run: ~/.dotnet/tools/reportgenerator "-reports:**/coverage.cobertura.xml" "-targetdir:coverage-reports"
