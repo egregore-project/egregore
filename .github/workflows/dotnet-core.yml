@@ -17,7 +17,7 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 3.1.101
+        dotnet-version: 3.1.302
 
     - name: Install dependencies
       run: dotnet restore
@@ -39,5 +39,4 @@ jobs:
       uses: actions/upload-artifact@master
       with:
         name: Coverage
-        path: coverage-reports    
-    
+        path: coverage-reports
