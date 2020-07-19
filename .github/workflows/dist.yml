@@ -39,9 +39,9 @@ jobs:
           VERSION_STAMP_TOKEN: ${{ secrets.VERSION_STAMP_TOKEN }}
         shell: bash
       # END
-        
-      - name: Pack NuGet (implicit build & restore)
-        run: dotnet pack -c Release
+      
+      - name: Pack NuGet (implicit build and restore)
+        run: dotnet pack -c Release --include-source --include-symbols
 
       # BEGIN (Source: https://gist.github.com/fredeil/26df20ef664b46f5ced338d5a8d8e8e9)
       - name: Install versioning tool 
