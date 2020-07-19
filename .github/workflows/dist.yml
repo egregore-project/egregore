@@ -67,7 +67,7 @@ jobs:
           dotnet-version: 3.1.302
       
       - name: Publish win-x64
-        run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r win-x64 /p:PublishSingleFile=true -o "dist/win-x64"
+        run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r win-x64 /p:PublishSingleFile=true /p:PublishTrimmed=true -o "dist/win-x64"
 
       - name: Upload win-x64
         uses: actions/upload-artifact@master
