@@ -103,3 +103,31 @@ jobs:
         with:
           name: linux-x64
           path: dist/linux-x64
+
+  deploy-osx-x64:
+    runs-on: macos-latest
+    env:
+      DOTNET_NOLOGO: true
+    needs: deploy-win-x64
+    if: github.event.pull_request.merged
+    steps:
+      - name: checkout
+        if: github.event.pull_request.merged
+        uses: actions/checkout@v1
+        with:
+          ref: master    
+          submodules: 'recursive'
+      
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 3.1.x
+        
+      - name: Publish osx-x64
+        run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r osx-x64 -p:PublishReadyToRun=true -p:PublishSingleFile=true -p:PublishTrimmed=true -o "dist/osx-x64-${{env.NBGV_GitCommitIdShort}}" 
+
+      - name: Upload osx-x64
+        uses: actions/upload-artifact@master
+        with:
+          name: osx-x64
+          path: dist/osx-x64
