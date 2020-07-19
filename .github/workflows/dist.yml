@@ -20,7 +20,7 @@ jobs:
       - name: Install versioning tool 
         uses: aarnott/nbgv@master
         with:
-        setAllVars: true
+          setAllVars: true
     
       - name: Chmod shell script
         run: chmod +x ./build/version.sh
