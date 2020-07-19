@@ -7,11 +7,10 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Threading;
 using egregore.Extensions;
 using egregore.Ontology;
-using Microsoft.Data.Sqlite;
+using LightningDB;
 
 namespace egregore.IO
 {
@@ -54,7 +53,7 @@ namespace egregore.IO
                 Console.Out.WriteLine("Created egg file '{0}'", Path.GetFileName(eggPath));
                 return true;
             }
-            catch (SqliteException e)
+            catch (LightningException e)
             {
                 Trace.TraceError(e.ToString());
                 Console.Error.WriteErrorLine($"Failed to create egg file at '{eggPath}': {e}");
