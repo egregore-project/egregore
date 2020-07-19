@@ -20,7 +20,7 @@ jobs:
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: 3.1.302
+          dotnet-version: 3.1.x
 
       # BEGIN (Source: https://gist.github.com/fredeil/26df20ef664b46f5ced338d5a8d8e8e9)
       - name: Install versioning tool 
@@ -64,7 +64,7 @@ jobs:
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: 3.1.302
+          dotnet-version: 3.1.x
       
       - name: Publish win-x64
         run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r win-x64 /p:PublishSingleFile=true /p:PublishTrimmed=true -o "dist/win-x64"
@@ -90,7 +90,7 @@ jobs:
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: 3.1.302
+          dotnet-version: 3.1.x
         
       - name: Publish linux-x64
         run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r linux-x64 /p:PublishSingleFile=true -o "dist/linux-x64"
