@@ -34,12 +34,16 @@ jobs:
         shell: bash
       # END
 
+      - name: Pack NuGet (implicit build and restore)
+        run: dotnet pack -c Release --include-source --include-symbols
+
       - name: Publish NuGet
         uses: brandedoutcast/publish-nuget@v2.5.2
         with:
             PROJECT_FILE_PATH: src/egregore/egregore.csproj
             NUGET_KEY: ${{secrets.NUGET_API_KEY}}
             VERSION_STATIC: $NBGV_Version
+            INCLUDE_SYMBOLS: true
         
       - name: Publish win-x64
         run: dotnet publish -c Release -r win-x64 /p:PublishSingleFile=true -o "dist/win-x64"
