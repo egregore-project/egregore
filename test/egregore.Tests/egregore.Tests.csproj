@@ -15,13 +15,23 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Compliance\dotnet_library_license.txt" />
+    <None Remove="Compliance\Microsoft Azure DocumentDB SDK for .NET Core - RTM.docx" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="TestData\windowsZones.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="3.1.5" />
+    <EmbeddedResource Include="dotnet_library_license.txt" />
+    <EmbeddedResource Include="Microsoft Azure DocumentDB SDK for .NET Core - RTM.docx" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="3.1.6" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.6.1" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="xunit" Version="2.4.1" />
@@ -33,6 +43,12 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AngleSharp" Version="0.14.0" />
+    <PackageReference Include="NuGet.Protocol" Version="5.6.0" />
+    <PackageReference Include="NuGet.Packaging" Version="5.6.0" />
   </ItemGroup>
 
   <ItemGroup>
