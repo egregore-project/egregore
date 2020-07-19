@@ -53,48 +53,48 @@ deploy-win-x64:
     runs-on: windows-latest
     if: github.event.pull_request.merged
     steps:
-        - name: checkout
+      - name: checkout
         if: github.event.pull_request.merged
         uses: actions/checkout@v1
         with:
-            ref: master    
-            submodules: 'recursive'
+          ref: master    
+          submodules: 'recursive'
       
-        - name: Setup .NET Core
+      - name: Setup .NET Core
         uses: actions/setup-dotnet@v1
         with:
-            dotnet-version: 3.1.302
-        
-        - name: Publish win-x64
+          dotnet-version: 3.1.302
+      
+      - name: Publish win-x64
         run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r win-x64 /p:PublishSingleFile=true -o "dist/win-x64"
 
-        - name: Upload win-x64
+      - name: Upload win-x64
         uses: actions/upload-artifact@master
         with:
-            name: win-x64
-            path: dist/win-x64
+          name: win-x64
+          path: dist/win-x64
 
 deploy-ubuntu-x64:
     runs-on: ubuntu-latest
     if: github.event.pull_request.merged
     steps:
-        - name: checkout
+      - name: checkout
         if: github.event.pull_request.merged
         uses: actions/checkout@v1
         with:
-            ref: master    
-            submodules: 'recursive'
+          ref: master    
+          submodules: 'recursive'
       
-        - name: Setup .NET Core
+      - name: Setup .NET Core
         uses: actions/setup-dotnet@v1
         with:
-            dotnet-version: 3.1.302
+          dotnet-version: 3.1.302
         
-        - name: Publish linux-x64
+      - name: Publish linux-x64
         run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r linux-x64 /p:PublishSingleFile=true -o "dist/linux-x64"
 
-        - name: Upload linux-x64
+      - name: Upload linux-x64
         uses: actions/upload-artifact@master
         with:
-            name: linux-x64
-            path: dist/linux-x64
+          name: linux-x64
+          path: dist/linux-x64
