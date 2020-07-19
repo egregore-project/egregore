@@ -39,7 +39,8 @@ jobs:
         run: ./build/version.sh
         env:
           VERSION_STAMP_TOKEN: ${{ secrets.VERSION_STAMP_TOKEN }}
-        shell: bash
+        shell: bash      
+
       # END
       
       - name: Pack NuGet
@@ -47,7 +48,10 @@ jobs:
 
       - name: Publish NuGet Packages
         run: dotnet nuget push ./artifacts/egregore.${{env.NBGV_NuGetPackageVersion}}.nupkg -k ${{secrets.NUGET_API_KEY}} -s https://api.nuget.org/v3/index.json --skip-duplicate
-  
+
+      - name: Set NBGV_GitCommitIdShort
+        run: echo '::set-env name=NBGV_GitCommitIdShort::${{env.NBGV_GitCommitIdShort}}'
+
   deploy-win-x64:
     runs-on: windows-latest
     env:
