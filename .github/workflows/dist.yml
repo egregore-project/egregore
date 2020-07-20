@@ -60,7 +60,7 @@ jobs:
         shell: powershell
 
       - name: Unzip minisign-win64.zip        
-        run: Expand-Archive -Path ./minisign-win64.zip -Force -PassThru
+        run: Expand-Archive -Path ./minisign-win64.zip -Force
         shell: powershell
 
       - name: Prepare minisign key
@@ -73,6 +73,12 @@ jobs:
 
       - name: Sign NuGet Package
         run: minisign -Sm ./artifacts/egregore.${{env.NBGV_NuGetPackageVersion}}.nupkg -s minisign.key < cleartext.txt            
+        shell: cmd
+
+      - name: Delete key materials
+        run: |
+          del minisign.key
+          del cleartext.txt          
         shell: cmd
       
       - name: Upload NuGet Package signature
