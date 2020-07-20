@@ -76,7 +76,6 @@ jobs:
     runs-on: windows-latest
     env:
       DOTNET_NOLOGO: true
-    needs: publish-nuget
     if: github.event.pull_request.merged
     steps:
       - name: checkout
@@ -114,7 +113,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DOTNET_NOLOGO: true
-    needs: deploy-win-x64
     if: github.event.pull_request.merged
     steps:
       - name: checkout
@@ -159,7 +157,6 @@ jobs:
     runs-on: macos-latest
     env:
       DOTNET_NOLOGO: true
-    needs: deploy-win-x64
     if: github.event.pull_request.merged
     steps:
       - name: checkout
