@@ -18,17 +18,14 @@ jobs:
       with:
         dotnet-version: 3.1.x
 
-    - name: Install dependencies
-      run: dotnet restore
-
     - name: Install coverage tool
       run: dotnet tool install --global dotnet-reportgenerator-globaltool     
         
     - name: Build
-      run: dotnet build ./src/egregore/egregore.csproj --configuration Release --no-restore
+      run: dotnet build ./src/egregore/egregore.csproj --configuration Release
       
     - name: Test
-      run: dotnet test ./test/egregore.Tests/egregore.Tests.csproj --no-restore --verbosity normal --collect:"XPlat Code Coverage"
+      run: dotnet test ./test/egregore.Tests/egregore.Tests.csproj --verbosity normal --collect:"XPlat Code Coverage"
 
     - name: Coverage Report
       run: ~/.dotnet/tools/reportgenerator "-reports:**/coverage.cobertura.xml" "-targetdir:coverage-reports"
