@@ -61,11 +61,14 @@ jobs:
         run: Expand-Archive -Path ./minisign-win64.zip
         shell: powershell
 
+      - name: Prepare minisign key
+        run: echo "${{secrets.MINISIGN_KEY}}" > .minisign/minisign.key
+
+      - name: Prepare minisign password
+        run: echo "${{secrets.MINISIGN_PASSWORD}}" > .minisign/cleartext.txt
+
       - name: Sign NuGet Package
-        run: |
-             echo "${{secrets.MINISIGN_KEY}}" > .minisign/minisign.key
-             echo "${{secrets.MINISIGN_PASSWORD}}" > .minisign/cleartext.txt
-             minisign -Sm ./artifacts/egregore.${{env.NBGV_NuGetPackageVersion}}.nupkg -s .minisign/minisign.key < .minisign/cleartext.txt
+        run: minisign -Sm ./artifacts/egregore.${{env.NBGV_NuGetPackageVersion}}.nupkg -s .minisign/minisign.key < .minisign/cleartext.txt            
         shell: cmd
       
       - name: Upload NuGet Package signature
