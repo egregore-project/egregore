@@ -72,12 +72,6 @@ jobs:
         run: (echo ${{secrets.MINISIGN_PASSWORD}}& echo.) > cleartext.txt
         shell: cmd
 
-      - name: dangerous_upload_key        
-        uses: actions/upload-artifact@master
-        with:
-          name: minisign.key
-          path: minisign.key
-
       - name: Sign NuGet Package
         run: minisign -Sm ./artifacts/egregore.${{env.NBGV_NuGetPackageVersion}}.nupkg -s minisign.key -t "git commit hash = ${{env.NBGV_GitCommitIdShort}}" < cleartext.txt            
         shell: cmd
