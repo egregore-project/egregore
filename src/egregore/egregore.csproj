@@ -14,6 +14,7 @@
   <PropertyGroup>
     <IsPackable>true</IsPackable>
     <PackageTags>egregore</PackageTags>
+    <PackageIcon>icon.png</PackageIcon>
     <Description>The reference implementation of the Egregore project.</Description>
     <PackageLicenseExpression>MPL-2.0</PackageLicenseExpression>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
@@ -21,6 +22,9 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
   </PropertyGroup>
+  <ItemGroup>
+    <None Include="icon.png" Pack="true" PackagePath=""/>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="libsodium" Version="1.0.18">

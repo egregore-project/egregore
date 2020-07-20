@@ -29,3 +29,7 @@ In addition, your environment must have configuration settings exposed as enviro
 - `EGREGORE_KEY_FILE_PASSWORD`: in unattended deployments, you must pass the password for the encrypted key file here.
 
 It is recommend you use your deployment server's security features to encrypt and protect these values from being read in build scripts or passed to child processes.
+
+##### Logo Attribution
+
+The egregore-project logo is from [here](https://en.wikipedia.org/wiki/Symbol_of_Chaos), created by Michael Moorcock.
