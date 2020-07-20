@@ -68,12 +68,13 @@ jobs:
         run: (echo 'untrusted comment: minisign encrypted secret key' & echo '${{secrets.MINISIGN_KEY}}') > minisign.key
         shell: cmd
 
+        # WARNING: MINISIGN_PASSWORD should be a single line, as it is prepared as two lines dynamically
       - name: Prepare minisign password
         run: (echo '${{secrets.MINISIGN_PASSWORD}}' & echo '${{secrets.MINISIGN_PASSWORD}}' & echo.) > cleartext.txt
         shell: cmd
 
       - name: Sign NuGet Package
-        run: minisign -Sm ./artifacts/egregore.${{env.NBGV_NuGetPackageVersion}}.nupkg -s minisign.key < cleartext.txt            
+        run: minisign -Sm ./artifacts/egregore.${{env.NBGV_NuGetPackageVersion}}.nupkg -s minisign.key -t "git commit hash: ${{env.NBGV_GitCommitIdShort}}" < cleartext.txt            
         shell: cmd
 
       - name: Delete key materials
