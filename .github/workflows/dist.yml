@@ -63,9 +63,11 @@ jobs:
 
       - name: Prepare minisign key
         run: echo "${{secrets.MINISIGN_KEY}}" > .minisign/minisign.key
+        shell: cmd
 
       - name: Prepare minisign password
         run: echo "${{secrets.MINISIGN_PASSWORD}}" > .minisign/cleartext.txt
+        shell: cmd
 
       - name: Sign NuGet Package
         run: minisign -Sm ./artifacts/egregore.${{env.NBGV_NuGetPackageVersion}}.nupkg -s .minisign/minisign.key < .minisign/cleartext.txt            
@@ -82,6 +84,7 @@ jobs:
 
       - name: Set git short hash
         run: echo "$NBGV_GitCommitIdShort" > .version/commit.txt
+        shell: cmd
 
       - name: Upload git short hash
         uses: actions/upload-artifact@master
