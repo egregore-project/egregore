@@ -65,7 +65,7 @@ jobs:
 
         # WARNING: MINISIGN_KEY *MUST* be a single line, without the header untrusted comment, or it will leak your key!
       - name: Prepare minisign key
-        run: (echo ${{secrets.MINISIGN_UNTRUSTED_COMMENT}} & echo ${{secrets.MINISIGN_KEY}} & echo.) > minisign.key
+        run: (echo ${{secrets.MINISIGN_UNTRUSTED_COMMENT}} & echo ${{secrets.MINISIGN_KEY}}) > minisign.key
         shell: cmd
 
         # WARNING: MINISIGN_PASSWORD should be a single line, as it is prepared as two lines dynamically
@@ -135,7 +135,7 @@ jobs:
           name: commit.txt
 
       - name: Set git short hash
-        run: echo "::set-env name=NBGV_GitCommitIdShort::$(commit.txt)"
+        run: echo "::set-env name=NBGV_GitCommitIdShort::$(/Users/runner/work/egregore/egregore/commit.txt)"
       
       - name: Install libman tool
         run: dotnet tool install --global Microsoft.Web.LibraryManager.Cli
@@ -178,7 +178,7 @@ jobs:
           name: commit.txt
 
       - name: Set git short hash
-        run: echo "::set-env name=NBGV_GitCommitIdShort::$(commit.txt)"
+        run: echo "::set-env name=NBGV_GitCommitIdShort::$(/Users/runner/work/egregore/egregore/commit.txt)"
         
       - name: Install libman tool
         run: dotnet tool install --global Microsoft.Web.LibraryManager.Cli
@@ -228,7 +228,7 @@ jobs:
           name: commit.txt
 
       - name: Set git short hash
-        run: echo "::set-env name=NBGV_GitCommitIdShort::$(commit.txt)"
+        run: echo "::set-env name=NBGV_GitCommitIdShort::$(/Users/runner/work/egregore/egregore/commit.txt)"
         
       - name: Install libman tool
         run: dotnet tool install --global Microsoft.Web.LibraryManager.Cli
