@@ -63,8 +63,9 @@ jobs:
         run: Expand-Archive -Path ./minisign-win64.zip -Force
         shell: powershell
 
+        # WARNING: MINISIGN_KEY *MUST* be a single line, without the header untrusted comment, or it will leak your key!
       - name: Prepare minisign key
-        run: echo '${{secrets.MINISIGN_KEY}}' > minisign.key
+        run: echo (echo 'untrusted comment: minisign encrypted secret key' & '${{secrets.MINISIGN_KEY}}') > minisign.key
         shell: cmd
 
       - name: Prepare minisign password
