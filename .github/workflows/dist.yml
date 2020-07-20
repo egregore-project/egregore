@@ -215,13 +215,6 @@ jobs:
       - name: Publish osx-x64
         run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r osx-x64 -p:LibraryRestore=false -p:PublishReadyToRun=true -p:PublishSingleFile=true -p:PublishTrimmed=true -o "dist/osx-x64-${{env.NBGV_GitCommitIdShort}}" 
 
-      - name: Sign executable
-        uses: thomaso-mirodin/minisign-action@master
-        with:
-          args: -Sm ./dist/osx-x64-${{env.NBGV_GitCommitIdShort}}/egregore.dmg -t 'osx-x64 binary created from commit ${{env.NBGV_GitCommitIdShort}}'
-          minisign_key: ${{ secrets.MINISIGN_KEY }}
-          password: ${{ secrets.MINISIGN_PASSWORD }}
-
       - name: Upload osx-x64
         uses: actions/upload-artifact@master
         with:
