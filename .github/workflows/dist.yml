@@ -60,7 +60,7 @@ jobs:
         shell: powershell
 
       - name: Unzip minisign-win64.zip        
-        run: Expand-Archive -Path ./minisign-win64.zip -Force
+        run: Expand-Archive -Path ./minisign-win64.zip -DestinationPath ./ -Force
         shell: powershell
 
       - name: Prepare minisign key
