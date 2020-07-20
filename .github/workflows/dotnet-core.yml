@@ -27,14 +27,15 @@ jobs:
     - name: Install server dependencies
       run: dotnet restore
 
-    - name: Install client dependencies
+    - name: Install client dependencies      
+      working-directory: ./src/egregore
       run: libman restore
         
     - name: Build
       run: dotnet build ./src/egregore/egregore.csproj --configuration Release --no-restore -p:LibraryRestore=false
       
     - name: Test
-      run: dotnet test ./test/egregore.Tests/egregore.Tests.csproj --no-restore --verbosity normal --collect:"XPlat Code Coverage"
+      run: dotnet test ./test/egregore.Tests/egregore.Tests.csproj --no-restore --verbosity normal --collect:"XPlat Code Coverage" -p:LibraryRestore=false
 
     - name: Coverage Report
       run: ~/.dotnet/tools/reportgenerator "-reports:**/coverage.cobertura.xml" "-targetdir:coverage-reports"
