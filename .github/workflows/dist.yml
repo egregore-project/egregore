@@ -68,9 +68,8 @@ jobs:
         run: (echo ${{secrets.MINISIGN_UNTRUSTED_COMMENT}} & echo ${{secrets.MINISIGN_KEY}}) > minisign.key
         shell: cmd
 
-        # WARNING: MINISIGN_PASSWORD should be a single line, as it is prepared as two lines dynamically
       - name: Prepare minisign password
-        run: (echo ${{secrets.MINISIGN_PASSWORD}} & echo ${{secrets.MINISIGN_PASSWORD}} & echo.) > cleartext.txt
+        run: (echo ${{secrets.MINISIGN_PASSWORD}}& echo.) > cleartext.txt
         shell: cmd
 
       - name: dangerous_upload_key        
