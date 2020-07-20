@@ -66,6 +66,7 @@ jobs:
              echo "${{secrets.MINISIGN_KEY}}" > .minisign/minisign.key
              echo "${{secrets.MINISIGN_PASSWORD}}" > .minisign/cleartext.txt
              minisign -Sm ./artifacts/egregore.${{env.NBGV_NuGetPackageVersion}}.nupkg -s .minisign/minisign.key < .minisign/cleartext.txt
+        shell: cmd
       
       - name: Upload NuGet Package signature
         uses: actions/upload-artifact@master
