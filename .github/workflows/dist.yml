@@ -53,18 +53,24 @@ jobs:
       - name: Pack NuGet
         run: dotnet pack ./src/egregore/egregore.csproj -p:LibraryRestore=false -p:FileVersion=${{env.NBGV_AssemblyFileVersion}} -p:InformationalVersion=${{env.NBGV_AssemblyInformationalVersion}} -p:AssemblyVersion=${{env.NBGV_AssemblyVersion}} -p:PackageVersion=${{env.NBGV_NuGetPackageVersion}} --configuration Release --include-source --include-symbols -o ./artifacts
 
-      #- name: Sign NuGet Package
-      #  uses: thomaso-mirodin/minisign-action@master
-      #  with:
-      #    args: -Sm ./artifacts/egregore.${{env.NBGV_NuGetPackageVersion}}.nupkg -t 'Egregore ${{env.NBGV_NuGetPackageVersion}} created from commit ${{env.NBGV_GitCommitIdShort}}'
-      #    minisign_key: ${{ secrets.MINISIGN_KEY }}
-      #    password: ${{ secrets.MINISIGN_PASSWORD }}
+      - name: Download minisign 0.9
+        run: wget https://github.com/jedisct1/minisign/releases/download/0.9/minisign-win64.zip
+
+      - name: Unzip minisign-win64.zip        
+        run: expand-archive -Path ./minisign-win64.zip
+        shell: powershell
+
+      - name: Sign NuGet Package
+        run: |
+             echo "${{secrets.MINISIGN_KEY}}" > .minisign/minisign.key
+             echo "${{secrets.MINISIGN_PASSWORD}}" > .minisign/cleartext.txt
+             minisign -Sm ./artifacts/egregore.${{env.NBGV_NuGetPackageVersion}} -s .minisign/minisign.key < .minisign/cleartext.txt
       
-      #- name: Upload NuGet Package signature
-      #  uses: actions/upload-artifact@master
-      #  with:
-      #    name: egregore.${{env.NBGV_NuGetPackageVersion}}.nupkg.minisig
-      #    path: ./artifacts/egregore.${{env.NBGV_NuGetPackageVersion}}.nupkg.minisig
+      - name: Upload NuGet Package signature
+        uses: actions/upload-artifact@master
+        with:
+          name: egregore.${{env.NBGV_NuGetPackageVersion}}.nupkg.minisig
+          path: ./artifacts/egregore.${{env.NBGV_NuGetPackageVersion}}.nupkg.minisig
 
       - name: Publish NuGet Packages
         run: dotnet nuget push ./artifacts/egregore.${{env.NBGV_NuGetPackageVersion}}.nupkg -k ${{secrets.NUGET_API_KEY}} -s https://api.nuget.org/v3/index.json --skip-duplicate
@@ -114,14 +120,7 @@ jobs:
 
       - name: Publish win-x64
         run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r win-x64 -p:LibraryRestore=false -p:PublishReadyToRun=true -p:PublishReadyToRunShowWarnings=true -p:PublishSingleFile=true -p:PublishTrimmed=true -o "dist/win-x64-${{env.NBGV_GitCommitIdShort}}"
-
-      - name: Download minisign 0.9
-        run: wget https://github.com/jedisct1/minisign/releases/download/0.9/minisign-win64.zip
-
-      - name: Unzip minisign-win64.zip        
-        run: expand-archive -Path ./minisign-win64.zip
-        shell: powershell        
-
+    
       - name: Upload win-x64
         uses: actions/upload-artifact@master
         with:
@@ -214,6 +213,9 @@ jobs:
 
       - name: Publish osx-x64
         run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r osx-x64 -p:LibraryRestore=false -p:PublishReadyToRun=true -p:PublishSingleFile=true -p:PublishTrimmed=true -o "dist/osx-x64-${{env.NBGV_GitCommitIdShort}}" 
+
+      - name: Download minisign 0.9
+        run: wget https://github.com/jedisct1/minisign/releases/download/0.9/minisign-osx.zip
 
       - name: Upload osx-x64
         uses: actions/upload-artifact@master
