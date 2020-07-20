@@ -25,6 +25,7 @@ jobs:
           dotnet-version: 3.1.x
 
       # BEGIN (Source: https://gist.github.com/fredeil/26df20ef664b46f5ced338d5a8d8e8e9)
+
       - name: Install versioning tool 
         uses: aarnott/nbgv@master
         with:
@@ -59,7 +60,7 @@ jobs:
         shell: powershell
 
       - name: Unzip minisign-win64.zip        
-        run: Expand-Archive -Path ./minisign-win64.zip
+        run: Expand-Archive -Path ./minisign-win64.zip -Force
         shell: powershell
 
       - name: Prepare minisign key
