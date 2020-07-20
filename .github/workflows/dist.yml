@@ -39,7 +39,8 @@ jobs:
         run: ./build/version.sh
         env:
           VERSION_STAMP_TOKEN: ${{ secrets.VERSION_STAMP_TOKEN }}
-        shell: bash      
+        shell: bash
+        continue-on-error: true
 
       # END
 
