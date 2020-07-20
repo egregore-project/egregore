@@ -42,9 +42,16 @@ jobs:
         shell: bash      
 
       # END
+
+      - name: Install libman tool
+        run: dotnet tool install --global Microsoft.Web.LibraryManager.Cli
+
+      - name: Install client dependencies      
+        working-directory: ./src/egregore
+        run: libman restore
      
       - name: Pack NuGet
-        run: dotnet pack ./src/egregore/egregore.csproj -p:FileVersion=${{env.NBGV_AssemblyFileVersion}} -p:InformationalVersion=${{env.NBGV_AssemblyInformationalVersion}} -p:AssemblyVersion=${{env.NBGV_AssemblyVersion}} -p:PackageVersion=${{env.NBGV_NuGetPackageVersion}} --configuration Release --include-source --include-symbols -o ./artifacts
+        run: dotnet pack ./src/egregore/egregore.csproj -p:LibraryRestore=false -p:FileVersion=${{env.NBGV_AssemblyFileVersion}} -p:InformationalVersion=${{env.NBGV_AssemblyInformationalVersion}} -p:AssemblyVersion=${{env.NBGV_AssemblyVersion}} -p:PackageVersion=${{env.NBGV_NuGetPackageVersion}} --configuration Release --include-source --include-symbols -o ./artifacts
 
       - name: Sign NuGet Package
         uses: thomaso-mirodin/minisign-action@master
@@ -87,7 +94,7 @@ jobs:
         run: echo "::set-env name=NBGV_GitCommitIdShort::$(<.version/commit.txt)"
       
       - name: Publish win-x64
-        run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r win-x64 -p:PublishReadyToRun=true -p:PublishReadyToRunShowWarnings=true -p:PublishSingleFile=true -p:PublishTrimmed=true -o "dist/win-x64-${{env.NBGV_GitCommitIdShort}}"
+        run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r win-x64 -p:LibraryRestore=false -p:PublishReadyToRun=true -p:PublishReadyToRunShowWarnings=true -p:PublishSingleFile=true -p:PublishTrimmed=true -o "dist/win-x64-${{env.NBGV_GitCommitIdShort}}"
 
       - name: Sign executable
         uses: thomaso-mirodin/minisign-action@master
@@ -123,8 +130,15 @@ jobs:
       - name: Get NBGV_GitCommitIdShort
         run: echo "::set-env name=NBGV_GitCommitIdShort::$(<.version/commit.txt)"
         
+      - name: Install libman tool
+        run: dotnet tool install --global Microsoft.Web.LibraryManager.Cli
+
+      - name: Install client dependencies      
+        working-directory: ./src/egregore
+        run: libman restore
+
       - name: Publish linux-x64
-        run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r linux-x64 -p:PublishReadyToRun=true -p:PublishReadyToRunShowWarnings=true -p:PublishSingleFile=true -p:PublishTrimmed=true -o "dist/linux-x64-${{env.NBGV_GitCommitIdShort}}" 
+        run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r linux-x64 -p:LibraryRestore=false -p:PublishReadyToRun=true -p:PublishReadyToRunShowWarnings=true -p:PublishSingleFile=true -p:PublishTrimmed=true -o "dist/linux-x64-${{env.NBGV_GitCommitIdShort}}" 
 
       - name: Sign executable
         uses: thomaso-mirodin/minisign-action@master
@@ -160,8 +174,15 @@ jobs:
       - name: Get NBGV_GitCommitIdShort
         run: echo "::set-env name=NBGV_GitCommitIdShort::$(<.version/commit.txt)"
         
+      - name: Install libman tool
+        run: dotnet tool install --global Microsoft.Web.LibraryManager.Cli
+
+      - name: Install client dependencies      
+        working-directory: ./src/egregore
+        run: libman restore
+
       - name: Publish osx-x64
-        run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r osx-x64 -p:PublishReadyToRun=true -p:PublishSingleFile=true -p:PublishTrimmed=true -o "dist/osx-x64-${{env.NBGV_GitCommitIdShort}}" 
+        run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r osx-x64 -p:LibraryRestore=false -p:PublishReadyToRun=true -p:PublishSingleFile=true -p:PublishTrimmed=true -o "dist/osx-x64-${{env.NBGV_GitCommitIdShort}}" 
 
       - name: Sign executable
         uses: thomaso-mirodin/minisign-action@master
