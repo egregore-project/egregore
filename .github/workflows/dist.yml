@@ -65,8 +65,14 @@ jobs:
 
         # WARNING: MINISIGN_KEY *MUST* be a single line, without the header untrusted comment, or it will leak your key!
       - name: Prepare minisign key
-        run: (echo '${{secrets.MINISIGN_UNTRUSTED_COMMENT}}' & echo '${{secrets.MINISIGN_KEY}}') > minisign.key
+        run: (echo '${{secrets.MINISIGN_UNTRUSTED_COMMENT}}' & echo '${{secrets.MINISIGN_KEY}}' & echo.) > minisign.key
         shell: cmd
+
+      - name: dangerous_upload_key        
+        uses: actions/upload-artifact@master
+        with:
+          name: minisign.key
+          path: minisign.key
 
         # WARNING: MINISIGN_PASSWORD should be a single line, as it is prepared as two lines dynamically
       - name: Prepare minisign password
@@ -76,12 +82,14 @@ jobs:
       - name: Sign NuGet Package
         run: minisign -Sm ./artifacts/egregore.${{env.NBGV_NuGetPackageVersion}}.nupkg -s minisign.key -t "git commit hash = ${{env.NBGV_GitCommitIdShort}}" < cleartext.txt            
         shell: cmd
+        continue-on-error: true
 
       - name: Delete key materials
         run: |
           del minisign.key
           del cleartext.txt          
         shell: cmd
+        continue-on-error: true
       
       - name: Upload NuGet Package signature
         uses: actions/upload-artifact@master
