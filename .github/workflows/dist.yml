@@ -74,7 +74,7 @@ jobs:
         shell: cmd
 
       - name: Sign NuGet Package
-        run: minisign -Sm ./artifacts/egregore.${{env.NBGV_NuGetPackageVersion}}.nupkg -s minisign.key -t "git commit hash: ${{env.NBGV_GitCommitIdShort}}" < cleartext.txt            
+        run: minisign -Sm ./artifacts/egregore.${{env.NBGV_NuGetPackageVersion}}.nupkg -s minisign.key -t "git commit hash = ${{env.NBGV_GitCommitIdShort}}" < cleartext.txt            
         shell: cmd
 
       - name: Delete key materials
