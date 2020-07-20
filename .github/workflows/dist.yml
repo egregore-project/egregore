@@ -168,7 +168,7 @@ jobs:
       - name: Sign executable
         uses: thomaso-mirodin/minisign-action@master
         with:
-          args: -Sm ./dist/linux-x64-${{env.NBGV_GitCommitIdShort}}/egregore -t 'linux-x64 binary created from commit ${{env.NBGV_GitCommitIdShort}}'
+          args: -Sm ./dist/linux-x64-${{env.NBGV_GitCommitIdShort}}/egregore. -t 'linux-x64 binary created from commit ${{env.NBGV_GitCommitIdShort}}'
           minisign_key: ${{ secrets.MINISIGN_KEY }}
           password: ${{ secrets.MINISIGN_PASSWORD }}      
 
