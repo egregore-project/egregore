@@ -62,11 +62,11 @@ jobs:
         shell: powershell
 
       - name: Prepare minisign key
-        run: echo -n -e "${{secrets.MINISIGN_KEY}}" > minisign.key
+        run: echo '${{secrets.MINISIGN_KEY}}' > minisign.key
         shell: cmd
 
       - name: Prepare minisign password
-        run: echo -n -e "${{secrets.MINISIGN_PASSWORD}}" > cleartext.txt
+        run: echo '${{secrets.MINISIGN_PASSWORD}}' > cleartext.txt
         shell: cmd
 
       - name: Sign NuGet Package
@@ -83,7 +83,7 @@ jobs:
         run: dotnet nuget push ./artifacts/egregore.${{env.NBGV_NuGetPackageVersion}}.nupkg -k ${{secrets.NUGET_API_KEY}} -s https://api.nuget.org/v3/index.json --skip-duplicate
 
       - name: Set git short hash
-        run: echo "$NBGV_GitCommitIdShort" > .version/commit.txt
+        run: echo '$NBGV_GitCommitIdShort' > .version/commit.txt
         shell: cmd
 
       - name: Upload git short hash
