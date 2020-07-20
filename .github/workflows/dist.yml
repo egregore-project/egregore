@@ -115,12 +115,12 @@ jobs:
       - name: Publish win-x64
         run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r win-x64 -p:LibraryRestore=false -p:PublishReadyToRun=true -p:PublishReadyToRunShowWarnings=true -p:PublishSingleFile=true -p:PublishTrimmed=true -o "dist/win-x64-${{env.NBGV_GitCommitIdShort}}"
 
-      - name: Sign executable
-        uses: thomaso-mirodin/minisign-action@master
-        with:
-          args: -Sm ./dist/win-x64-${{env.NBGV_GitCommitIdShort}}/egregore.exe -t 'win-x64 binary created from commit ${{env.NBGV_GitCommitIdShort}}'
-          minisign_key: ${{ secrets.MINISIGN_KEY }}
-          password: ${{ secrets.MINISIGN_PASSWORD }}      
+      #- name: Sign executable
+      #  uses: thomaso-mirodin/minisign-action@master
+      #  with:
+      #    args: -Sm ./dist/win-x64-${{env.NBGV_GitCommitIdShort}}/egregore.exe -t 'win-x64 binary created from commit ${{env.NBGV_GitCommitIdShort}}'
+      #    minisign_key: ${{ secrets.MINISIGN_KEY }}
+      #    password: ${{ secrets.MINISIGN_PASSWORD }}      
       
       - name: Upload win-x64
         uses: actions/upload-artifact@master
