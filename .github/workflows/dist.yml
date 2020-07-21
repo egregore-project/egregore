@@ -147,7 +147,7 @@ jobs:
         run: Expand-Archive -Path ./minisign-win64.zip -DestinationPath ./ -Force
         shell: powershell
 
-        name: Prepare minisign key
+      - name: Prepare minisign key
         run: (echo ${{secrets.MINISIGN_UNTRUSTED_COMMENT}} & echo ${{secrets.MINISIGN_KEY}}) > minisign.key
         shell: cmd
 
