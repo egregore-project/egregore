@@ -59,16 +59,12 @@ jobs:
         run: "(New-Object System.Net.WebClient).DownloadFile('https://github.com/jedisct1/minisign/releases/download/0.9/minisign-win64.zip', './minisign-win64.zip')"
         shell: powershell
 
-      - name: Download minisign 0.9 signature
-        run: "(New-Object System.Net.WebClient).DownloadFile('https://github.com/jedisct1/minisign/releases/download/0.9/minisign-win64.zip.minisig', './minisign-win64.zip.minisig')"
-        shell: powershell
-
       - name: Unzip minisign-win64.zip        
         run: Expand-Archive -Path ./minisign-win64.zip -DestinationPath ./ -Force
         shell: powershell
 
       - name: Verify minisign 0.9
-        run: minisign -Vm ./minisign-0.9.zip -p ./minisign-win64.zip.minisig
+        run: minisign -Vm ./minisign-0.9.zip -P "RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3"
         shell: cmd
 
       - name: Prepare minisign key
@@ -147,16 +143,12 @@ jobs:
         run: "(New-Object System.Net.WebClient).DownloadFile('https://github.com/jedisct1/minisign/releases/download/0.9/minisign-win64.zip', './minisign-win64.zip') ; (New-Object System.Net.WebClient).DownloadFile('https://github.com/jedisct1/minisign/releases/download/0.9/minisign-win64.zip.minisig')"
         shell: powershell
 
-      - name: Download minisign 0.9 signature
-        run: "(New-Object System.Net.WebClient).DownloadFile('https://github.com/jedisct1/minisign/releases/download/0.9/minisign-win64.zip.minisig', './minisign-win64.zip.minisig')"
-        shell: powershell
-
       - name: Unzip minisign-win64.zip        
         run: Expand-Archive -Path ./minisign-win64.zip -DestinationPath ./ -Force
         shell: powershell
 
       - name: Verify minisign 0.9
-        run: minisign -Vm ./minisign-0.9.zip.minisig -P "RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3"
+        run: minisign -Vm ./minisign-0.9.zip -P "RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3"
         shell: cmd
 
       - name: Prepare minisign key
