@@ -90,7 +90,7 @@ jobs:
         run: dotnet nuget push ./artifacts/egregore.${{env.NBGV_NuGetPackageVersion}}.nupkg -k ${{secrets.NUGET_API_KEY}} -s https://api.nuget.org/v3/index.json --skip-duplicate
 
       - name: Set git short hash
-        run: echo ${{env.NBGV_GitCommitIdShort} > commit.txt
+        run: echo ${{env.NBGV_GitCommitIdShort}} > commit.txt
         shell: cmd
 
       - name: Upload git short hash
