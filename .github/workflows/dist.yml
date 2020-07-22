@@ -148,9 +148,7 @@ jobs:
         shell: powershell
 
       - name: Verify minisign 0.9
-        uses: ./
-        with:
-          args: -Vm "minisign-0.9.zip.minisig" -P "RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3" 
+        run: minisign -Vm ./minisign-0.9.zip.minisig -P "RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3"
         shell: cmd
 
       - name: Prepare minisign key
