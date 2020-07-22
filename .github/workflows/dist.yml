@@ -76,9 +76,7 @@ jobs:
         shell: cmd
 
       - name: Delete key materials
-        run: |
-          del minisign.key
-          del cleartext.txt          
+        run: del minisign.key && del cleartext.txt          
         shell: cmd
         continue-on-error: true
       
@@ -92,7 +90,7 @@ jobs:
         run: dotnet nuget push ./artifacts/egregore.${{env.NBGV_NuGetPackageVersion}}.nupkg -k ${{secrets.NUGET_API_KEY}} -s https://api.nuget.org/v3/index.json --skip-duplicate
 
       - name: Set git short hash
-        run: echo $NBGV_GitCommitIdShort > commit.txt
+        run: echo ${{env.NBGV_GitCommitIdShort} > commit.txt
         shell: cmd
 
       - name: Upload git short hash
@@ -190,7 +188,7 @@ jobs:
           name: commit.txt
 
       - name: Set git short hash
-        run: chmod 0755 commit.txt && echo "::set-env name=NBGV_GitCommitIdShort::$(commit.txt)"
+        run: chmod 0755 commit.txt && echo "::set-env name=NBGV_GitCommitIdShort::$(..\..\egregore\egregore\commit.txt)"
         
       - name: Install libman tool
         run: dotnet tool install --global Microsoft.Web.LibraryManager.Cli
@@ -240,7 +238,7 @@ jobs:
           name: commit.txt
 
       - name: Set git short hash
-        run: chmod 0755 commit.txt && echo "::set-env name=NBGV_GitCommitIdShort::$(commit.txt)"
+        run: chmod 0755 commit.txt && echo "::set-env name=NBGV_GitCommitIdShort::$(..\..\egregore\egregore\commit.txt)"
         
       - name: Install libman tool
         run: dotnet tool install --global Microsoft.Web.LibraryManager.Cli
