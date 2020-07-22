@@ -98,7 +98,7 @@ jobs:
       - name: Upload git short hash
         uses: actions/upload-artifact@master
         with:
-          name: commit
+          name: commit.txt
           path: commit.txt
 
   deploy-win-x64:
@@ -123,10 +123,10 @@ jobs:
       - name: Download git short hash
         uses: actions/download-artifact@master
         with:
-          name: commit
+          name: commit.txt
 
       - name: Set git short hash
-        run: chmod 0755 ./commit/commit.txt && echo "::set-env name=NBGV_GitCommitIdShort::$(./commit/commit.txt)"
+        run: chmod 0755 ./commit/commit.txt && echo "::set-env name=NBGV_GitCommitIdShort::$(commit.txt)"
       
       - name: Install libman tool
         run: dotnet tool install --global Microsoft.Web.LibraryManager.Cli
@@ -187,10 +187,10 @@ jobs:
       - name: Download git short hash
         uses: actions/download-artifact@master
         with:
-          name: commit
+          name: commit.txt
 
       - name: Set git short hash
-        run: chmod 0755 ./commit/commit.txt && echo "::set-env name=NBGV_GitCommitIdShort::$(./commit/commit.txt)"
+        run: chmod 0755 ./commit/commit.txt && echo "::set-env name=NBGV_GitCommitIdShort::$(commit.txt)"
         
       - name: Install libman tool
         run: dotnet tool install --global Microsoft.Web.LibraryManager.Cli
@@ -237,10 +237,10 @@ jobs:
       - name: Download git short hash
         uses: actions/download-artifact@master
         with:
-          name: commit
+          name: commit.txt
 
       - name: Set git short hash
-        run: chmod 0755 ./commit/commit.txt && echo "::set-env name=NBGV_GitCommitIdShort::$(./commit/commit.txt)"
+        run: chmod 0755 ./commit/commit.txt && echo "::set-env name=NBGV_GitCommitIdShort::$(commit.txt)"
         
       - name: Install libman tool
         run: dotnet tool install --global Microsoft.Web.LibraryManager.Cli
