@@ -56,12 +56,16 @@ jobs:
         run: dotnet pack ./src/egregore/egregore.csproj -p:LibraryRestore=false -p:FileVersion=${{env.NBGV_AssemblyFileVersion}} -p:InformationalVersion=${{env.NBGV_AssemblyInformationalVersion}} -p:AssemblyVersion=${{env.NBGV_AssemblyVersion}} -p:PackageVersion=${{env.NBGV_NuGetPackageVersion}} --configuration Release --include-source --include-symbols -o ./artifacts
 
       - name: Download minisign 0.9
-        run: "(New-Object System.Net.WebClient).DownloadFile('https://github.com/jedisct1/minisign/releases/download/0.9/minisign-win64.zip', './minisign-win64.zip')"
+        run: "(New-Object System.Net.WebClient).DownloadFile('https://github.com/jedisct1/minisign/releases/download/0.9/minisign-win64.zip', './minisign-win64.zip') && (New-Object System.Net.WebClient).DownloadFile('https://github.com/jedisct1/minisign/releases/download/0.9/minisign-win64.zip.minisig')"
         shell: powershell
 
       - name: Unzip minisign-win64.zip        
         run: Expand-Archive -Path ./minisign-win64.zip -DestinationPath ./ -Force
         shell: powershell
+
+      - name: Verify minisign 0.9
+        run: minisign -Vm ./minisign-0.9.zip.minisig -P "RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3"
+        shell: cmd
 
       - name: Prepare minisign key
         run: (echo ${{secrets.MINISIGN_UNTRUSTED_COMMENT}} & echo ${{secrets.MINISIGN_KEY}}) > minisign.key
@@ -78,7 +82,6 @@ jobs:
       - name: Delete key materials
         run: del minisign.key && del cleartext.txt          
         shell: cmd
-        continue-on-error: true
       
       - name: Upload NuGet Package signature
         uses: actions/upload-artifact@master
@@ -94,7 +97,7 @@ jobs:
         shell: cmd
 
       - name: Upload git short hash
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@main
         with:
           name: commit.txt
           path: commit.txt
@@ -119,12 +122,12 @@ jobs:
           dotnet-version: 3.1.x
           
       - name: Download git short hash
-        uses: actions/download-artifact@master
+        uses: actions/download-artifact@main
         with:
           name: commit.txt
 
       - name: Set git short hash
-        run: chmod 0755 commit.txt && echo "::set-env name=NBGV_GitCommitIdShort::$(..\..\egregore\egregore\commit.txt)"
+        run: chmod 0755 commit.txt && echo "::set-env name=NBGV_GitCommitIdShort::$(..\..\egregore\egregore\commit.txt)" && echo 'The git short hash is' $NBGV_GitCommitIdShort
       
       - name: Install libman tool
         run: dotnet tool install --global Microsoft.Web.LibraryManager.Cli
@@ -137,12 +140,18 @@ jobs:
         run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r win-x64 -p:LibraryRestore=false -p:PublishReadyToRun=true -p:PublishReadyToRunShowWarnings=true -p:PublishSingleFile=true -p:PublishTrimmed=true -o "dist/win-x64-${{env.NBGV_GitCommitIdShort}}"
     
       - name: Download minisign 0.9
-        run: "(New-Object System.Net.WebClient).DownloadFile('https://github.com/jedisct1/minisign/releases/download/0.9/minisign-win64.zip', './minisign-win64.zip')"
+        run: "(New-Object System.Net.WebClient).DownloadFile('https://github.com/jedisct1/minisign/releases/download/0.9/minisign-win64.zip', './minisign-win64.zip') && (New-Object System.Net.WebClient).DownloadFile('https://github.com/jedisct1/minisign/releases/download/0.9/minisign-win64.zip.minisig')"
         shell: powershell
 
       - name: Unzip minisign-win64.zip        
         run: Expand-Archive -Path ./minisign-win64.zip -DestinationPath ./ -Force
         shell: powershell
+
+      - name: Verify minisign 0.9
+        uses: ./
+        with:
+          args: -Vm "minisign-0.9.zip.minisig" -P "RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3" 
+        shell: cmd
 
       - name: Prepare minisign key
         run: (echo ${{secrets.MINISIGN_UNTRUSTED_COMMENT}} & echo ${{secrets.MINISIGN_KEY}}) > minisign.key
@@ -155,10 +164,9 @@ jobs:
       - name: Sign executable
         run: minisign -Sm ./dist/win-x64-${{env.NBGV_GitCommitIdShort}} -s minisign.key -t "git commit hash = ${{env.NBGV_GitCommitIdShort}}" < cleartext.txt            
         shell: cmd
-        continue-on-error: true
 
       - name: Upload win-x64
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@main
         with:
           name: win-x64-${{env.NBGV_GitCommitIdShort}}
           path: dist/win-x64-${{env.NBGV_GitCommitIdShort}}
@@ -183,12 +191,12 @@ jobs:
           dotnet-version: 3.1.x
 
       - name: Download git short hash
-        uses: actions/download-artifact@master
+        uses: actions/download-artifact@main
         with:
           name: commit.txt
 
       - name: Set git short hash
-        run: chmod 0755 commit.txt && echo "::set-env name=NBGV_GitCommitIdShort::$(..\..\egregore\egregore\commit.txt)"
+        run: chmod 0755 commit.txt && echo "::set-env name=NBGV_GitCommitIdShort::$(..\..\egregore\egregore\commit.txt)" && echo 'The git short hash is' $NBGV_GitCommitIdShort
         
       - name: Install libman tool
         run: dotnet tool install --global Microsoft.Web.LibraryManager.Cli
@@ -199,16 +207,9 @@ jobs:
 
       - name: Publish linux-x64
         run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r linux-x64 -p:LibraryRestore=false -p:PublishReadyToRun=true -p:PublishReadyToRunShowWarnings=true -p:PublishSingleFile=true -p:PublishTrimmed=true -o "dist/linux-x64-${{env.NBGV_GitCommitIdShort}}" 
-
-      - name: Sign executable
-        uses: thomaso-mirodin/minisign-action@master
-        with:
-          args: -Sm ./dist/linux-x64-${{env.NBGV_GitCommitIdShort}}/egregore. -t 'linux-x64 binary created from commit ${{env.NBGV_GitCommitIdShort}}'
-          minisign_key: ${{ secrets.MINISIGN_KEY }}
-          password: ${{ secrets.MINISIGN_PASSWORD }}      
-
+   
       - name: Upload linux-x64
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@main
         with:
           name: linux-x64-${{env.NBGV_GitCommitIdShort}}
           path: dist/linux-x64-${{env.NBGV_GitCommitIdShort}}
@@ -233,12 +234,12 @@ jobs:
           dotnet-version: 3.1.x
 
       - name: Download git short hash
-        uses: actions/download-artifact@master
+        uses: actions/download-artifact@main
         with:
           name: commit.txt
 
       - name: Set git short hash
-        run: chmod 0755 commit.txt && echo "::set-env name=NBGV_GitCommitIdShort::$(..\..\egregore\egregore\commit.txt)"
+        run: chmod 0755 commit.txt && echo "::set-env name=NBGV_GitCommitIdShort::$(..\..\egregore\egregore\commit.txt)" && echo 'The git short hash is' $NBGV_GitCommitIdShort
         
       - name: Install libman tool
         run: dotnet tool install --global Microsoft.Web.LibraryManager.Cli
@@ -254,7 +255,7 @@ jobs:
         run: wget https://github.com/jedisct1/minisign/releases/download/0.9/minisign-osx.zip
 
       - name: Upload osx-x64
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@main
         with:
           name: osx-x64-${{env.NBGV_GitCommitIdShort}}
           path: dist/osx-x64-${{env.NBGV_GitCommitIdShort}}
