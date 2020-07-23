@@ -132,7 +132,7 @@ jobs:
           name: commit.txt
 
       - name: Set git short hash
-        run: chmod 0755 commit.txt && echo "::set-env name=NBGV_GitCommitIdShort::$(cat commit.txt)" && echo 'The git short hash is' ${{env.NBGV_GitCommitIdShort}}
+        run: chmod 0755 commit.txt && cat $(cat commit.txt) > VERSION
 
       - name: Install libman tool
         run: dotnet tool install --global Microsoft.Web.LibraryManager.Cli
@@ -142,7 +142,7 @@ jobs:
         run: libman restore
 
       - name: Publish win-x64
-        run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r win-x64 -p:LibraryRestore=false -p:PublishReadyToRun=true -p:PublishReadyToRunShowWarnings=true -p:PublishSingleFile=true -p:PublishTrimmed=true -o "dist/win-x64-${{env.NBGV_GitCommitIdShort}}"
+        run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r win-x64 -p:LibraryRestore=false -p:PublishReadyToRun=true -p:PublishReadyToRunShowWarnings=true -p:PublishSingleFile=true -p:PublishTrimmed=true -o "dist/win-x64-$(cat VERSION)"
     
       - name: Download minisign 0.9
         run: "(New-Object System.Net.WebClient).DownloadFile('https://github.com/jedisct1/minisign/releases/download/0.9/minisign-win64.zip', './minisign-win64.zip')"
@@ -169,7 +169,7 @@ jobs:
         shell: cmd
 
       - name: Sign executable
-        run: chmod 0755 ./dist/win-x64-${{env.NBGV_GitCommitIdShort}} && minisign -Sm ./dist/win-x64-${{env.NBGV_GitCommitIdShort}} -s minisign.key -t "git commit hash = ${{env.NBGV_GitCommitIdShort}}" < cleartext.txt            
+        run: chmod 0755 ./dist/win-x64-${{env.NBGV_GitCommitIdShort}} && minisign -Sm ./dist/win-x64-${{env.NBGV_GitCommitIdShort}} -s minisign.key -t "git commit hash = $(cat VERSION)" < cleartext.txt            
         shell: cmd
 
       - name: Upload win-x64
@@ -204,7 +204,7 @@ jobs:
           name: commit.txt
 
       - name: Set git short hash
-        run: chmod 0755 commit.txt && echo "::set-env name=NBGV_GitCommitIdShort::$(cat commit.txt)" && echo 'The git short hash is' ${{env.NBGV_GitCommitIdShort}}
+        run: chmod 0755 commit.txt && cat $(cat commit.txt) > VERSION
 
       - name: Install libman tool
         run: dotnet tool install --global Microsoft.Web.LibraryManager.Cli
@@ -214,7 +214,7 @@ jobs:
         run: libman restore
 
       - name: Publish linux-x64
-        run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r linux-x64 -p:LibraryRestore=false -p:PublishReadyToRun=true -p:PublishReadyToRunShowWarnings=true -p:PublishSingleFile=true -p:PublishTrimmed=true -o "dist/linux-x64-${{env.NBGV_GitCommitIdShort}}" 
+        run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r linux-x64 -p:LibraryRestore=false -p:PublishReadyToRun=true -p:PublishReadyToRunShowWarnings=true -p:PublishSingleFile=true -p:PublishTrimmed=true -o "dist/linux-x64-$(cat VERSION)" 
    
       - name: Upload linux-x64
         uses: actions/upload-artifact@main
@@ -247,7 +247,7 @@ jobs:
           name: commit.txt
 
       - name: Set git short hash
-        run: chmod 0755 commit.txt && echo "::set-env name=NBGV_GitCommitIdShort::$(cat commit.txt)" && echo 'The git short hash is' ${{env.NBGV_GitCommitIdShort}}
+        run: chmod 0755 commit.txt && cat $(cat commit.txt) > VERSION
         
       - name: Install libman tool
         run: dotnet tool install --global Microsoft.Web.LibraryManager.Cli
@@ -257,7 +257,7 @@ jobs:
         run: libman restore
 
       - name: Publish osx-x64
-        run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r osx-x64 -p:LibraryRestore=false -p:PublishReadyToRun=true -p:PublishSingleFile=true -p:PublishTrimmed=true -o "dist/osx-x64-${{env.NBGV_GitCommitIdShort}}" 
+        run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r osx-x64 -p:LibraryRestore=false -p:PublishReadyToRun=true -p:PublishSingleFile=true -p:PublishTrimmed=true -o "dist/osx-x64-$(cat VERSION)" 
 
       - name: Download minisign 0.9
         run: wget https://github.com/jedisct1/minisign/releases/download/0.9/minisign-osx.zip
