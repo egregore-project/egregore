@@ -131,7 +131,7 @@ jobs:
           name: commit.txt
 
       - name: Set git short hash
-        run: chmod 0755 commit.txt && echo "::set-env name=NBGV_GitCommitIdShort::$(..\..\egregore\egregore\commit.txt)" && echo 'The git short hash is' $NBGV_GitCommitIdShort
+        run: chmod 0755 commit.txt && echo "::set-env name=NBGV_GitCommitIdShort::$(./../../egregore/egregore/commit.txt)" && echo 'The git short hash is' $NBGV_GitCommitIdShort
       
       - name: Install libman tool
         run: dotnet tool install --global Microsoft.Web.LibraryManager.Cli
@@ -144,7 +144,11 @@ jobs:
         run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r win-x64 -p:LibraryRestore=false -p:PublishReadyToRun=true -p:PublishReadyToRunShowWarnings=true -p:PublishSingleFile=true -p:PublishTrimmed=true -o "dist/win-x64-${{env.NBGV_GitCommitIdShort}}"
     
       - name: Download minisign 0.9
-        run: "(New-Object System.Net.WebClient).DownloadFile('https://github.com/jedisct1/minisign/releases/download/0.9/minisign-win64.zip', './minisign-win64.zip') ; (New-Object System.Net.WebClient).DownloadFile('https://github.com/jedisct1/minisign/releases/download/0.9/minisign-win64.zip.minisig')"
+        run: "(New-Object System.Net.WebClient).DownloadFile('https://github.com/jedisct1/minisign/releases/download/0.9/minisign-win64.zip', './minisign-win64.zip')"
+        shell: powershell
+
+      - name: Download minisign 0.9 signature
+        run: "(New-Object System.Net.WebClient).DownloadFile('https://github.com/jedisct1/minisign/releases/download/0.9/minisign-win64.zip.minisig', './minisign-win64.zip.minisig')"
         shell: powershell
 
       - name: Unzip minisign-win64.zip        
@@ -198,7 +202,7 @@ jobs:
           name: commit.txt
 
       - name: Set git short hash
-        run: chmod 0755 commit.txt && echo "::set-env name=NBGV_GitCommitIdShort::$(..\..\egregore\egregore\commit.txt)" && echo 'The git short hash is' $NBGV_GitCommitIdShort
+        run: chmod 0755 commit.txt && echo "::set-env name=NBGV_GitCommitIdShort::$(./../../egregore/egregore/commit.txt)" && echo 'The git short hash is' $NBGV_GitCommitIdShort
         
       - name: Install libman tool
         run: dotnet tool install --global Microsoft.Web.LibraryManager.Cli
@@ -241,7 +245,7 @@ jobs:
           name: commit.txt
 
       - name: Set git short hash
-        run: chmod 0755 commit.txt && echo "::set-env name=NBGV_GitCommitIdShort::$(..\..\egregore\egregore\commit.txt)" && echo 'The git short hash is' $NBGV_GitCommitIdShort
+        run: chmod 0755 commit.txt && echo "::set-env name=NBGV_GitCommitIdShort::$(./../../egregore/egregore/commit.txt)" && echo 'The git short hash is' $NBGV_GitCommitIdShort
         
       - name: Install libman tool
         run: dotnet tool install --global Microsoft.Web.LibraryManager.Cli
