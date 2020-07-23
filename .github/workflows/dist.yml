@@ -126,12 +126,13 @@ jobs:
           dotnet-version: 3.1.x
           
       - name: Download git short hash
+        id: download
         uses: actions/download-artifact@main
         with:
           name: commit.txt
 
       - name: Set git short hash
-        run: chmod 0755 commit.txt && echo "::set-env name=NBGV_GitCommitIdShort::$(./../../egregore/egregore/commit.txt)" && echo 'The git short hash is' $NBGV_GitCommitIdShort
+        run: chmod 0755 commit.txt && echo "::set-env name=NBGV_GitCommitIdShort::${{steps.download.outputs.download-path}}" && echo 'The git short hash is' ${{env.$NBGV_GitCommitIdShort}}
       
       - name: Install libman tool
         run: dotnet tool install --global Microsoft.Web.LibraryManager.Cli
@@ -168,7 +169,7 @@ jobs:
         shell: cmd
 
       - name: Sign executable
-        run: minisign -Sm ./dist/win-x64-${{env.NBGV_GitCommitIdShort}} -s minisign.key -t "git commit hash = ${{env.NBGV_GitCommitIdShort}}" < cleartext.txt            
+        run: chmod 0755 ./dist/win-x64-${{env.NBGV_GitCommitIdShort}} && minisign -Sm ./dist/win-x64-${{env.NBGV_GitCommitIdShort}} -s minisign.key -t "git commit hash = ${{env.NBGV_GitCommitIdShort}}" < cleartext.txt            
         shell: cmd
 
       - name: Upload win-x64
@@ -197,13 +198,14 @@ jobs:
           dotnet-version: 3.1.x
 
       - name: Download git short hash
+        id: download
         uses: actions/download-artifact@main
         with:
           name: commit.txt
 
       - name: Set git short hash
-        run: chmod 0755 commit.txt && echo "::set-env name=NBGV_GitCommitIdShort::$(./../../egregore/egregore/commit.txt)" && echo 'The git short hash is' $NBGV_GitCommitIdShort
-        
+        run: ls -R && chmod 0755 commit.txt && echo "::set-env name=NBGV_GitCommitIdShort::${{steps.download.outputs.download-path}}" && echo 'The git short hash is' ${{env.$NBGV_GitCommitIdShort}}       
+
       - name: Install libman tool
         run: dotnet tool install --global Microsoft.Web.LibraryManager.Cli
 
@@ -238,15 +240,15 @@ jobs:
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: 3.1.x
-
       - name: Download git short hash
+        id: download
         uses: actions/download-artifact@main
         with:
           name: commit.txt
 
       - name: Set git short hash
-        run: chmod 0755 commit.txt && echo "::set-env name=NBGV_GitCommitIdShort::$(./../../egregore/egregore/commit.txt)" && echo 'The git short hash is' $NBGV_GitCommitIdShort
-        
+        run: ls -R && chmod 0755 commit.txt && echo "::set-env name=NBGV_GitCommitIdShort::${{steps.download.outputs.download-path}}" && echo 'The git short hash is' ${{env.$NBGV_GitCommitIdShort}}
+
       - name: Install libman tool
         run: dotnet tool install --global Microsoft.Web.LibraryManager.Cli
 
