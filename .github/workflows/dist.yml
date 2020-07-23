@@ -64,7 +64,7 @@ jobs:
         shell: powershell
 
       - name: Verify minisign 0.9
-        run: minisign -Vm ./minisign-0.9.zip -P "RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3"
+        run: minisign -Vm ./minisign-win64.zip -P "RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3"
         shell: cmd
 
       - name: Prepare minisign key
@@ -84,7 +84,7 @@ jobs:
         shell: cmd
       
       - name: Upload NuGet Package signature
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@main
         with:
           name: egregore.${{env.NBGV_NuGetPackageVersion}}.nupkg.minisig
           path: ./artifacts/egregore.${{env.NBGV_NuGetPackageVersion}}.nupkg.minisig
@@ -148,7 +148,7 @@ jobs:
         shell: powershell
 
       - name: Verify minisign 0.9
-        run: minisign -Vm ./minisign-0.9.zip -P "RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3"
+        run: minisign -Vm ./minisign-win64.zip -P "RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3"
         shell: cmd
 
       - name: Prepare minisign key
