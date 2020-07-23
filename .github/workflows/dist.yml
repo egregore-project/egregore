@@ -132,7 +132,7 @@ jobs:
           name: commit.txt
 
       - name: Set git short hash
-        run: chmod 0755 commit.txt && $(cat commit.txt) > VERSION
+        run: chmod 0755 commit.txt && echo $(cat commit.txt) > VERSION
 
       - name: Install libman tool
         run: dotnet tool install --global Microsoft.Web.LibraryManager.Cli
@@ -204,7 +204,7 @@ jobs:
           name: commit.txt
 
       - name: Set git short hash
-        run: chmod 0755 commit.txt && $(cat commit.txt) > VERSION
+        run: chmod 0755 commit.txt && echo $(cat commit.txt) > VERSION
 
       - name: Install libman tool
         run: dotnet tool install --global Microsoft.Web.LibraryManager.Cli
@@ -247,7 +247,7 @@ jobs:
           name: commit.txt
 
       - name: Set git short hash
-        run: chmod 0755 commit.txt && $(cat commit.txt) > VERSION
+        run: chmod 0755 commit.txt && echo $(cat commit.txt) > VERSION
         
       - name: Install libman tool
         run: dotnet tool install --global Microsoft.Web.LibraryManager.Cli
