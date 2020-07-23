@@ -205,8 +205,7 @@ jobs:
           name: commit.txt
 
       - name: Set git short hash
-        run: ls -R && chmod 0755 commit.txt && echo "::set-env name=NBGV_GitCommitIdShort::$( < ${{steps.download.outputs.download-path}})" && echo 'The git short hash is' ${{env.NBGV_GitCommitIdShort}}
-        shell: cmd
+        run: ls -R && chmod 0755 commit.txt && echo "::set-env name=NBGV_GitCommitIdShort::$( < ${{steps.download.outputs.download-path}})" && echo 'The git short hash is' ${{env.NBGV_GitCommitIdShort}}        
 
       - name: Install libman tool
         run: dotnet tool install --global Microsoft.Web.LibraryManager.Cli
@@ -250,8 +249,7 @@ jobs:
 
       - name: Set git short hash
         run: ls -R && chmod 0755 commit.txt && echo "::set-env name=NBGV_GitCommitIdShort::$( < ${{steps.download.outputs.download-path}})" && echo 'The git short hash is' ${{env.NBGV_GitCommitIdShort}}
-        shell: cmd
-
+        
       - name: Install libman tool
         run: dotnet tool install --global Microsoft.Web.LibraryManager.Cli
 
