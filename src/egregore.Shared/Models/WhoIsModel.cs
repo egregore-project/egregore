@@ -6,10 +6,10 @@
 
 using System.ComponentModel;
 
-namespace egregore.Models
+namespace egregore.Shared.Models
 {
-    public class BaseViewModel
+    public class WhoIsModel : BaseViewModel
     {
-        [ReadOnly(true)] public string ServerId { get; set; }
+        [ReadOnly(true)] public string PublicKey { get; set; }
     }
 }

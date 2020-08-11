@@ -1,4 +1,8 @@
-﻿@inherits LayoutComponentBase
+﻿@using egregore.Shared.Models
+
+@inherits LayoutComponentBase
+
+@inject HttpClient http
 
 <div class="sidebar">
     <NavMenu />
@@ -12,4 +16,20 @@
     <div class="content px-4">
         @Body
     </div>
+
+    <footer class="border-top footer text-muted">
+        <div class="container">
+            <NavLink href="/privacy">Privacy</NavLink> | <span>Server ID: @_whoIs?.ServerId</span>
+        </div>
+    </footer>
 </div>
+
+@code {
+
+    private WhoIsModel _whoIs;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _whoIs = await http.GetFromJsonAsync<WhoIsModel>("whois");
+    }
+}

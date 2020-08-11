@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace egregore.Shared
+namespace egregore.Shared.Models
 {
     public class WeatherForecast
     {

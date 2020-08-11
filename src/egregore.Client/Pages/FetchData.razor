@@ -1,5 +1,6 @@
 @page "/fetchdata"
-@inject HttpClient Http
+@using egregore.Shared.Models
+@inject HttpClient http
 
 <h1>Weather forecast</h1>
 
@@ -39,7 +40,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("WeatherForecast");
+        forecasts = await http.GetFromJsonAsync<WeatherForecast[]>("WeatherForecast");
     }
 
 }

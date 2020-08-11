@@ -9,6 +9,7 @@ using System.Net;
 using egregore.Configuration;
 using egregore.Filters;
 using egregore.Models;
+using egregore.Shared.Models;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -28,11 +29,17 @@ namespace egregore.Controllers
             _logger = logger;
         }
 
-        //[HttpGet("/")]
-        //public IActionResult Index(BaseViewModel model)
-        //{
-        //    return View(model);
-        //}
+        [HttpGet("whois")]
+        public IActionResult WhoIs()
+        {
+            var model = new WhoIsModel
+            {
+                PublicKey = Crypto.ToHexString(_options.Value.PublicKey),
+                ServerId = _options.Value.ServerId
+            };
+
+            return Ok(model);
+        }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         [Route("error/{statusCode?}")]

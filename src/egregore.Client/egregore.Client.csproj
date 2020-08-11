@@ -5,11 +5,16 @@
     <RazorLangVersion>3.0</RazorLangVersion>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <!-- speed up development builds by not linking first -->
+    <BlazorWebAssemblyEnableLinking Condition="'$(Configuration)'!='Release'">false</BlazorWebAssemblyEnableLinking> 
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="3.2.1" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Build" Version="3.2.1" PrivateAssets="all" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="3.2.1" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.Web.LibraryManager.Build" Version="2.1.76" />
+    <!--<PackageReference Include="Microsoft.Web.LibraryManager.Build" Version="2.1.76" PrivateAssets="all" />-->
     <PackageReference Include="System.Net.Http.Json" Version="3.2.1" />
   </ItemGroup>
 
