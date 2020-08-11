@@ -6,38 +6,44 @@
 
 using System.Diagnostics;
 using System.Net;
+using egregore.Configuration;
+using egregore.Filters;
 using egregore.Models;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace egregore.Controllers
 {
+    [ServiceFilter(typeof(BaseViewModelFilter))]
     public class HomeController : Controller
     {
+        private readonly IOptionsSnapshot<WebServerOptions> _options;
         private readonly ILogger<HomeController> _logger;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(IOptionsSnapshot<WebServerOptions> options, ILogger<HomeController> logger)
         {
+            _options = options;
             _logger = logger;
         }
 
-        [HttpGet("/")]
-        public IActionResult Index()
-        {
-            return View();
-        }
+        //[HttpGet("/")]
+        //public IActionResult Index(BaseViewModel model)
+        //{
+        //    return View(model);
+        //}
 
         [HttpGet("privacy")]
-        public IActionResult Privacy()
+        public IActionResult Privacy(BaseViewModel model)
         {
-            return View();
+            return View(model);
         }
 
         [HttpGet("meta")]
-        public IActionResult Meta()
+        public IActionResult Meta(BaseViewModel model)
         {
-            return View();
+            return View(model);
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

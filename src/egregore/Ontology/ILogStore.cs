@@ -15,6 +15,8 @@ namespace egregore.Ontology
         Task<ulong> GetLengthAsync();
         Task<ulong> AddEntryAsync(LogEntry entry, byte[] secretKey = null);
         IEnumerable<LogEntry> StreamEntries(ulong startingFrom = 0UL, byte[] secretKey = null);
+        
+        void Init();
         void Destroy();
     }
 }

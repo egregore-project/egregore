@@ -18,7 +18,7 @@ namespace egregore.Data
 
         public byte[] ReverseRecordKey(Guid uuid)
         {
-            return Encoding.UTF8.GetBytes($"R:{uuid.ToByteArray()}");
+            return Encoding.UTF8.GetBytes(string.Concat("R:", uuid));
         }
 
         public byte[] BuildTypeKey(Record record)

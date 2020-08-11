@@ -5,16 +5,11 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
 
 namespace egregore.Models
 {
-    public sealed class SignInViewModel : BaseViewModel
+    public class BaseViewModel
     {
-        [Required] [ReadOnly(true)] public string Challenge { get; set; }
-
-        [Required] public string PublicKey { get; set; }
-
-        [Required] public string Signature { get; set; }
+        [ReadOnly(true)] public string ServerId { get; set; }
     }
 }

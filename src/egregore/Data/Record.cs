@@ -17,16 +17,16 @@ namespace egregore.Data
         }
 
         public ulong? Index { get; set; }
-        public string Type { get; set; }
         public Guid Uuid { get; set; }
+        public string Type { get; set; }
         public List<RecordColumn> Columns { get; }
 
         #region Serialization
 
         public void Serialize(LogSerializeContext context, bool hash)
         {
-            context.bw.Write(Type);
             context.bw.Write(Uuid.ToByteArray());
+            context.bw.Write(Type);
             context.bw.Write(Columns.Count);
             foreach (var column in Columns)
                 column.Serialize(context, hash);
@@ -34,8 +34,17 @@ namespace egregore.Data
 
         public Record(LogDeserializeContext context) : this()
         {
-            Type = context.br.ReadString();
             Uuid = new Guid(context.br.ReadBytes(16));
+            Type = context.br.ReadString();
+            var columns = context.br.ReadInt32();
+            for (var i = 0; i < columns; i++)
+                Columns.Add(new RecordColumn(context));
+        }
+
+        public Record(Guid id, LogDeserializeContext context) : this()
+        {
+            Uuid = id;
+            Type = context.br.ReadString();
             var columns = context.br.ReadInt32();
             for (var i = 0; i < columns; i++)
                 Columns.Add(new RecordColumn(context));

@@ -6,19 +6,24 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
+using egregore.Hubs;
 using egregore.Ontology.Exceptions;
+using Microsoft.AspNetCore.SignalR;
 
 namespace egregore.Ontology
 {
-    public sealed class OntologyLog
+    public sealed class MemoryOntologyLog : IOntologyLog
     {
         private static readonly Namespace Default = new Namespace(Constants.DefaultNamespace);
 
         private long _index;
         private Namespace _namespace;
 
-        public OntologyLog(ReadOnlySpan<byte> publicKey)
+        public long Index => Interlocked.Read(ref _index);
+
+        public void Init(ReadOnlySpan<byte> publicKey)
         {
             Namespaces = new List<Namespace> {Default};
             _namespace = Namespaces[0];
@@ -39,21 +44,24 @@ namespace egregore.Ontology
             });
         }
 
-        public OntologyLog(ReadOnlySpan<byte> publicKey, ILogStore store, ulong startingFrom = 0UL,
-            byte[] secretKey = null) : this(publicKey)
+        // ReSharper disable once UnusedMember.Global (used for DI)
+        public MemoryOntologyLog() { }
+
+        internal MemoryOntologyLog(ReadOnlySpan<byte> publicKey) => Init(publicKey);
+        internal MemoryOntologyLog(ReadOnlySpan<byte> publicKey, ILogStore store, ulong startingFrom = 0UL, byte[] secretKey = null) : this(publicKey)
         {
             Interlocked.Exchange(ref _index, (long) startingFrom);
-            Materialize(store, secretKey);
+            Materialize(store, default, default, secretKey);
         }
 
-        public List<Namespace> Namespaces { get; }
-        public Dictionary<string, Dictionary<ulong, List<Schema>>> Schemas { get; }
-        public Dictionary<string, Dictionary<string, ulong>> Revisions { get; }
+        public List<Namespace> Namespaces { get; set; }
+        public Dictionary<string, Dictionary<ulong, List<Schema>>> Schemas { get; set; }
+        public Dictionary<string, Dictionary<string, ulong>> Revisions { get; set; }
+        public Dictionary<string, List<string>> Roles { get; set; }
+        public Dictionary<string, Dictionary<string, List<string>>> RoleGrants { get; set; }
 
-        public Dictionary<string, List<string>> Roles { get; }
-        public Dictionary<string, Dictionary<string, List<string>>> RoleGrants { get; }
-
-        public void Materialize(ILogStore store, byte[] secretKey = default)
+        public void Materialize(ILogStore store, IHubContext<NotificationHub> hub = default,
+            OntologyChangeProvider change = default, byte[] secretKey = default)
         {
             var startingFrom = Interlocked.Read(ref _index);
 
@@ -92,6 +100,7 @@ namespace egregore.Ontology
                                 schemaMap.Add(revision, list = new List<Schema>());
 
                             list.Add(schema);
+                            OnSchemaAdded(schema, hub, change);
                             break;
                         }
                         case RevokeRole revokeRole:
@@ -110,6 +119,18 @@ namespace egregore.Ontology
                             throw new NotImplementedException(@object.Data.GetType().Name);
                     }
             }
+        }
+
+        public bool Exists(string eggPath)
+        {
+            return Directory.Exists(eggPath);
+        }
+
+        private static void OnSchemaAdded(Schema schema, IHubContext<NotificationHub> hub,
+            OntologyChangeProvider change)
+        {
+            hub?.Clients.All.SendAsync("ReceiveMessage", "info", $"Adding new schema '{schema.Name}'");
+            change?.OnChanged();
         }
     }
 }

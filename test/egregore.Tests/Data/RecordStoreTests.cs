@@ -4,7 +4,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+using System;
 using System.Threading.Tasks;
+using Dapper;
 using egregore.Data;
 using egregore.Tests.Helpers;
 using Xunit;
@@ -33,9 +35,9 @@ namespace egregore.Tests.Data
             var fetched = await fixture.Store.GetByIdAsync(record.Uuid);
             Assert.NotNull(fetched);
 
-            // FIXME: pulls the wrong value
-            //var missing = await fixture.Store.GetByIdAsync(Guid.NewGuid());
-            //Assert.Null(missing);
+            var badId = Guid.NewGuid();
+            var missing = await fixture.Store.GetByIdAsync(badId);
+            Assert.Null(missing);
         }
 
         [Fact]
@@ -54,10 +56,12 @@ namespace egregore.Tests.Data
             Assert.Equal(1UL, count);
 
             var fetched = await fixture.Store.GetByColumnValueAsync("Customer", "Order", "123");
-            Assert.NotEmpty(fetched);
+            var list = fetched.AsList();
+            Assert.NotEmpty(list);
 
             var missing = await fixture.Store.GetByColumnValueAsync("Customer", "Order", "234");
-            Assert.Empty(missing);
+            list = missing.AsList();
+            Assert.Empty(list);
         }
 
         [Fact]

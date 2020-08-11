@@ -7,7 +7,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
+using egregore.Extensions;
 using LightningDB;
 
 namespace egregore.Data
@@ -35,7 +37,9 @@ namespace egregore.Data
 
         public Task<Record> GetByIdAsync(Guid uuid)
         {
-            return Task.FromResult(GetByIndex(_recordKeyBuilder.ReverseRecordKey(uuid)));
+            var key = _recordKeyBuilder.ReverseRecordKey(uuid);
+            var record = GetByIndex(key);
+            return Task.FromResult(record);
         }
 
         public Task<ulong> GetCountAsync(string type)
@@ -62,11 +66,11 @@ namespace egregore.Data
             using var cursor = tx.CreateCursor(db);
 
             var key = _recordKeyBuilder.ReverseTypeKey(type);
-            if (!cursor.MoveToAndGet(key))
+            if (cursor.SetKey(key).resultCode != MDBResultCode.Success)
                 return 0UL;
 
             var count = 1UL;
-            foreach (var _ in cursor)
+            foreach (var _ in cursor.GetMultiple().value.CopyToNewArray().Split(sizeof(int)).ToArray())
                 count++;
 
             return count;
@@ -81,7 +85,6 @@ namespace egregore.Data
             using var bw = new BinaryWriter(ms);
             var context = new LogSerializeContext(bw, _typeProvider);
             record.Serialize(context, false);
-
 
             var value = ms.ToArray();
 
@@ -115,18 +118,26 @@ namespace egregore.Data
             using var db = tx.OpenDatabase();
             using var cursor = tx.CreateCursor(db);
 
-            // FIXME: do not allocate here!
-            if (!cursor.MoveToAndGet(index.ToArray()))
+            var set = cursor.SetKey(index);
+            if (set.resultCode != MDBResultCode.Success)
                 return default;
 
-            var found = cursor.Current;
-            var buffer = found.Value.AsSpan();
+            var current = cursor.GetCurrent();
+            if (current.resultCode != MDBResultCode.Success)
+                return default;
+
+            var buffer = current.value.AsSpan();
             fixed (byte* buf = &buffer.GetPinnableReference())
             {
                 var ms = new UnmanagedMemoryStream(buf, buffer.Length);
                 var br = new BinaryReader(ms);
                 var context = new LogDeserializeContext(br, _typeProvider);
-                var record = new Record(context);
+
+                var uuid = new Guid(br.ReadBytes(16));
+                if (!index.SequenceEqual(_recordKeyBuilder.ReverseRecordKey(uuid)))
+                    return default;
+
+                var record = new Record(uuid, context);
                 return record;
             }
         }
@@ -137,15 +148,28 @@ namespace egregore.Data
             using var db = tx.OpenDatabase();
             using var cursor = tx.CreateCursor(db);
 
-            var key = _columnKeyBuilder.ReverseKey(type, name, value);
-            if (!cursor.MoveTo(key))
-                yield break;
+            var results = new List<Record>();
 
-            foreach (var idx in cursor)
+            var key = _columnKeyBuilder.ReverseKey(type, name, value); // FIXME: don't allocate
+            if (cursor.SetKey(key).resultCode != MDBResultCode.Success)
+                return results;
+
+            var current = cursor.GetCurrent();
+            while(current.resultCode == MDBResultCode.Success)
             {
-                var record = idx.Value.AsSpan();
-                yield return GetByIndex(record, tx);
+                var record = GetByIndex(current.value.AsSpan(), tx);
+                if (record == default)
+                    break;
+
+                results.Add(record);
+
+                var next = cursor.Next();
+                if (next == MDBResultCode.Success)
+                    current = cursor.GetCurrent();
+                else
+                    break;
             }
+            return results;
         }
 
         protected override void Dispose(bool disposing)

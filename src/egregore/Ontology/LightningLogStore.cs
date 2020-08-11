@@ -66,10 +66,10 @@ namespace egregore.Ontology
             {
                 var key = BitConverter.GetBytes((long) startingFrom);
                 var value = tx.Get(db, key);
-                if (value == default)
+                if (value.resultCode == MDBResultCode.Success)
                     yield break;
 
-                using var ms = new MemoryStream(value);
+                using var ms = new MemoryStream(value.value.AsSpan().ToArray());
                 using var br = new BinaryReader(ms);
                 var context = new LogDeserializeContext(br, _typeProvider);
                 var entry = new LogEntry(context);

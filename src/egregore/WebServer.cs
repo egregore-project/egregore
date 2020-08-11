@@ -9,21 +9,11 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Authentication;
-using System.Text;
-using egregore.Configuration;
-using egregore.Hubs;
-using egregore.IO;
-using egregore.Network;
-using egregore.Ontology;
-using egregore.Security;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
-using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace egregore
 {
@@ -40,7 +30,7 @@ namespace egregore
         {
             PrintMasthead();
 
-            var builder = CreateHostBuilder(port, eggPath, capture, args);
+            var builder = CreateHostBuilder(port, eggPath, capture, default, args);
             var host = builder.Build();
             host.Run();
         }
@@ -69,8 +59,9 @@ namespace egregore
             Console.ResetColor();
         }
 
-        internal static unsafe IHostBuilder CreateHostBuilder(int? port, string eggPath, IKeyCapture capture,
-            params string[] args)
+        internal static IHostBuilder CreateHostBuilder<TStartup>(int? port, string eggPath, IKeyCapture capture, params string[] args) where TStartup : class => CreateHostBuilder(port, eggPath, capture, typeof(TStartup), args);
+
+        internal static IHostBuilder CreateHostBuilder(int? port, string eggPath, IKeyCapture capture, Type startupType = default, params string[] args)
         {
             var builder = Host.CreateDefaultBuilder(args);
 
@@ -99,65 +90,23 @@ namespace egregore
                         });
                     });
                 });
-                webBuilder.ConfigureLogging((context, loggingBuilder) => { });
+                webBuilder.ConfigureLogging((context, loggingBuilder) =>
+                {
+                    loggingBuilder.AddConfiguration(context.Configuration.GetSection("Logging"));
+                    loggingBuilder.AddDebug();
+                    loggingBuilder.AddEventSourceLogger();
+
+                    if(context.HostingEnvironment.IsDevelopment())
+                        loggingBuilder.AddConsole(); // unnecessary overhead
+                });
                 webBuilder.ConfigureServices((context, services) =>
                 {
-                    services.AddCors(o => o.AddDefaultPolicy(b =>
-                    {
-                        b.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
-                        b.DisallowCredentials();
-                    }));
-
-                    var keyFileService = new ServerKeyFileService();
-                    services.AddSingleton<IKeyFileService>(keyFileService);
-
-                    capture ??= new ServerConsoleKeyCapture();
-                    services.AddSingleton(capture);
-
-                    if (capture is IPersistedKeyCapture persisted)
-                        services.AddSingleton(persisted);
-
-                    var publicKey = Crypto.SigningPublicKeyFromSigningKey(keyFileService, capture);
-                    capture.Reset();
-
-                    var fingerprint = new byte[8];
-                    var appString = $"{context.HostingEnvironment.ApplicationName}:" +
-                                    $"{context.HostingEnvironment.EnvironmentName}:" +
-                                    $"{webBuilder.GetSetting("https_port")}";
-                    var app = Encoding.UTF8.GetBytes(appString);
-
-                    fixed (byte* pk = publicKey)
-                    fixed (byte* id = fingerprint)
-                    fixed (byte* key = app)
-                    {
-                        if (NativeMethods.crypto_generichash(id, fingerprint.Length, pk, Crypto.PublicKeyBytes, key,
-                            app.Length) != 0)
-                            throw new InvalidOperationException(nameof(NativeMethods.crypto_generichash));
-                    }
-
-                    var serverId = Crypto.ToHexString(fingerprint);
-                    services.Configure<WebServerOptions>(context.Configuration.GetSection("WebServer"));
-                    services.Configure<WebServerOptions>(o =>
-                    {
-                        o.PublicKey = publicKey;
-                        o.ServerId = serverId;
-                        o.EggPath = eggPath;
-                    });
-
-                    services.AddAntiforgery(options =>
-                    {
-                        options.Cookie.Name = $"_{serverId}_xsrf";
-                        options.Cookie.HttpOnly = true;
-                        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-                        options.HeaderName = "X-XSRF-Token";
-                    });
-
-                    services.AddSingleton<PeerBus>();
+                    services.AddWebServer(eggPath, capture, context.HostingEnvironment, context.Configuration, webBuilder);
                 });
-                webBuilder.Configure((context, appBuilder) => { appBuilder.UseCors(); });
+
+                webBuilder.Configure((context, app) => { app.UseWebServer(context.HostingEnvironment); });
 
 #if DEBUG
-
                 // This is glue for development only, when running in the /bin folder but wwwroot is a few directories back
 
                 var contentRoot = Directory.GetCurrentDirectory();
@@ -170,59 +119,11 @@ namespace egregore
                 webBuilder.UseWebRoot(webRoot);
 
 #endif
-
-                webBuilder.UseStartup<WebServer>();
+                if(startupType != default)
+                    webBuilder.UseStartup(startupType);
             });
 
             return builder;
-        }
-
-        public void ConfigureServices(IServiceCollection services)
-        {
-            services.AddMemoryCache(o => { });
-            services.AddSingleton<ThrottleFilter>();
-            services.AddSignalR();
-            services.AddControllersWithViews();
-            services.AddRouting(o =>
-            {
-                o.AppendTrailingSlash = true;
-                o.LowercaseUrls = true;
-                o.LowercaseQueryStrings = false;
-            });
-            services.AddHostedService<WebServerStartup>();
-        }
-
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-        {
-            // manually instanced singletons are not cleaned up by DI on application exit
-            app.ApplicationServices.GetRequiredService<IHostApplicationLifetime>().ApplicationStopping.Register(() =>
-                app.ApplicationServices.GetService<IPersistedKeyCapture>()?.Dispose());
-
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-            else
-            {
-                app.UseExceptionHandler("/error");
-                app.UseStatusCodePagesWithReExecute("/error/{0}");
-                app.UseHsts();
-            }
-
-            app.UseHttpsRedirection();
-            app.UseSecurityHeaders();
-
-            var provider = new FileExtensionContentTypeProvider();
-            provider.Mappings[".webmanifest"] = "application/manifest+json";
-            app.UseStaticFiles(new StaticFileOptions {ContentTypeProvider = provider});
-
-            app.UseRouting();
-            app.UseAuthorization();
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
-                endpoints.MapHub<NotificationHub>("/notify");
-            });
         }
     }
 }

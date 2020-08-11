@@ -23,26 +23,27 @@
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="icon.png" Pack="true" PackagePath=""/>
+    <None Include="icon.png" Pack="true" PackagePath="" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="libsodium" Version="1.0.18">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="LightningDB" Version="0.12.0">
+    <PackageReference Include="LightningDB" Version="0.13.0">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="NetMQ" Version="4.0.0.207">
+    <PackageReference Include="NetMQ" Version="4.0.1.4">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="WyHash" Version="1.0.4">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="3.6.0">
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="3.2.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="3.1.6">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Web.LibraryManager.Build" Version="1.0.113" />
+    <PackageReference Include="Microsoft.Web.LibraryManager.Build" Version="2.1.76" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.9">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
@@ -52,7 +53,7 @@
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
   </PropertyGroup>
   <ItemGroup>
-    <SourceRoot Include="$(MSBuildThisFileDirectory)/"/>
+    <SourceRoot Include="$(MSBuildThisFileDirectory)/" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -74,5 +75,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\submodules\noise\Noise\Noise.csproj" />
+    <ProjectReference Include="..\egregore.Client\egregore.Client.csproj" />
+    <ProjectReference Include="..\egregore.Shared\egregore.Shared.csproj" />
   </ItemGroup>
 </Project>

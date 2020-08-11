@@ -1,4 +1,5 @@
-﻿<!DOCTYPE html>
+﻿@model BaseViewModel
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8"/>
@@ -45,7 +46,8 @@
 
 <footer class="border-top footer text-muted">
     <div class="container">
-        <a href="/privacy">Privacy</a>
+        <a href="/privacy">Privacy</a> |
+        <span>Server ID: @Model.ServerId</span>
     </div>
 </footer>
 <script type="text/javascript" src="~/lib/jquery/dist/jquery.min.js"></script>

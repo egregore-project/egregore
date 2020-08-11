@@ -42,10 +42,9 @@ namespace egregore.Tests.Ontology
             unsafe
             {
                 Crypto.GenerateKeyPair(out var pk, out _);
-                var ontology = new OntologyLog(pk, fixture.Store);
+                var ontology = new MemoryOntologyLog(pk, fixture.Store);
                 Assert.Equal(2, ontology.Namespaces.Count);
-                Assert.Equal(Constants.DefaultNamespace, ontology.Namespaces[0].Value,
-                    StringComparer.OrdinalIgnoreCase);
+                Assert.Equal(Constants.DefaultNamespace, ontology.Namespaces[0].Value, StringComparer.OrdinalIgnoreCase);
                 Assert.Equal(ns, ontology.Namespaces[1].Value, StringComparer.OrdinalIgnoreCase);
 
                 Assert.Single(ontology.Roles[Constants.DefaultNamespace]);
@@ -67,7 +66,7 @@ namespace egregore.Tests.Ontology
 
             using var fixture = new LogStoreFixture();
 
-            var ontology = new OntologyLog(publicKey);
+            var ontology = new MemoryOntologyLog(publicKey);
             Assert.Single(ontology.Roles[Constants.DefaultNamespace]);
 
             await fixture.Store.AddEntryAsync(LogEntryFactory.CreateEntry(revoke));
@@ -80,7 +79,7 @@ namespace egregore.Tests.Ontology
             unsafe
             {
                 Crypto.GenerateKeyPair(out var pk, out _);
-                var ontology = new OntologyLog(pk);
+                var ontology = new MemoryOntologyLog(pk);
                 Assert.Single(ontology.Namespaces);
                 Assert.Equal("default", ontology.Namespaces[0].Value, StringComparer.OrdinalIgnoreCase);
             }

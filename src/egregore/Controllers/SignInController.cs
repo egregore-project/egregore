@@ -32,8 +32,7 @@ namespace egregore.Controllers
         public IActionResult Index()
         {
             // FIXME: avoid allocation, also reuse the value in the filter and pass as a method parameter
-            var hash = BitConverter.GetBytes(
-                WyHash64.ComputeHash64(Request.HttpContext.Connection.RemoteIpAddress.GetAddressBytes(), Seed));
+            var hash = BitConverter.GetBytes(WyHash64.ComputeHash64(Request.HttpContext.Connection.RemoteIpAddress.GetAddressBytes(), Seed));
 
             // Challenge = sha256(wyhash(IP)[8]:ServerId[16]:Nonce[24])
             var buffer = Crypto.Nonce(48);

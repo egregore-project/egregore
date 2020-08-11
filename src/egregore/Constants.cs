@@ -21,7 +21,7 @@ namespace egregore
         public static readonly string DefaultEggPath = Path.Combine(".egregore", "default.egg");
         public static readonly IKeyCapture ConsoleKeyCapture = new ConsoleKeyCapture();
 
-        internal static class EnvVars
+        public static class EnvVars
         {
             public const string KeyFilePassword = "EGREGORE_KEY_FILE_PASSWORD";
             public const string EggFilePath = "EGREGORE_EGG_FILE_PATH";
