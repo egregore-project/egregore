@@ -34,18 +34,6 @@ namespace egregore.Controllers
         //    return View(model);
         //}
 
-        [HttpGet("privacy")]
-        public IActionResult Privacy(BaseViewModel model)
-        {
-            return View(model);
-        }
-
-        [HttpGet("meta")]
-        public IActionResult Meta(BaseViewModel model)
-        {
-            return View(model);
-        }
-
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         [Route("error/{statusCode?}")]
         public IActionResult Error(int statusCode = 500)
