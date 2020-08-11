@@ -348,5 +348,7 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+
+# egregore
 /src/egregore/.egregore
-/src/egregore/wwwroot/lib
+/src/egregore.Client/wwwroot/lib
