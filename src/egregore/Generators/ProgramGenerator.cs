@@ -4,15 +4,19 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+using egregore.Ontology;
+
 namespace egregore.Generators
 {
     public class ProgramGenerator
     {
-        public void Generate(IStringBuilder sb)
+        public void Generate(IStringBuilder sb, Namespace ns)
         {
             sb.AppendLine(@"using Microsoft.AspNetCore.Hosting;");
             sb.AppendLine(@"using Microsoft.Extensions.Hosting;");
             sb.AppendLine();
+
+            sb.OpenNamespace(ns.Value);
 
             sb.AppendLine(@"public sealed class Program");
             sb.AppendLine(@"{");
@@ -26,6 +30,8 @@ namespace egregore.Generators
                     webBuilder.UseStartup<Startup>();
                 });");
             sb.AppendLine(@"}");
+
+            sb.CloseNamespace();
         }
     }
 }

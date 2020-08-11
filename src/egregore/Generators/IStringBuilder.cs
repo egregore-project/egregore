@@ -9,8 +9,8 @@ namespace egregore.Generators
     public interface IStringBuilder
     {
         int Indent { get; set; }
-
         int Length { get; set; }
+
         IStringBuilder OpenNamespace(string @namespace);
         IStringBuilder CloseNamespace();
         IStringBuilder AppendLine(string message);

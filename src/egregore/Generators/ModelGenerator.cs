@@ -18,8 +18,17 @@ namespace egregore.Generators
             sb.AppendLine();
 
             sb.OpenNamespace($"{@namespace.Value}.V{revision}");
+
             sb.AppendLine($"public sealed class {schema.Name}");
             sb.AppendLine("{");
+
+            sb.Indent++;
+            foreach(var property in schema.Properties)
+            {
+                sb.AppendLine($"public {property.Type} {property.Name} {{ get; set; }}");
+            }
+            sb.Indent--;
+
             sb.AppendLine("}");
             sb.CloseNamespace();
         }
