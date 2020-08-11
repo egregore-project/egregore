@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <!-- speed up development builds by not linking first -->
+    <!-- Speed up development builds by not linking first -->
     <BlazorWebAssemblyEnableLinking Condition="'$(Configuration)'!='Release'">false</BlazorWebAssemblyEnableLinking> 
   </PropertyGroup>
 
@@ -14,19 +14,14 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="3.2.1" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Build" Version="3.2.1" PrivateAssets="all" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="3.2.1" PrivateAssets="all" />
-    <!--<PackageReference Include="Microsoft.Web.LibraryManager.Build" Version="2.1.76" PrivateAssets="all" />-->
     <PackageReference Include="System.Net.Http.Json" Version="3.2.1" />
+
+    <!-- Too slow, and we restore via the CI process on check in -->
+    <!--<PackageReference Include="Microsoft.Web.LibraryManager.Build" Version="2.1.76" PrivateAssets="all" />-->
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\egregore.Shared\egregore.Shared.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Update="wwwroot\favicon.ico">
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
   </ItemGroup>
 
 </Project>
