@@ -144,8 +144,8 @@ jobs:
 
       - name: Publish win-x64
         env:
-          VERSION: ${{ steps.githash.outputs.version }}
-        run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r win-x64 -p:LibraryRestore=false -p:PublishReadyToRun=true -p:PublishReadyToRunShowWarnings=true -p:PublishSingleFile=true -p:PublishTrimmed=true -o "dist/win-x64-${{ env.VERSION }}"
+          DIST_VERSION: ${{ steps.githash.outputs.version }}
+        run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r win-x64 -p:LibraryRestore=false -p:PublishReadyToRun=true -p:PublishReadyToRunShowWarnings=true -p:PublishSingleFile=true -p:PublishTrimmed=true -o "dist/win-x64-${{ env.DIST_VERSION }}"
     
       - name: Download minisign 0.9
         run: "(New-Object System.Net.WebClient).DownloadFile('https://github.com/jedisct1/minisign/releases/download/0.9/minisign-win64.zip', './minisign-win64.zip')"
@@ -173,17 +173,17 @@ jobs:
 
       - name: Sign executable
         env:
-          VERSION: ${{ steps.githash.outputs.version }}
-        run: chmod 0755 "./dist/win-x64-${{ env.VERSION }}" && minisign -Sm "./dist/win-x64-${{ env.VERSION }}" -s minisign.key -t "git commit hash = ${{ env.VERSION }}" < cleartext.txt            
+          DIST_VERSION: ${{ steps.githash.outputs.version }}
+        run: chmod 0755 "./dist/win-x64-${{ env.VERSION }}" && minisign -Sm "./dist/win-x64-${{ env.VERSION }}" -s minisign.key -t "git commit hash = ${{ env.DIST_VERSION }}" < cleartext.txt            
         shell: cmd
 
       - name: Upload win-x64
         uses: actions/upload-artifact@main
         env:
-          VERSION: ${{ steps.githash.outputs.version }}
+          DIST_VERSION: ${{ steps.githash.outputs.version }}
         with:
-          name: "win-x64-${{ env.VERSION }}"
-          path: "dist/win-x64-${{ env.VERSION }}"
+          name: "win-x64-${{ env.DIST_VERSION }}"
+          path: "dist/win-x64-${{ env.DIST_VERSION }}"
 
   deploy-linux-x64:
     runs-on: ubuntu-latest
@@ -223,16 +223,16 @@ jobs:
 
       - name: Publish linux-x64
         env:
-          VERSION: ${{ steps.githash.outputs.version }}
-        run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r linux-x64 -p:LibraryRestore=false -p:PublishReadyToRun=true -p:PublishReadyToRunShowWarnings=true -p:PublishSingleFile=true -p:PublishTrimmed=true -o "dist/linux-x64-${{ env.VERSION }}" 
+          DIST_VERSION: ${{ steps.githash.outputs.version }}
+        run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r linux-x64 -p:LibraryRestore=false -p:PublishReadyToRun=true -p:PublishReadyToRunShowWarnings=true -p:PublishSingleFile=true -p:PublishTrimmed=true -o "dist/linux-x64-${{ env.DIST_VERSION }}" 
    
       - name: Upload linux-x64
         uses: actions/upload-artifact@main
         env:
-          VERSION: ${{ steps.githash.outputs.version }}
+          DIST_VERSION: ${{ steps.githash.outputs.version }}
         with:
-          name: "linux-x64-${{ env.VERSION }}"
-          path: "dist/linux-x64-${{ env.VERSION }}"
+          name: "linux-x64-${{ env.DIST_VERSION }}"
+          path: "dist/linux-x64-${{ env.DIST_VERSION }}"
 
   deploy-osx-x64:
     runs-on: macos-latest
@@ -270,8 +270,8 @@ jobs:
 
       - name: Publish osx-x64
         env:
-          VERSION: ${{ steps.githash.outputs.version }}
-        run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r osx-x64 -p:LibraryRestore=false -p:PublishReadyToRun=true -p:PublishSingleFile=true -p:PublishTrimmed=true -o "dist/osx-x64-${{ env.VERSION }}" 
+          DIST_VERSION: ${{ steps.githash.outputs.version }}
+        run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r osx-x64 -p:LibraryRestore=false -p:PublishReadyToRun=true -p:PublishSingleFile=true -p:PublishTrimmed=true -o "dist/osx-x64-${{ env.DIST_VERSION }}" 
 
       - name: Download minisign 0.9
         run: wget https://github.com/jedisct1/minisign/releases/download/0.9/minisign-osx.zip
@@ -279,7 +279,7 @@ jobs:
       - name: Upload osx-x64
         uses: actions/upload-artifact@main
         env:
-          VERSION: ${{ steps.githash.outputs.version }}
+          DIST_VERSION: ${{ steps.githash.outputs.version }}
         with:
-          name: "osx-x64-${{ env.VERSION }}"
-          path: "dist/osx-x64-${{ env.VERSION }}"
+          name: "osx-x64-${{ env.DIST_VERSION }}"
+          path: "dist/osx-x64-${{ env.DIST_VERSION }}"
