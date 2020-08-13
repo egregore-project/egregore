@@ -169,14 +169,14 @@ jobs:
         shell: cmd
 
       - name: Sign executable
-        run: chmod 0755 ./dist/win-x64-$(cat VERSION) && minisign -Sm ./dist/win-x64-$$(cat VERSION) -s minisign.key -t "git commit hash = $(cat VERSION)" < cleartext.txt            
+        run: chmod 0755 "./dist/win-x64-$(cat VERSION)" && minisign -Sm "./dist/win-x64-$(cat VERSION)" -s minisign.key -t "git commit hash = $(cat VERSION)" < cleartext.txt            
         shell: cmd
 
       - name: Upload win-x64
         uses: actions/upload-artifact@main
         with:
-          name: win-x64-$(cat VERSION)
-          path: dist/win-x64-$(cat VERSION)
+          name: "win-x64-$(cat VERSION)"
+          path: "dist/win-x64-$(cat VERSION)"
 
   deploy-linux-x64:
     runs-on: ubuntu-latest
@@ -219,8 +219,8 @@ jobs:
       - name: Upload linux-x64
         uses: actions/upload-artifact@main
         with:
-          name: linux-x64-$(cat VERSION)
-          path: dist/linux-x64-$(cat VERSION)
+          name: "linux-x64-$(cat VERSION)"
+          path: "dist/linux-x64-$(cat VERSION)"
 
   deploy-osx-x64:
     runs-on: macos-latest
@@ -265,5 +265,5 @@ jobs:
       - name: Upload osx-x64
         uses: actions/upload-artifact@main
         with:
-          name: osx-x64-$(cat VERSION)
-          path: dist/osx-x64-$(cat VERSION)
+          name: "osx-x64-$(cat VERSION)"
+          path: "dist/osx-x64-$(cat VERSION)"
