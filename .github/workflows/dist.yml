@@ -226,6 +226,32 @@ jobs:
           DIST_VERSION: ${{steps.githash.outputs.version}}
         run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r linux-x64 -p:LibraryRestore=false -p:PublishReadyToRun=true -p:PublishReadyToRunShowWarnings=true -p:PublishSingleFile=true -p:PublishTrimmed=true -o "dist/linux-x64-${{env.DIST_VERSION}}"
    
+      - name: Download minisign 0.9
+        run: wget https://github.com/jedisct1/minisign/releases/download/0.9/minisign-0.9.tar.gz
+      
+      - name: Download minisign 0.9 signature
+        run: wget https://github.com/jedisct1/minisign/releases/download/0.9/minisign-0.9.tar.gz.minisig
+
+      - name: Unzip minisign-0.9.tar.gz
+        run: tar -zxvf ./minisign-0.9.tar.gz
+
+      - name: Verify minisign 0.9
+        run: minisign -Vm ./minisign-0.9.tar.gz -P "RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3"
+
+      - name: Prepare minisign key
+        run: (echo ${{secrets.MINISIGN_UNTRUSTED_COMMENT}} & echo ${{secrets.MINISIGN_KEY}}) > minisign.key
+
+      - name: Prepare minisign password
+        run: (echo ${{secrets.MINISIGN_PASSWORD}}& echo.) > cleartext.txt
+
+      - name: Sign executable
+        env:
+          DIST_VERSION: ${{steps.githash.outputs.version}}
+        run: chmod 0755 "./dist/linux-x64-${{env.DIST_VERSION}}/egregore.exe" && minisign -Sm "./dist/linux-x64-${{env.DIST_VERSION}}/egregore.exe" -s minisign.key -t "git commit hash = ${{env.DIST_VERSION}}" < cleartext.txt                    
+
+      - name: Delete key materials
+        run: del minisign.key && del cleartext.txt      
+   
       - name: Upload linux-x64
         uses: actions/upload-artifact@main
         env:
@@ -275,6 +301,29 @@ jobs:
 
       - name: Download minisign 0.9
         run: wget https://github.com/jedisct1/minisign/releases/download/0.9/minisign-osx.zip
+      
+      - name: Download minisign 0.9 signature
+        run: wget https://github.com/jedisct1/minisign/releases/download/0.9/minisign-osx.zip.minisig
+
+      - name: Unzip minisign-osx.zip        
+        run: unzip ./minisign-osx.zip
+
+      - name: Verify minisign 0.9
+        run: minisign -Vm ./minisign-osx.zip -P "RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3"
+
+      - name: Prepare minisign key
+        run: (echo ${{secrets.MINISIGN_UNTRUSTED_COMMENT}} & echo ${{secrets.MINISIGN_KEY}}) > minisign.key
+
+      - name: Prepare minisign password
+        run: (echo ${{secrets.MINISIGN_PASSWORD}}& echo.) > cleartext.txt
+
+      - name: Sign executable
+        env:
+          DIST_VERSION: ${{steps.githash.outputs.version}}
+        run: chmod 0755 "./dist/osx-x64-${{env.DIST_VERSION}}/egregore.exe" && minisign -Sm "./dist/osx-x64-${{env.DIST_VERSION}}/egregore.exe" -s minisign.key -t "git commit hash = ${{env.DIST_VERSION}}" < cleartext.txt                    
+
+      - name: Delete key materials
+        run: del minisign.key && del cleartext.txt          
 
       - name: Upload osx-x64
         uses: actions/upload-artifact@main
