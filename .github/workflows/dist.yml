@@ -306,7 +306,7 @@ jobs:
         run: wget https://github.com/jedisct1/minisign/releases/download/0.9/minisign-osx.zip.minisig
 
       - name: Unzip minisign-osx.zip        
-        run: unzip ./minisign-osx.zip
+        run: unzip ./minisign-osx.zip ./
 
       - name: Verify minisign 0.9
         run: minisign -Vm ./minisign-osx.zip -P "RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3"
