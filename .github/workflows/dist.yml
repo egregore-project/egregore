@@ -174,7 +174,7 @@ jobs:
       - name: Sign executable
         env:
           DIST_VERSION: ${{steps.githash.outputs.version}}
-        run: chmod 0755 "./dist/win-x64-${{env.DIST_VERSION}}" && minisign -Sm "./dist/win-x64-${{env.DIST_VERSION}}" -s minisign.key -t "git commit hash = ${{env.DIST_VERSION}}" < cleartext.txt            
+        run: chmod 0755 "./dist/win-x64-${{env.DIST_VERSION}}/egregore.exe" && minisign -Sm "./dist/win-x64-${{env.DIST_VERSION}}/egregore.exe" -s minisign.key -t "git commit hash = ${{env.DIST_VERSION}}" < cleartext.txt            
         shell: cmd
 
       - name: Upload win-x64
