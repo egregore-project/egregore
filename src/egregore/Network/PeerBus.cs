@@ -21,7 +21,7 @@ namespace egregore.Network
     /// <summary>
     ///     Originally based on NetMQ beacon example: https://netmq.readthedocs.io/en/latest/beacon/
     /// </summary>
-    internal sealed class PeerBus : IDisposable
+    public sealed class PeerBus : IDisposable
     {
         public const string PublishCommand = "P";
         public const string GetHostAddressCommand = "GetHostAddress";

@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using egregore.Data;
+using egregore.Extensions;
 using LightningDB;
 
 namespace egregore.Ontology
@@ -20,7 +21,7 @@ namespace egregore.Ontology
         private readonly ISequenceProvider _sequence;
         private readonly ILogObjectTypeProvider _typeProvider;
 
-        public LightningLogStore(string path) : base(path)
+        public LightningLogStore()
         {
             _typeProvider = new LogObjectTypeProvider();
             _hashProvider = new LogEntryHashProvider(_typeProvider);
@@ -50,7 +51,7 @@ namespace egregore.Ontology
             tx.Commit();
 
             entry.Index = index;
-            return index + 1;
+            return index;
         }
 
         public IEnumerable<LogEntry> StreamEntries(ulong startingFrom = 0, byte[] secretKey = null)
@@ -60,25 +61,26 @@ namespace egregore.Ontology
             using var tx = env.Value.BeginTransaction(TransactionBeginFlags.ReadOnly);
             using var db = tx.OpenDatabase();
 
-            var count = (ulong) (tx.GetEntriesCount(db) - (long) startingFrom);
-
-            while (startingFrom < count)
+            var length = tx.GetEntriesCount(db);
+            while (startingFrom < (ulong) length)
             {
                 var key = BitConverter.GetBytes((long) startingFrom);
                 var value = tx.Get(db, key);
-                if (value.resultCode == MDBResultCode.Success)
+                if (value.resultCode != MDBResultCode.Success)
                     yield break;
 
                 using var ms = new MemoryStream(value.value.AsSpan().ToArray());
                 using var br = new BinaryReader(ms);
                 var context = new LogDeserializeContext(br, _typeProvider);
+                
                 var entry = new LogEntry(context);
+                entry.Index = startingFrom++;
 
                 if (previousEntry != default)
                     entry.EntryCheck(previousEntry, _hashProvider);
+                
                 yield return entry;
                 previousEntry = entry;
-                startingFrom++;
             }
         }
 

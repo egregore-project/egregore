@@ -14,8 +14,7 @@ namespace egregore.Ontology
     {
         public CancellationTokenSource TokenSource { get; private set; }
 
-        public bool HasChanged => GetChangeToken().HasChanged;
-        public void OnChanged() => TokenSource.Cancel();
+        public void OnChanged() => TokenSource?.Cancel();
 
         public IChangeToken GetChangeToken()
         {

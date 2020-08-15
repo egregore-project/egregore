@@ -60,10 +60,10 @@ namespace egregore.Ontology
         public Dictionary<string, List<string>> Roles { get; set; }
         public Dictionary<string, Dictionary<string, List<string>>> RoleGrants { get; set; }
 
-        public void Materialize(ILogStore store, IHubContext<NotificationHub> hub = default,
-            OntologyChangeProvider change = default, byte[] secretKey = default)
+        public void Materialize(ILogStore store, IHubContext<NotificationHub> hub, OntologyChangeProvider change, byte[] secretKey = default, long? startingFrom = default)
         {
-            var startingFrom = Interlocked.Read(ref _index);
+            if (startingFrom == default)
+                startingFrom = Interlocked.Read(ref _index) + 1;
 
             foreach (var entry in store.StreamEntries((ulong) startingFrom, secretKey))
             {

@@ -1,5 +1,4 @@
-﻿@using egregore.Shared.Models
-
+﻿@using egregore.Models
 @inherits LayoutComponentBase
 
 @inject HttpClient http
@@ -17,10 +16,8 @@
         @Body
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            <NavLink href="/privacy">Privacy</NavLink> | <span>Server ID: @_whoIs?.ServerId</span>
-        </div>
+    <footer class="content px-4 border-top footer text-muted">
+        <NavLink href="/privacy">Privacy</NavLink> | <span>Server ID: @_whoIs?.ServerId</span>
     </footer>
 </div>
 

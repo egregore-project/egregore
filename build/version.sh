@@ -10,12 +10,12 @@ tag_commit=$(git rev-list -n 1 $tag)
 commit=$(git rev-parse HEAD)
 
 if [ "$tag_commit" == "$commit" ]; then
-    echo "No new commits since previous tag.."
+    echo "No new commits since previous tag."
     exit 1
 fi
 
 if [ ! -f "./build/version.json" ]; then
-    echo "Could not find version.json file.."
+    echo "Could not find version.json file."
     exit 1
 fi
 

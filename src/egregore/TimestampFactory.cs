@@ -6,7 +6,7 @@
 
 using System;
 
-namespace egregore.Tests.Helpers
+namespace egregore
 {
     internal static class TimestampFactory
     {

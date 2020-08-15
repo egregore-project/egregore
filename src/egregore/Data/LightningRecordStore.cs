@@ -22,7 +22,7 @@ namespace egregore.Data
         private readonly ISequenceProvider _sequence;
         private readonly ILogObjectTypeProvider _typeProvider;
 
-        public LightningRecordStore(string path, string sequence = Constants.DefaultSequence) : base(path)
+        public LightningRecordStore(string path, string sequence = Constants.DefaultSequence) : base()
         {
             _typeProvider = new LogObjectTypeProvider();
             _recordKeyBuilder = new RecordKeyBuilder();

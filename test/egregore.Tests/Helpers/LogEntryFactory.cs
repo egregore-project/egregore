@@ -25,6 +25,13 @@ namespace egregore.Tests.Helpers
                 LogSerializeContext.FormatVersion, new Namespace(value), previousHash ?? new byte[0]);
         }
 
+        public static LogEntry CreateEntry<T>(T data, byte[] previousHash = default,
+            ulong formatVersion = LogSerializeContext.FormatVersion) where T : ILogSerialized
+        {
+            var type = TypeProvider.Get(data.GetType()).GetValueOrDefault();
+            return WrapObject(type, formatVersion, data, previousHash ?? new byte[0]);
+        }
+
         private static LogEntry WrapObject<T>(ulong type, ulong version, T inner, byte[] previousHash)
             where T : ILogSerialized
         {
@@ -49,14 +56,6 @@ namespace egregore.Tests.Helpers
             entry.HashRoot = HashProvider.ComputeHashRootBytes(entry);
             entry.Hash = HashProvider.ComputeHashBytes(entry);
             return entry;
-        }
-
-
-        public static LogEntry CreateEntry<T>(T data, byte[] previousHash = default,
-            ulong formatVersion = LogSerializeContext.FormatVersion) where T : ILogSerialized
-        {
-            var type = TypeProvider.Get(data.GetType()).GetValueOrDefault();
-            return WrapObject(type, formatVersion, data, previousHash ?? new byte[0]);
         }
     }
 }

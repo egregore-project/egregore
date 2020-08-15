@@ -9,7 +9,6 @@ using System.Net;
 using egregore.Configuration;
 using egregore.Filters;
 using egregore.Models;
-using egregore.Shared.Models;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;

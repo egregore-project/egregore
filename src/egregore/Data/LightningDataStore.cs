@@ -21,9 +21,19 @@ namespace egregore.Data
 
         protected Lazy<LightningEnvironment> env;
 
-        protected LightningDataStore(string path)
+        public string DataFile { get; private set; }
+
+        public void Dispose()
         {
-            env = new Lazy<LightningEnvironment>(() =>
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        public void Init(string path)
+        {
+            if (env != default && env.IsValueCreated)
+                return;
+            env ??= new Lazy<LightningEnvironment>(() =>
             {
                 var config = new EnvironmentConfiguration
                 {
@@ -36,20 +46,6 @@ namespace egregore.Data
                 CreateIfNotExists(environment);
                 return environment;
             });
-        }
-
-        public string DataFile { get; private set; }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        public void Init()
-        {
-            if (env.IsValueCreated)
-                return;
             DataFile = env.Value.Path;
         }
 

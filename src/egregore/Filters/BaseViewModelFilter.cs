@@ -1,8 +1,6 @@
 ﻿using System.Threading.Tasks;
 using egregore.Configuration;
 using egregore.Models;
-using egregore.Shared;
-using egregore.Shared.Models;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Options;
 

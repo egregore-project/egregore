@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using egregore.Configuration;
 using egregore.Hubs;
 using Microsoft.AspNetCore.Builder;
@@ -66,7 +67,7 @@ namespace egregore
         {
             app.Use(async (context, next) =>
             {
-                if(context.Request.Path != "/")
+                if(!IsBlazorPath(context))
                 {
                     if (context.Request.Method == HttpMethods.Get)
                         context.Response.Headers.TryAdd("Content-Security-Policy", "default-src 'self'");
@@ -84,10 +85,15 @@ namespace egregore
                     context.Response.Headers.TryAdd("Referrer-Policy", "no-referrer");
                     context.Response.Headers.TryAdd("Permissions-Policy", "unsized-media 'self'");
                 }
-                
 
                 await next();
             });
+        }
+
+        private static readonly string[] BlazorPaths = {"/", "/counter", "/fetchdata", "/meta", "/privacy"};
+        private static bool IsBlazorPath(HttpContext context)
+        {
+            return BlazorPaths.Any(x => x == context.Request.Path);
         }
     }
 }

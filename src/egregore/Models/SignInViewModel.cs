@@ -6,8 +6,6 @@
 
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using egregore.Shared;
-using egregore.Shared.Models;
 
 namespace egregore.Models
 {

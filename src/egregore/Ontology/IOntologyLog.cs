@@ -14,7 +14,7 @@ namespace egregore.Ontology
     {
         long Index { get; }
         void Init(ReadOnlySpan<byte> publicKey);
-        void Materialize(ILogStore store, IHubContext<NotificationHub> hub = default, OntologyChangeProvider change = default, byte[] secretKey = default);
+        void Materialize(ILogStore store, IHubContext<NotificationHub> hub, OntologyChangeProvider change, byte[] secretKey = default, long? startingFrom = default);
         bool Exists(string eggPath);
     }
 }

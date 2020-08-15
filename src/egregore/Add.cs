@@ -87,7 +87,9 @@ namespace egregore
                 o.LowercaseUrls = true;
                 o.LowercaseQueryStrings = false;
             });
-            
+
+            services.AddSingleton<ILogStore, LightningLogStore>();
+
             var change = new OntologyChangeProvider();
             services.AddSingleton(change);
             services.AddSingleton<IActionDescriptorChangeProvider, OntologyChangeProvider>(r => r.GetRequiredService<OntologyChangeProvider>());
@@ -96,7 +98,9 @@ namespace egregore
             services.AddScoped<BaseViewModelFilter>();
 
             services.AddSingleton<IOntologyLog, MemoryOntologyLog>();
-            services.AddHostedService<WebServerHostedService>();
+
+            services.AddSingleton<WebServerHostedService>();
+            services.AddHostedService(r => r.GetRequiredService<WebServerHostedService>());
 
             return services;
         }

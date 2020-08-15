@@ -19,7 +19,7 @@ using Microsoft.Extensions.Options;
 
 namespace egregore
 {
-    internal sealed class WebServerHostedService : IHostedService, IDisposable
+    public sealed class WebServerHostedService : IHostedService, IDisposable
     {
         private readonly PeerBus _bus;
         private readonly IOntologyLog _ontology;
@@ -27,20 +27,23 @@ namespace egregore
         private readonly IHubContext<NotificationHub> _hub;
         private readonly ILogger<WebServerHostedService> _logger;
         private readonly IOptionsMonitor<WebServerOptions> _options;
-        
-        private Timer _timer;
-        private ILogStore _store;
-        private long _index = -1;
+        private readonly ILogStore _store;
 
-        public WebServerHostedService(PeerBus bus, IOntologyLog ontology, OntologyChangeProvider change, IHubContext<NotificationHub> hub, IOptionsMonitor<WebServerOptions> options, ILogger<WebServerHostedService> logger)
+        private Timer _timer;
+        private long _head = -1;
+
+        public WebServerHostedService(PeerBus bus, IOntologyLog ontology, ILogStore store, OntologyChangeProvider change, IHubContext<NotificationHub> hub, IOptionsMonitor<WebServerOptions> options, ILogger<WebServerHostedService> logger)
         {
             _bus = bus;
             _ontology = ontology;
+            _store = store;
             _change = change;
             _hub = hub;
             _options = options;
             _logger = logger;
         }
+
+        public void OnOntologyChanged(long index) => Interlocked.Exchange(ref _head, index);
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
@@ -52,8 +55,7 @@ namespace egregore
              
             try
             {
-                _store = new LightningLogStore(_options.CurrentValue.EggPath);
-                _store.Init();
+                _store?.Init(_options.CurrentValue.EggPath);
                 _ontology?.Init(_options.CurrentValue.PublicKey);
                 DutyCycle();
             }
@@ -71,19 +73,23 @@ namespace egregore
 
         private void DutyCycle(object state = default)
         { 
-            if (Interlocked.Read(ref _index) >= _ontology.Index)
+            if (Interlocked.Read(ref _head) == _ontology.Index)
                 return;
 
             lock(this)
             {
-                if (Interlocked.Read(ref _index) >= _ontology.Index)
+                if (Interlocked.Read(ref _head) == _ontology.Index)
                     return;
 
-                _logger?.LogDebug("Restoring ontology logs started for '{EggPath}'", _options.CurrentValue.EggPath);
-                _ontology.Materialize(_store, _hub, _change);
-                _logger?.LogDebug("Restoring ontology logs completed");
+                _logger?.LogDebug("Restoring ontology log started for '{EggPath}'", _options.CurrentValue.EggPath);
 
-                Interlocked.Exchange(ref _index, _ontology.Index);
+                if (Interlocked.Read(ref _head) == -1)
+                    _logger?.LogDebug("Initializing ontology log");
+
+                var sw = Stopwatch.StartNew();
+                _ontology.Materialize(_store, _hub, _change);
+                Interlocked.Exchange(ref _head, _ontology.Index);
+                _logger?.LogDebug($"Restoring ontology log completed ({sw.Elapsed.TotalMilliseconds}ms)");
             }
         }
 
@@ -91,7 +97,7 @@ namespace egregore
         {
             try
             {
-                Interlocked.Exchange(ref _index, long.MaxValue);
+                Interlocked.Exchange(ref _head, long.MaxValue);
                 _timer?.Change(Timeout.Infinite, 0);
                 _logger?.LogDebug("Cleaning up peer bus...");
                 _bus?.Dispose();

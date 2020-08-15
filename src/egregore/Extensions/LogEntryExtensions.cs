@@ -4,115 +4,54 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using egregore.Extensions;
 
-namespace egregore
+namespace egregore.Extensions
 {
-    public class LogEntry : ILogDescriptor
+    internal static class LogEntryExtensions
     {
-        public LogEntry()
+        public static void EntryCheck(this LogEntry entry, LogEntry previous, ILogEntryHashProvider hashProvider)
         {
-            Version = 1;
-            Objects = new List<LogObject>();
-        }
-
-        public ulong? Index { get; set; }
-        public byte[] Hash { get; internal set; }
-
-        public IList<LogObject> Objects { get; set; }
-
-        public ulong Version { get; set; }
-        public byte[] PreviousHash { get; set; }
-        public byte[] HashRoot { get; set; }
-        public UInt128 Timestamp { get; set; }
-        public byte[] Nonce { get; set; }
-
-        #region Validation
-
-        public void EntryCheck(LogEntry previous, ILogEntryHashProvider hashProvider)
-        {
-            if (previous.Index + 1 != Index)
+            if (previous.Index + 1 != entry.Index)
             {
-                var message = $"Invalid index: expected '{previous.Index + 1}' but was '{Index}'";
+                var message = $"Invalid index: expected '{previous.Index + 1}' but was '{entry.Index}'";
                 throw new LogException(message);
             }
 
-            if (!previous.Hash.SequenceEqual(PreviousHash))
+            if (!previous.Hash.SequenceEqual(entry.PreviousHash))
             {
                 var message =
-                    $"Invalid previous hash: expected '{Crypto.ToHexString(previous.Hash)}' but was '{Crypto.ToHexString(PreviousHash)}'";
+                    $"Invalid previous hash: expected '{Crypto.ToHexString(previous.Hash)}' but was '{Crypto.ToHexString(entry.PreviousHash)}'";
                 throw new LogException(message);
             }
 
-            var hashRoot = hashProvider.ComputeHashRootBytes(this);
-            if (!hashRoot.SequenceEqual(HashRoot))
+            var hashRoot = hashProvider.ComputeHashRootBytes(entry);
+            if (!hashRoot.SequenceEqual(entry.HashRoot))
             {
                 var message =
-                    $"Invalid hash root: expected '{Crypto.ToHexString(hashRoot)}' but was '{Crypto.ToHexString(HashRoot)}'";
+                    $"Invalid hash root: expected '{Crypto.ToHexString(hashRoot)}' but was '{Crypto.ToHexString(entry.HashRoot)}'";
                 throw new LogException(message);
             }
 
-            for (var i = 0; i < Objects.Count; i++)
+            for (var i = 0; i < entry.Objects.Count; i++)
             {
-                if (Objects[i].Index == i)
+                if (entry.Objects[i].Index == i)
                     continue;
-                var message = $"Invalid object index: expected '{i}' but was '{Objects[i].Index}'";
+                var message = $"Invalid object index: expected '{i}' but was '{entry.Objects[i].Index}'";
                 throw new LogException(message);
             }
 
-            var hash = hashProvider.ComputeHashBytes(this);
-            if (!hash.SequenceEqual(Hash))
+            var hash = hashProvider.ComputeHashBytes(entry);
+            if (!hash.SequenceEqual(entry.Hash))
             {
                 var message =
-                    $"Invalid hash: expected '{Crypto.ToHexString(hash)}' but was '{Crypto.ToHexString(Hash)}'";
+                    $"Invalid hash: expected '{Crypto.ToHexString(hash)}' but was '{Crypto.ToHexString(entry.Hash)}'";
                 throw new LogException(message);
             }
         }
 
-        #endregion
-
-        #region Serialization
-
-        public void Serialize(LogSerializeContext context, bool hash)
-        {
-            LogHeader.Serialize(this, context, hash);
-            if (!hash)
-                context.bw.WriteVarBuffer(Hash);
-            SerializeObjects(context, hash);
-        }
-
-        internal LogEntry(LogDeserializeContext context)
-        {
-            LogHeader.Deserialize(this, context);
-            Hash = context.br.ReadVarBuffer();
-            DeserializeObjects(context);
-        }
-
-        internal void DeserializeObjects(LogDeserializeContext context)
-        {
-            var count = context.br.ReadInt32();
-            Objects = new List<LogObject>(count);
-            for (var i = 0; i < count; i++)
-            {
-                var o = new LogObject(context);
-                Objects.Add(o);
-            }
-        }
-
-        internal void SerializeObjects(LogSerializeContext context, bool hash)
-        {
-            var count = Objects?.Count ?? 0;
-            context.bw.Write(count);
-            if (Objects == null)
-                return;
-            foreach (var @object in Objects.OrderBy(x => x.Index))
-                @object.Serialize(context, hash);
-        }
-
-        public void RoundTripCheck(ILogObjectTypeProvider typeProvider, byte[] secretKey)
+        public static void RoundTripCheck(this LogEntry entry, ILogObjectTypeProvider typeProvider, byte[] secretKey)
         {
             var firstMemoryStream = new MemoryStream();
             var firstSerializeContext = new LogSerializeContext(new BinaryWriter(firstMemoryStream), typeProvider);
@@ -125,13 +64,13 @@ namespace egregore
                 using var ems = new MemoryStream();
                 using var ebw = new BinaryWriter(ems);
                 var ec = new LogSerializeContext(ebw, typeProvider, firstSerializeContext.Version);
-                Serialize(ec, false);
+                entry.Serialize(ec, false);
                 firstSerializeContext.bw.WriteVarBuffer(SecretStream.EncryptMessage(ems.ToArray(), nonce, secretKey));
             }
             else
             {
                 firstSerializeContext.bw.Write(false);
-                Serialize(firstSerializeContext, false);
+                entry.Serialize(firstSerializeContext, false);
             }
 
             var originalData = firstMemoryStream.ToArray();
@@ -172,7 +111,5 @@ namespace egregore
                 deserialized.Serialize(secondSerializeContext, false);
             }
         }
-
-        #endregion
     }
 }

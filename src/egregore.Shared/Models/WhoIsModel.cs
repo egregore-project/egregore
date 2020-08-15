@@ -6,7 +6,7 @@
 
 using System.ComponentModel;
 
-namespace egregore.Shared.Models
+namespace egregore.Models
 {
     public class WhoIsModel : BaseViewModel
     {
