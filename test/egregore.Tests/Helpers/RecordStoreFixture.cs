@@ -14,7 +14,7 @@ namespace egregore.Tests.Helpers
         public RecordStoreFixture()
         {
             var store = new LightningRecordStore($"{Guid.NewGuid()}.egg", $"{Guid.NewGuid()}");
-            store.Init();
+            store.Init($"{Guid.NewGuid()}");
             Store = store;
         }
 

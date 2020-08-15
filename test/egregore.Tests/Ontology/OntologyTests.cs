@@ -70,7 +70,7 @@ namespace egregore.Tests.Ontology
             Assert.Single(ontology.Roles[Constants.DefaultNamespace]);
 
             await fixture.Store.AddEntryAsync(LogEntryFactory.CreateEntry(revoke));
-            Assert.Throws<CannotRemoveSingleOwnerException>(() => { ontology.Materialize(fixture.Store); });
+            Assert.Throws<CannotRemoveSingleOwnerException>(() => { ontology.Materialize(fixture.Store, default, default); });
         }
 
         [Fact]
