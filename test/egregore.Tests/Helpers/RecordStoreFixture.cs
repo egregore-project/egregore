@@ -13,8 +13,8 @@ namespace egregore.Tests.Helpers
     {
         public RecordStoreFixture()
         {
-            var store = new LightningRecordStore($"{Guid.NewGuid()}.egg", $"{Guid.NewGuid()}");
-            store.Init($"{Guid.NewGuid()}");
+            var store = new LightningRecordStore($"egregore_sequence_{Guid.NewGuid()}");
+            store.Init($"{Guid.NewGuid()}.egg");
             Store = store;
         }
 

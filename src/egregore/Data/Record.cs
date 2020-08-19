@@ -6,6 +6,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using egregore.Extensions;
 
 namespace egregore.Data
 {
@@ -20,12 +22,12 @@ namespace egregore.Data
         public Guid Uuid { get; set; }
         public string Type { get; set; }
         public List<RecordColumn> Columns { get; }
-
+        
         #region Serialization
 
         public void Serialize(LogSerializeContext context, bool hash)
         {
-            context.bw.Write(Uuid.ToByteArray());
+            context.bw.Write(Uuid);
             context.bw.Write(Type);
             context.bw.Write(Columns.Count);
             foreach (var column in Columns)
@@ -34,7 +36,7 @@ namespace egregore.Data
 
         public Record(LogDeserializeContext context) : this()
         {
-            Uuid = new Guid(context.br.ReadBytes(16));
+            Uuid = context.br.ReadGuid();
             Type = context.br.ReadString();
             var columns = context.br.ReadInt32();
             for (var i = 0; i < columns; i++)
@@ -49,7 +51,7 @@ namespace egregore.Data
             for (var i = 0; i < columns; i++)
                 Columns.Add(new RecordColumn(context));
         }
-
+        
         #endregion
     }
 }

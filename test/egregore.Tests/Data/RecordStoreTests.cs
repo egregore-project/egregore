@@ -29,7 +29,7 @@ namespace egregore.Tests.Data
             Assert.Equal(0UL, record.Index);
             Assert.Equal(1UL, next);
 
-            var count = await fixture.Store.GetCountAsync("Customer");
+            var count = await fixture.Store.GetLengthByTypeAsync("Customer");
             Assert.Equal(1UL, count);
 
             var fetched = await fixture.Store.GetByIdAsync(record.Uuid);
@@ -52,7 +52,7 @@ namespace egregore.Tests.Data
             Assert.Equal(0UL, record.Index);
             Assert.Equal(1UL, next);
 
-            var count = await fixture.Store.GetCountAsync("Customer");
+            var count = await fixture.Store.GetLengthByTypeAsync("Customer");
             Assert.Equal(1UL, count);
 
             var fetched = await fixture.Store.GetByColumnValueAsync("Customer", "Order", "123");

@@ -14,13 +14,13 @@ namespace egregore
     public interface IRecordStore
     {
         string DataFile { get; }
+
         Task<ulong> GetLengthAsync();
-
-        Task<ulong> GetCountAsync(string type);
-
+        Task<ulong> GetLengthByTypeAsync(string type);
         Task<ulong> AddRecordAsync(Record record, byte[] secretKey = null);
 
         Task<Record> GetByIdAsync(Guid uuid);
+        Task<IEnumerable<Record>> GetByTypeAsync(string type);
         Task<IEnumerable<Record>> GetByColumnValueAsync(string type, string name, string value);
 
         void Destroy(bool destroySequence);

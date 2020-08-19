@@ -15,16 +15,18 @@ namespace egregore.Controllers
     public class OntologyController : Controller
     {
         private readonly ILogStore _store;
+        private readonly IOntologyLog _ontology;
         private readonly WebServerHostedService _service;
         private readonly IOptionsSnapshot<WebServerOptions> _options;
 
-        public OntologyController(ILogStore store, WebServerHostedService service, IOptionsSnapshot<WebServerOptions> options)
+        public OntologyController(ILogStore store, IOntologyLog ontology, WebServerHostedService service, IOptionsSnapshot<WebServerOptions> options)
         {
             _store = store;
+            _ontology = ontology;
             _service = service;
             _options = options;
         }
-
+        
         [HttpPost("schema")]
         public async Task<IActionResult> AddSchema()
         {

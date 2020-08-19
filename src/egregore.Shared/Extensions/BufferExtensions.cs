@@ -4,6 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+using System;
 using System.IO;
 
 namespace egregore.Extensions
@@ -86,6 +87,20 @@ namespace egregore.Extensions
             var length = br.ReadInt32();
             var buffer = br.ReadBytes(length);
             return buffer;
+        }
+
+        #endregion
+
+        #region Guid
+
+        public static void Write(this BinaryWriter bw, Guid value)
+        {
+            bw.Write(value.ToByteArray());
+        }
+
+        public static Guid ReadGuid(this BinaryReader br)
+        {
+            return new Guid(br.ReadBytes(16));
         }
 
         #endregion

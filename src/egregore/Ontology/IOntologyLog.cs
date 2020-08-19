@@ -5,6 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System;
+using System.Collections.Generic;
 using egregore.Hubs;
 using Microsoft.AspNetCore.SignalR;
 
@@ -16,5 +17,9 @@ namespace egregore.Ontology
         void Init(ReadOnlySpan<byte> publicKey);
         void Materialize(ILogStore store, IHubContext<NotificationHub> hub, OntologyChangeProvider change, byte[] secretKey = default, long? startingFrom = default);
         bool Exists(string eggPath);
+        string GenerateModels();
+
+        IEnumerable<Schema> GetSchemas(string ns, ulong revisionSet = 1);
+        Schema GetSchema(string name, string ns, ulong revisionSet = 1);
     }
 }

@@ -59,8 +59,6 @@ namespace egregore
             Console.ResetColor();
         }
 
-        internal static IHostBuilder CreateHostBuilder<TStartup>(int? port, string eggPath, IKeyCapture capture, params string[] args) where TStartup : class => CreateHostBuilder(port, eggPath, capture, typeof(TStartup), args);
-
         internal static IHostBuilder CreateHostBuilder(int? port, string eggPath, IKeyCapture capture, Type startupType = default, params string[] args)
         {
             var builder = Host.CreateDefaultBuilder(args);

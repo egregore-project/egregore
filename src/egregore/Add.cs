@@ -1,6 +1,8 @@
 ﻿using System;
+using System.IO;
 using System.Text;
 using egregore.Configuration;
+using egregore.Data;
 using egregore.Filters;
 using egregore.IO;
 using egregore.Network;
@@ -12,6 +14,7 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace egregore
 {
@@ -53,6 +56,7 @@ namespace egregore
             }
 
             var serverId = Crypto.ToHexString(fingerprint);
+
             services.Configure<WebServerOptions>(config.GetSection("WebServer"));
             services.Configure<WebServerOptions>(o =>
             {
@@ -60,6 +64,9 @@ namespace egregore
                 o.ServerId = serverId;
                 o.EggPath = eggPath;
             });
+
+            var o = new WebServerOptions();
+            config.Bind(o);
 
             services.AddAntiforgery(o =>
             {
@@ -71,7 +78,25 @@ namespace egregore
 
             services.AddSingleton<PeerBus>();
 
-            var mvc = services.AddControllersWithViews();
+            var ontology = new MemoryOntologyLog(publicKey);
+            services.AddSingleton<IOntologyLog, MemoryOntologyLog>(r => ontology);
+            
+            var mvc = services.AddControllersWithViews(o =>
+            {
+                o.Conventions.Add(new DynamicControllerModelConvention());
+            });
+
+            // FIXME: bad practice
+            var sp = services.BuildServiceProvider();
+
+            mvc.ConfigureApplicationPartManager(x =>
+            {
+                var logger = sp.GetRequiredService<ILogger<DynamicControllerFeatureProvider>>();
+                var provider = new DynamicControllerFeatureProvider(ontology, logger);
+
+                x.FeatureProviders.Add(provider);
+            });
+
             if (env.IsDevelopment())
                 mvc.AddRazorRuntimeCompilation(o => { });
 
@@ -89,6 +114,13 @@ namespace egregore
             });
 
             services.AddSingleton<ILogStore, LightningLogStore>();
+            services.AddSingleton<IRecordStore>(r =>
+            {
+                var owner = Crypto.ToHexString(publicKey);
+                var store = new LightningRecordStore(owner);
+                store.Init(Path.Combine(Constants.DefaultRootPath, $"{owner}.egg"));
+                return store;
+            });
 
             var change = new OntologyChangeProvider();
             services.AddSingleton(change);
@@ -96,8 +128,6 @@ namespace egregore
             
             services.AddSingleton<ThrottleFilter>();
             services.AddScoped<BaseViewModelFilter>();
-
-            services.AddSingleton<IOntologyLog, MemoryOntologyLog>();
 
             services.AddSingleton<WebServerHostedService>();
             services.AddHostedService(r => r.GetRequiredService<WebServerHostedService>());
