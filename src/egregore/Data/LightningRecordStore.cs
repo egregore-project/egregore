@@ -34,7 +34,7 @@ namespace egregore.Data
         public async Task<ulong> AddRecordAsync(Record record, byte[] secretKey = null) => AddRecord(record, await _sequence.GetNextValueAsync());
         public Task<IEnumerable<Record>> GetByTypeAsync(string type) => Task.FromResult(GetByType(type));
         public Task<Record> GetByIdAsync(Guid uuid) => Task.FromResult(GetByIndex(_recordKeyBuilder.ReverseRecordKey(uuid)));
-        public Task<ulong> GetLengthByTypeAsync(string type) => Task.FromResult(GetCount(type));
+        public Task<ulong> GetLengthByTypeAsync(string type) => Task.FromResult(GetLengthByType(type));
         public Task<IEnumerable<Record>> GetByColumnValueAsync(string type, string name, string value) => Task.FromResult(GetByColumnValue(type, name, value));
 
         public void Destroy(bool destroySequence)
@@ -44,27 +44,13 @@ namespace egregore.Data
                 _sequence.Destroy();
         }
 
-        public ulong GetCount(string type)
-        {
-            using var tx = env.Value.BeginTransaction(TransactionBeginFlags.ReadOnly);
-            using var db = tx.OpenDatabase();
-            using var cursor = tx.CreateCursor(db);
-
-            var key = _recordKeyBuilder.ReverseTypeKey(type);
-            if (cursor.SetKey(key).resultCode != MDBResultCode.Success)
-                return 0UL;
-
-            var count = 1UL;
-            foreach (var _ in cursor.GetMultiple().value.CopyToNewArray().Split(sizeof(int)).ToArray())
-                count++;
-
-            return count;
-        }
-
         private ulong AddRecord(Record record, ulong sequence)
         {
             if (record.Uuid == default)
                 record.Uuid = Guid.NewGuid();
+
+            if(record.Index == default)
+                record.Index = sequence;
 
             using var ms = new MemoryStream();
             using var bw = new BinaryWriter(ms);
@@ -74,15 +60,15 @@ namespace egregore.Data
             var value = ms.ToArray();
 
             using var tx = env.Value.BeginTransaction(TransactionBeginFlags.None);
-            using var db = tx.OpenDatabase();
+            using var db = tx.OpenDatabase(configuration: Config);
 
             // index on key (master)
             var id = _recordKeyBuilder.BuildRecordKey(record);
             tx.Put(db, id, value, PutOptions.NoOverwrite);
 
-            // index on type (for counts)
-            var tk = _recordKeyBuilder.BuildTypeKey(record);
-            tx.Put(db, tk, id, PutOptions.NoOverwrite);
+            // index on type (for counts and fetches by type)
+            var key = _recordKeyBuilder.BuildTypeToIndexKey(record);
+            tx.Put(db, key, id, PutOptions.NoOverwrite);
 
             // index on column name and value (for fetch by column value)
             foreach (var column in record.Columns)
@@ -90,26 +76,45 @@ namespace egregore.Data
 
             tx.Commit();
 
-            record.Index = sequence;
+            
             return sequence;
         }
 
+
+        public ulong GetLengthByType(string type)
+        {
+            using var tx = env.Value.BeginTransaction(TransactionBeginFlags.ReadOnly);
+            using var db = tx.OpenDatabase(configuration: Config);
+            using var cursor = tx.CreateCursor(db);
+
+            var key = _recordKeyBuilder.ReverseTypeKey(type);
+            if (cursor.SetKey(key).resultCode != MDBResultCode.Success)
+                return 0UL;
+
+            var count = 1UL;
+            foreach (var _ in cursor.GetMultiple().value.CopyToNewArray().Split(sizeof(ulong)).ToArray())
+                count++;
+
+            return count;
+        }
+        
         private IEnumerable<Record> GetByType(string type)
         {
             using var tx = env.Value.BeginTransaction(TransactionBeginFlags.ReadOnly);
-            using var db = tx.OpenDatabase();
+            using var db = tx.OpenDatabase(configuration: Config);
             using var cursor = tx.CreateCursor(db);
 
             var results = new List<Record>();
 
             var key = _recordKeyBuilder.ReverseTypeKey(type);
-            if (cursor.SetKey(key).resultCode != MDBResultCode.Success)
+            if (cursor.SetRange(key) != MDBResultCode.Success)
                 return results;
-
+            
             var current = cursor.GetCurrent();
             while (current.resultCode == MDBResultCode.Success)
             {
-                var record = GetByIndex(current.value.AsSpan(), tx);
+                var index = current.value.AsSpan();
+                var record = GetByIndex(index, tx);
                 if (record == default)
                     break;
 
@@ -128,7 +133,7 @@ namespace egregore.Data
         private unsafe Record GetByIndex(ReadOnlySpan<byte> index, LightningTransaction parent = null)
         {
             using var tx = env.Value.BeginTransaction(parent == null ? TransactionBeginFlags.ReadOnly : TransactionBeginFlags.None);
-            using var db = tx.OpenDatabase();
+            using var db = tx.OpenDatabase(configuration: Config);
             using var cursor = tx.CreateCursor(db);
 
             var (sr, _, _) = cursor.SetKey(index);
@@ -159,7 +164,7 @@ namespace egregore.Data
         private IEnumerable<Record> GetByColumnValue(string type, string name, string value)
         {
             using var tx = env.Value.BeginTransaction(TransactionBeginFlags.ReadOnly);
-            using var db = tx.OpenDatabase();
+            using var db = tx.OpenDatabase(configuration: Config);
             using var cursor = tx.CreateCursor(db);
 
             var results = new List<Record>();

@@ -26,6 +26,11 @@ namespace egregore.Data
             return ReverseTypeKey(record.Type);
         }
 
+        public byte[] BuildTypeToIndexKey(Record record)
+        {
+            return Encoding.UTF8.GetBytes($"T:{record.Type}:{record.Index}");
+        }
+
         public byte[] ReverseTypeKey(string type)
         {
             return Encoding.UTF8.GetBytes($"T:{type}");

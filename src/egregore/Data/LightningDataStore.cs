@@ -21,6 +21,8 @@ namespace egregore.Data
 
         protected Lazy<LightningEnvironment> env;
 
+        protected static readonly DatabaseConfiguration Config = new DatabaseConfiguration { Flags = DatabaseOpenFlags.None };
+
         public string DataFile { get; private set; }
 
         public void Dispose()
@@ -54,14 +56,14 @@ namespace egregore.Data
             using var tx = environment.BeginTransaction();
             try
             {
-                using (tx.OpenDatabase(null, new DatabaseConfiguration()))
+                using (tx.OpenDatabase(null, Config))
                 {
                     tx.Commit();
                 }
             }
             catch (LightningException)
             {
-                using (tx.OpenDatabase(null, new DatabaseConfiguration {Flags = DatabaseOpenFlags.Create}))
+                using (tx.OpenDatabase(null, new DatabaseConfiguration { Flags = DatabaseOpenFlags.Create }))
                 {
                     tx.Commit();
                 }
@@ -71,7 +73,7 @@ namespace egregore.Data
         public Task<ulong> GetLengthAsync()
         {
             using var tx = env.Value.BeginTransaction(TransactionBeginFlags.ReadOnly);
-            using var db = tx.OpenDatabase();
+            using var db = tx.OpenDatabase(configuration: Config);
             var count = (ulong) tx.GetEntriesCount(db); // entries also contains handles to databases
             return Task.FromResult(count);
         }
@@ -80,7 +82,7 @@ namespace egregore.Data
         {
             using (var tx = env.Value.BeginTransaction())
             {
-                var db = tx.OpenDatabase();
+                var db = tx.OpenDatabase(configuration: Config);
                 tx.DropDatabase(db);
                 tx.Commit();
             }
