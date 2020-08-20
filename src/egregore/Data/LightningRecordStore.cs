@@ -6,24 +6,33 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
-using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using egregore.Extensions;
 using LightningDB;
+using Lunr;
+using Microsoft.Extensions.Logging;
+using Index = Lunr.Index;
 
 namespace egregore.Data
 {
     internal sealed class LightningRecordStore : LightningDataStore, IRecordStore
     {
+        private readonly ILogger<LightningRecordStore> _logger;
         private readonly RecordColumnKeyBuilder _columnKeyBuilder;
         private readonly RecordKeyBuilder _recordKeyBuilder;
 
         private readonly ISequenceProvider _sequence;
         private readonly ILogObjectTypeProvider _typeProvider;
+        private Index _index;
 
-        public LightningRecordStore(string sequence = Constants.DefaultSequence)
+        public LightningRecordStore(string sequence = Constants.DefaultSequence, ILogger<LightningRecordStore> logger = default)
         {
+            _logger = logger;
             _columnKeyBuilder = new RecordColumnKeyBuilder();
             _recordKeyBuilder = new RecordKeyBuilder();
 
@@ -31,7 +40,13 @@ namespace egregore.Data
             _sequence = new GlobalSequenceProvider(sequence);
         }
 
-        public async Task<ulong> AddRecordAsync(Record record, byte[] secretKey = null) => AddRecord(record, await _sequence.GetNextValueAsync());
+        public async Task<ulong> AddRecordAsync(Record record, byte[] secretKey = null)
+        {
+            var sequence = AddRecord(record, await _sequence.GetNextValueAsync());
+            await RebuildIndexAsync();
+            return sequence;
+        }
+
         public Task<IEnumerable<Record>> GetByTypeAsync(string type, out ulong total) => Task.FromResult(GetByType(type, out total));
         public Task<Record> GetByIdAsync(Guid uuid) => Task.FromResult(GetByIndex(_recordKeyBuilder.ReverseRecordKey(uuid)));
         public Task<ulong> GetLengthByTypeAsync(string type) => Task.FromResult(GetLengthByType(type));
@@ -76,12 +91,11 @@ namespace egregore.Data
 
             tx.Commit();
 
-            
             return sequence;
         }
 
 
-        public ulong GetLengthByType(string type)
+        private ulong GetLengthByType(string type)
         {
             using var tx = env.Value.BeginTransaction(TransactionBeginFlags.ReadOnly);
             using var db = tx.OpenDatabase(configuration: Config);
@@ -199,6 +213,87 @@ namespace egregore.Data
                     break;
             }
             return results;
+        }
+
+        public async Task RebuildIndexAsync()
+        {
+            _index = await Index.Build(builder =>
+            {
+                using var tx = env.Value.BeginTransaction(TransactionBeginFlags.ReadOnly);
+                using var db = tx.OpenDatabase(configuration: Config);
+                using var cursor = tx.CreateCursor(db);
+
+                var startingKey = _recordKeyBuilder.AllRecordsKey();
+                if (cursor.SetRange(startingKey) != MDBResultCode.Success)
+                    return Task.CompletedTask;
+
+                var current = cursor.GetCurrent();
+                if (current.resultCode != MDBResultCode.Success)
+                    return Task.CompletedTask;
+
+                var fields = new HashSet<string>();
+                var sw = Stopwatch.StartNew();
+                var count = 0UL;
+                while (current.resultCode == MDBResultCode.Success)
+                {
+                    unsafe
+                    {
+                        var value = current.value.AsSpan();
+                        var key = current.key.AsSpan();
+                        var keyString = Encoding.UTF8.GetString(key);
+                        if (!keyString.StartsWith("R:"))
+                            break;
+
+                        fixed (byte* buf = & value.GetPinnableReference())
+                        {
+                            var ms = new UnmanagedMemoryStream(buf, value.Length);
+                            var br = new BinaryReader(ms);
+                            var context = new LogDeserializeContext(br, _typeProvider);
+
+                            var uuid = br.ReadGuid();
+                            if (!key.SequenceEqual(_recordKeyBuilder.ReverseRecordKey(uuid)))
+                                break;
+
+                            var record = new Record(uuid, context);
+
+                            foreach (var column in record.Columns)
+                            {
+                                if (fields.Contains(column.Name))
+                                    continue;
+                                builder.AddField(column.Name);
+                                fields.Add(column.Name);
+                            }
+
+                            var document = new Document {{"id", record.Uuid}};
+                            foreach(var column in record.Columns)
+                                document.Add(column.Name, column.Value);
+
+                            builder.Add(document).ConfigureAwait(false).GetAwaiter().GetResult();
+                        }
+                    }
+
+                    count++;
+                    var next = cursor.Next();
+                    if (next == MDBResultCode.Success)
+                        current = cursor.GetCurrent();
+                    else
+                        break;
+                }
+
+                _logger?.LogInformation($"Indexing {count} documents took {sw.Elapsed.TotalMilliseconds}ms");
+                return Task.CompletedTask;
+            });
+        }
+
+        public async IAsyncEnumerable<Record> SearchAsync(string query, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            await foreach (var result in _index.Search(query, cancellationToken))
+            {
+                if (Guid.TryParse(result.DocumentReference, out var uuid))
+                {
+                    yield return await GetByIdAsync(uuid);
+                }
+            }
         }
 
         protected override void Dispose(bool disposing)

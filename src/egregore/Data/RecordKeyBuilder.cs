@@ -21,9 +21,9 @@ namespace egregore.Data
             return Encoding.UTF8.GetBytes(string.Concat("R:", uuid));
         }
 
-        public byte[] BuildTypeKey(Record record)
+        public byte[] AllRecordsKey()
         {
-            return ReverseTypeKey(record.Type);
+            return Encoding.UTF8.GetBytes("R:");
         }
 
         public byte[] BuildTypeToIndexKey(Record record)

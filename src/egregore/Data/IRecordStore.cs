@@ -6,23 +6,27 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
-using egregore.Data;
 
-namespace egregore
+namespace egregore.Data
 {
     public interface IRecordStore
     {
         string DataFile { get; }
 
+        Task<ulong> AddRecordAsync(Record record, byte[] secretKey = null);
+        
         Task<ulong> GetLengthAsync();
         Task<ulong> GetLengthByTypeAsync(string type);
-        Task<ulong> AddRecordAsync(Record record, byte[] secretKey = null);
-
         Task<Record> GetByIdAsync(Guid uuid);
         Task<IEnumerable<Record>> GetByTypeAsync(string type, out ulong total);
         Task<IEnumerable<Record>> GetByColumnValueAsync(string type, string name, string value);
 
+        Task RebuildIndexAsync();
+        IAsyncEnumerable<Record> SearchAsync(string query, CancellationToken cancellationToken);
+
+        void Init(string path);
         void Destroy(bool destroySequence);
     }
 }

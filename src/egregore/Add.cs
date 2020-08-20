@@ -117,8 +117,8 @@ namespace egregore
             services.AddSingleton<IRecordStore>(r =>
             {
                 var owner = Crypto.ToHexString(publicKey);
-                var store = new LightningRecordStore(owner);
-                store.Init(Path.Combine(Constants.DefaultRootPath, $"{owner}.egg"));
+                var logger = sp.GetRequiredService<ILogger<LightningRecordStore>>();
+                var store = new LightningRecordStore(owner, logger);
                 return store;
             });
 

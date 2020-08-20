@@ -6,9 +6,11 @@
 
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using egregore.Configuration;
+using egregore.Data;
 using egregore.Hubs;
 using egregore.Network;
 using egregore.Ontology;
@@ -27,16 +29,18 @@ namespace egregore
         private readonly IHubContext<NotificationHub> _hub;
         private readonly ILogger<WebServerHostedService> _logger;
         private readonly IOptionsMonitor<WebServerOptions> _options;
-        private readonly ILogStore _store;
+        private readonly ILogStore _logs;
+        private readonly IRecordStore _records;
 
         private Timer _timer;
         private long _head = -1;
 
-        public WebServerHostedService(PeerBus bus, IOntologyLog ontology, ILogStore store, OntologyChangeProvider change, IHubContext<NotificationHub> hub, IOptionsMonitor<WebServerOptions> options, ILogger<WebServerHostedService> logger)
+        public WebServerHostedService(PeerBus bus, IOntologyLog ontology, ILogStore logs, IRecordStore records, OntologyChangeProvider change, IHubContext<NotificationHub> hub, IOptionsMonitor<WebServerOptions> options, ILogger<WebServerHostedService> logger)
         {
             _bus = bus;
             _ontology = ontology;
-            _store = store;
+            _logs = logs;
+            _records = records;
             _change = change;
             _hub = hub;
             _options = options;
@@ -45,18 +49,23 @@ namespace egregore
 
         public void OnOntologyChanged(long index) => Interlocked.Exchange(ref _head, index);
 
-        public Task StartAsync(CancellationToken cancellationToken)
+        public async Task StartAsync(CancellationToken cancellationToken)
         {
             if (!_ontology.Exists(_options.CurrentValue.EggPath))
             {
-                _logger?.LogWarning("Could not find ontology log at '{EggPath}', skipping", _options.CurrentValue.EggPath);
-                return Task.CompletedTask;
+                _logger?.LogWarning("Could not find ontology log at '{EggPath}'", _options.CurrentValue.EggPath);
             }
              
             try
             {
-                _store?.Init(_options.CurrentValue.EggPath);
-                _ontology?.Init(_options.CurrentValue.PublicKey);
+                var owner = Crypto.ToHexString(_options.CurrentValue.PublicKey);
+                
+                _logs.Init(_options.CurrentValue.EggPath);
+                _ontology.Init(_options.CurrentValue.PublicKey);
+                _records.Init(Path.Combine(Constants.DefaultRootPath, $"{owner}.egg"));
+
+                await _records.RebuildIndexAsync();
+
                 DutyCycle();
             }
             catch (Exception e)
@@ -67,8 +76,6 @@ namespace egregore
 
             _timer = new Timer(DutyCycle, null, TimeSpan.Zero, 
                 TimeSpan.FromSeconds(5));
-
-            return Task.CompletedTask;
         }
 
         private void DutyCycle(object state = default)
@@ -87,7 +94,7 @@ namespace egregore
                     _logger?.LogDebug("Initializing ontology log");
 
                 var sw = Stopwatch.StartNew();
-                _ontology.Materialize(_store, _hub, _change);
+                _ontology.Materialize(_logs, _hub, _change);
                 Interlocked.Exchange(ref _head, _ontology.Index);
                 _logger?.LogDebug($"Restoring ontology log completed ({sw.Elapsed.TotalMilliseconds}ms)");
             }

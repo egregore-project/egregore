@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using egregore.Data;
 using egregore.Ontology;
+using Lunr;
 using Microsoft.AspNetCore.Mvc;
 
 namespace egregore.Controllers
@@ -28,10 +29,25 @@ namespace egregore.Controllers
         }
 
         [HttpGet("api/{ns}/v{rs}/[controller]")]
-        public async Task<IActionResult> Get([FromRoute] string ns, [FromRoute] ulong rs)
+        public async Task<IActionResult> Get([FromRoute] string ns, [FromRoute] ulong rs, [FromQuery(Name = "q")] string query = default)
         {
-            var records = await _store.GetByTypeAsync(typeof(T).Name, out ulong total);
+            IEnumerable<Record> records;
 
+            ulong total;
+
+            if (!string.IsNullOrWhiteSpace(query))
+            {
+                total = 0;
+                records = await _store.SearchAsync(query, HttpContext.RequestAborted).ToList();
+            }
+            else
+            {
+                records = await _store.GetByTypeAsync(typeof(T).Name, out total);
+            }
+
+            if (records == null)
+                return NotFound();
+            
             var models = new List<T>();
             foreach(var record in records)
                 models.Add(_example.ToModel(record));
