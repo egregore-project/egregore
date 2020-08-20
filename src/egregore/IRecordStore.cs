@@ -20,7 +20,7 @@ namespace egregore
         Task<ulong> AddRecordAsync(Record record, byte[] secretKey = null);
 
         Task<Record> GetByIdAsync(Guid uuid);
-        Task<IEnumerable<Record>> GetByTypeAsync(string type);
+        Task<IEnumerable<Record>> GetByTypeAsync(string type, out ulong total);
         Task<IEnumerable<Record>> GetByColumnValueAsync(string type, string name, string value);
 
         void Destroy(bool destroySequence);

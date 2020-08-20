@@ -32,7 +32,7 @@ namespace egregore.Data
         }
 
         public async Task<ulong> AddRecordAsync(Record record, byte[] secretKey = null) => AddRecord(record, await _sequence.GetNextValueAsync());
-        public Task<IEnumerable<Record>> GetByTypeAsync(string type) => Task.FromResult(GetByType(type));
+        public Task<IEnumerable<Record>> GetByTypeAsync(string type, out ulong total) => Task.FromResult(GetByType(type, out total));
         public Task<Record> GetByIdAsync(Guid uuid) => Task.FromResult(GetByIndex(_recordKeyBuilder.ReverseRecordKey(uuid)));
         public Task<ulong> GetLengthByTypeAsync(string type) => Task.FromResult(GetLengthByType(type));
         public Task<IEnumerable<Record>> GetByColumnValueAsync(string type, string name, string value) => Task.FromResult(GetByColumnValue(type, name, value));
@@ -88,18 +88,28 @@ namespace egregore.Data
             using var cursor = tx.CreateCursor(db);
 
             var key = _recordKeyBuilder.ReverseTypeKey(type);
-            if (cursor.SetKey(key).resultCode != MDBResultCode.Success)
+            if (cursor.SetRange(key) != MDBResultCode.Success)
                 return 0UL;
 
-            var count = 1UL;
-            foreach (var _ in cursor.GetMultiple().value.CopyToNewArray().Split(sizeof(ulong)).ToArray())
+            var count = 0UL;
+            var current = cursor.GetCurrent();
+            while (current.resultCode == MDBResultCode.Success)
+            {
                 count++;
+                var next = cursor.Next();
+                if (next == MDBResultCode.Success)
+                    current = cursor.GetCurrent();
+                else
+                    break;
+            }
 
             return count;
         }
         
-        private IEnumerable<Record> GetByType(string type)
+        private IEnumerable<Record> GetByType(string type, out ulong total)
         {
+            total = GetLengthByType(type);
+
             using var tx = env.Value.BeginTransaction(TransactionBeginFlags.ReadOnly);
             using var db = tx.OpenDatabase(configuration: Config);
             using var cursor = tx.CreateCursor(db);

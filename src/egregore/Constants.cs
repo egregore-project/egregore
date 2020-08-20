@@ -32,5 +32,16 @@ namespace egregore
             public const string GrantRole = "grant_role";
             public const string RevokeRole = "revoke_role";
         }
+
+        public static class HeaderNames
+        {
+            public const string XTotalCount = "X-Total-Count";
+            public const string XFrameOptions = "X-Frame-Options";
+            public const string XContentTypeOptions = "X-Content-Type-Options";
+            public const string ReferrerPolicy = "Referrer-Policy";
+            public const string PermissionsPolicy = "Permissions-Policy";
+            public const string PublicKeyPins = "Public-Key-Pins";
+            public const string ContentSecurityPolicy = "Content-Security-Policy";
+        }
     }
 }

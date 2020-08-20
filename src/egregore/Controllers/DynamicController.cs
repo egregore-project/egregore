@@ -30,11 +30,13 @@ namespace egregore.Controllers
         [HttpGet("api/{ns}/v{rs}/[controller]")]
         public async Task<IActionResult> Get([FromRoute] string ns, [FromRoute] ulong rs)
         {
-            var records = await _store.GetByTypeAsync(typeof(T).Name);
+            var records = await _store.GetByTypeAsync(typeof(T).Name, out ulong total);
 
             var models = new List<T>();
             foreach(var record in records)
                 models.Add(_example.ToModel(record));
+
+            Response.Headers.Add(Constants.HeaderNames.XTotalCount, $"{total}");
 
             return Ok(models);
         }
