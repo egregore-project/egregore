@@ -7,6 +7,7 @@
 using System.Diagnostics;
 using System.Net;
 using egregore.Configuration;
+using egregore.Data;
 using egregore.Filters;
 using egregore.Models;
 using Microsoft.AspNetCore.Diagnostics;
@@ -34,7 +35,8 @@ namespace egregore.Controllers
             var model = new WhoIsModel
             {
                 PublicKey = Crypto.ToHexString(_options.Value.PublicKey),
-                ServerId = _options.Value.ServerId
+                ServerId = _options.Value.ServerId,
+                TimeZone = TimeZoneLookup.Now
             };
 
             return Ok(model);

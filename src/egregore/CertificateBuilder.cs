@@ -14,6 +14,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using egregore.Data;
 using egregore.Extensions;
+using egregore.Models;
 
 namespace egregore
 {

@@ -5,6 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -31,16 +32,18 @@ namespace egregore
         private readonly IOptionsMonitor<WebServerOptions> _options;
         private readonly ILogStore _logs;
         private readonly IRecordStore _records;
+        private readonly IEnumerable<IRecordListener> _listeners;
 
         private Timer _timer;
         private long _head = -1;
 
-        public WebServerHostedService(PeerBus bus, IOntologyLog ontology, ILogStore logs, IRecordStore records, OntologyChangeProvider change, IHubContext<NotificationHub> hub, IOptionsMonitor<WebServerOptions> options, ILogger<WebServerHostedService> logger)
+        public WebServerHostedService(PeerBus bus, IOntologyLog ontology, ILogStore logs, IRecordStore records, IEnumerable<IRecordListener> listeners, OntologyChangeProvider change, IHubContext<NotificationHub> hub, IOptionsMonitor<WebServerOptions> options, ILogger<WebServerHostedService> logger)
         {
             _bus = bus;
             _ontology = ontology;
             _logs = logs;
             _records = records;
+            _listeners = listeners;
             _change = change;
             _hub = hub;
             _options = options;
@@ -64,7 +67,8 @@ namespace egregore
                 _ontology.Init(_options.CurrentValue.PublicKey);
                 _records.Init(Path.Combine(Constants.DefaultRootPath, $"{owner}.egg"));
 
-                await _records.RebuildIndexAsync();
+                foreach (var listener in _listeners)
+                    await listener.OnRecordsInitAsync();
 
                 DutyCycle();
             }

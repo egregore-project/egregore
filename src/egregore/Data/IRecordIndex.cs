@@ -4,13 +4,15 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-using System.ComponentModel;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace egregore.Models
+namespace egregore.Data
 {
-    public class WhoIsModel : BaseViewModel
+    public interface IRecordIndex
     {
-        [ReadOnly(true)] public string PublicKey { get; set; }
-        public IsoTimeZoneString TimeZone { get; set; }
+        Task RebuildAsync();
+        IAsyncEnumerable<RecordSearchResult> SearchAsync(string query, CancellationToken cancellationToken = default);
     }
 }

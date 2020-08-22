@@ -34,11 +34,11 @@ namespace egregore.Controllers
             IEnumerable<Record> records;
 
             ulong total;
-
             if (!string.IsNullOrWhiteSpace(query))
             {
-                total = 0;
-                records = await _store.SearchAsync(query, HttpContext.RequestAborted).ToList();
+                var results = await _store.SearchAsync(query, HttpContext.RequestAborted).ToList();
+                records = results;
+                total = (ulong) results.Count;
             }
             else
             {
@@ -74,16 +74,17 @@ namespace egregore.Controllers
             if (schema == default)
                 return NotFound();
 
-            if (!TryValidateModel(model))
+            if (model.Uuid != default)
                 return BadRequest();
 
-            if (model.Uuid != default)
+            if (!TryValidateModel(model))
                 return BadRequest();
 
             model.Uuid = Guid.NewGuid();
 
             var record = model.ToRecord();
             await _store.AddRecordAsync(record);
+
             
             return Created($"/api/{ns}/v{rs}/{controller?.ToLowerInvariant()}/{record.Uuid}", model);
         }

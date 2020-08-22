@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Text;
 using egregore.Configuration;
 using egregore.Data;
@@ -13,6 +12,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -81,9 +81,9 @@ namespace egregore
             var ontology = new MemoryOntologyLog(publicKey);
             services.AddSingleton<IOntologyLog, MemoryOntologyLog>(r => ontology);
             
-            var mvc = services.AddControllersWithViews(o =>
+            var mvc = services.AddControllersWithViews(x =>
             {
-                o.Conventions.Add(new DynamicControllerModelConvention());
+                x.Conventions.Add(new DynamicControllerModelConvention());
             });
 
             // FIXME: bad practice
@@ -104,21 +104,26 @@ namespace egregore
             if (env.IsDevelopment())
                 mvc.AddRazorRuntimeCompilation(o => { });
 
-            services.AddMemoryCache(o => { });
+            services.AddMemoryCache(x => { });
             services.AddSignalR();
-            services.AddRouting(o =>
+            services.AddRouting(x =>
             {
-                o.AppendTrailingSlash = true;
-                o.LowercaseUrls = true;
-                o.LowercaseQueryStrings = false;
+                x.AppendTrailingSlash = true;
+                x.LowercaseUrls = true;
+                x.LowercaseQueryStrings = false;
             });
+
+            services.AddSingleton<IRecordIndex, LunrRecordIndex>();
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<IRecordListener, IndexRecordListener>());
 
             services.AddSingleton<ILogStore, LightningLogStore>();
             services.AddSingleton<IRecordStore>(r =>
             {
                 var owner = Crypto.ToHexString(publicKey);
-                var logger = sp.GetRequiredService<ILogger<LightningRecordStore>>();
-                var store = new LightningRecordStore(owner, logger);
+                var store = new LightningRecordStore(owner, 
+                    sp.GetService<IRecordIndex>(),
+                    sp.GetServices<IRecordListener>(), 
+                    sp.GetRequiredService<ILogger<LightningRecordStore>>());
                 return store;
             });
 

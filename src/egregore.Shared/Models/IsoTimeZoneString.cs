@@ -7,7 +7,7 @@
 using System;
 using System.Diagnostics;
 
-namespace egregore.Data
+namespace egregore.Models
 {
     [DebuggerDisplay("{" + nameof(ToString) + "()}")]
     public struct IsoTimeZoneString : IEquatable<IsoTimeZoneString>

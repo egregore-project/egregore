@@ -6,6 +6,7 @@
 
 using System;
 using egregore.Data;
+using egregore.Models;
 using Xunit;
 
 namespace egregore.Tests.Data

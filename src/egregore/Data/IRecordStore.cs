@@ -23,7 +23,7 @@ namespace egregore.Data
         Task<IEnumerable<Record>> GetByTypeAsync(string type, out ulong total);
         Task<IEnumerable<Record>> GetByColumnValueAsync(string type, string name, string value);
 
-        Task RebuildIndexAsync();
+        IAsyncEnumerable<Record> StreamRecordsAsync(CancellationToken cancellationToken);
         IAsyncEnumerable<Record> SearchAsync(string query, CancellationToken cancellationToken);
 
         void Init(string path);
