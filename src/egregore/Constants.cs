@@ -43,5 +43,10 @@ namespace egregore
             public const string PublicKeyPins = "Public-Key-Pins";
             public const string ContentSecurityPolicy = "Content-Security-Policy";
         }
+
+        public class Notifications
+        {
+            public const string ReceiveMessage = nameof(ReceiveMessage);
+        }
     }
 }

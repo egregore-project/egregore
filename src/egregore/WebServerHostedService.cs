@@ -68,7 +68,7 @@ namespace egregore
                 _records.Init(Path.Combine(Constants.DefaultRootPath, $"{owner}.egg"));
 
                 foreach (var listener in _listeners)
-                    await listener.OnRecordsInitAsync();
+                    await listener.OnRecordsInitAsync(_records);
 
                 DutyCycle();
             }

@@ -2,6 +2,7 @@
 using System.Text;
 using egregore.Configuration;
 using egregore.Data;
+using egregore.Data.Listeners;
 using egregore.Filters;
 using egregore.IO;
 using egregore.Network;
@@ -115,15 +116,16 @@ namespace egregore
 
             services.AddSingleton<IRecordIndex, LunrRecordIndex>();
             services.TryAddEnumerable(ServiceDescriptor.Singleton<IRecordListener, IndexRecordListener>());
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<IRecordListener, NotificationRecordListener>());
 
             services.AddSingleton<ILogStore, LightningLogStore>();
             services.AddSingleton<IRecordStore>(r =>
             {
-                var owner = Crypto.ToHexString(publicKey);
-                var store = new LightningRecordStore(owner, 
-                    sp.GetService<IRecordIndex>(),
-                    sp.GetServices<IRecordListener>(), 
-                    sp.GetRequiredService<ILogger<LightningRecordStore>>());
+                var index = r.GetService<IRecordIndex>();
+                
+                var store = new LightningRecordStore(Crypto.ToHexString(publicKey), index,
+                        r.GetServices<IRecordListener>(), r.GetRequiredService<ILogger<LightningRecordStore>>());
+
                 return store;
             });
 

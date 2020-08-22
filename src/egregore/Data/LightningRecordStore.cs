@@ -47,7 +47,7 @@ namespace egregore.Data
             var sequence = AddRecord(record, await _sequence.GetNextValueAsync());
             
             foreach(var listener in _listeners)
-                await listener.OnRecordAddedAsync(record);
+                await listener.OnRecordAddedAsync(this, record);
 
             return sequence;
         }

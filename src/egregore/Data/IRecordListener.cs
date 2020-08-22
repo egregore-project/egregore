@@ -10,7 +10,7 @@ namespace egregore.Data
 {
     public interface IRecordListener
     {
-        Task OnRecordsInitAsync();
-        Task OnRecordAddedAsync(Record record);
+        Task OnRecordsInitAsync(IRecordStore store);
+        Task OnRecordAddedAsync(IRecordStore store, Record record);
     }
 }

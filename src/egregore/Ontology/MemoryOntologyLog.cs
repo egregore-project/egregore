@@ -186,7 +186,7 @@ namespace egregore.Ontology
 
         private static void OnSchemaAdded(Schema schema, IHubContext<NotificationHub> hub, OntologyChangeProvider change)
         {
-            hub?.Clients.All.SendAsync("ReceiveMessage", "info", $"Added new schema '{schema.Name}'");
+            hub?.Clients.All.SendAsync(Constants.Notifications.ReceiveMessage, "info", $"Added new schema '{schema.Name}'");
             change?.OnChanged();
         }
     }

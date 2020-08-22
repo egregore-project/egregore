@@ -20,12 +20,10 @@ namespace egregore.Data
     {
         private Index _index;
 
-        private readonly IRecordStore _store;
         private readonly ILogger<LunrRecordIndex> _logger;
 
-        public LunrRecordIndex(IRecordStore store, ILogger<LunrRecordIndex> logger)
+        public LunrRecordIndex(ILogger<LunrRecordIndex> logger)
         {
-            _store = store;
             _logger = logger;
         }
 
@@ -40,7 +38,7 @@ namespace egregore.Data
             }
         }
 
-        public async Task RebuildAsync()
+        public async Task RebuildAsync(IRecordStore store)
         {
             _index = await Index.Build(async builder =>
             {
@@ -48,7 +46,7 @@ namespace egregore.Data
                 var sw = Stopwatch.StartNew();
                 var count = 0UL;
 
-                await foreach (var entry in _store.StreamRecordsAsync(default))
+                await foreach (var entry in store.StreamRecordsAsync(default))
                 {
                     foreach (var column in entry.Columns)
                     {

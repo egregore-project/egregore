@@ -12,7 +12,7 @@ namespace egregore.Data
 {
     public interface IRecordIndex
     {
-        Task RebuildAsync();
+        Task RebuildAsync(IRecordStore store);
         IAsyncEnumerable<RecordSearchResult> SearchAsync(string query, CancellationToken cancellationToken = default);
     }
 }

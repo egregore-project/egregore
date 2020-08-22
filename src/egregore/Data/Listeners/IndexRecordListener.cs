@@ -7,7 +7,7 @@
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
-namespace egregore.Data
+namespace egregore.Data.Listeners
 {
     internal sealed class IndexRecordListener : IRecordListener
     {
@@ -20,14 +20,14 @@ namespace egregore.Data
             _logger = logger;
         }
 
-        public async Task OnRecordsInitAsync()
+        public async Task OnRecordsInitAsync(IRecordStore store)
         {
-            await _index.RebuildAsync();
+            await _index.RebuildAsync(store);
         }
 
-        public async Task OnRecordAddedAsync(Record record)
+        public async Task OnRecordAddedAsync(IRecordStore store, Record record)
         {
-            await _index.RebuildAsync();
+            await _index.RebuildAsync(store);
         }
     }
 }
