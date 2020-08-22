@@ -35,13 +35,22 @@ namespace egregore
 
         public static class HeaderNames
         {
-            public const string XTotalCount = "X-Total-Count";
-            public const string XFrameOptions = "X-Frame-Options";
-            public const string XContentTypeOptions = "X-Content-Type-Options";
-            public const string ReferrerPolicy = "Referrer-Policy";
+            public const string Accept = "Accept";
+            public const string ContentSecurityPolicy = "Content-Security-Policy";
             public const string PermissionsPolicy = "Permissions-Policy";
             public const string PublicKeyPins = "Public-Key-Pins";
-            public const string ContentSecurityPolicy = "Content-Security-Policy";
+            public const string ReferrerPolicy = "Referrer-Policy";
+           
+            public const string XContentTypeOptions = "X-Content-Type-Options";
+            public const string XFrameOptions = "X-Frame-Options";
+            public const string XTotalCount = "X-Total-Count";
+        }
+
+        public static class MediaTypeNames
+        {
+            public const string ApplicationRssXml = "application/rss+xml";
+            public const string ApplicationAtomXml = "application/atom+xml";
+            public const string TextXml = "text/xml";
         }
 
         public class Notifications

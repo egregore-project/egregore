@@ -15,7 +15,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Net.Http.Headers;
 using WyHash;
 
-namespace egregore.Security
+namespace egregore.Filters
 {
     /// <summary>
     ///     Throttles traffic generically for heavy anonymous operations exposed to public networks.

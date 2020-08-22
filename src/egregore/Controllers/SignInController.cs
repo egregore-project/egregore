@@ -7,8 +7,8 @@
 using System;
 using System.Text;
 using egregore.Configuration;
+using egregore.Filters;
 using egregore.Models;
-using egregore.Security;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;

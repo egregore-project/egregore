@@ -37,6 +37,7 @@
     <PackageReference Include="NetMQ" Version="4.0.1.4">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="System.ServiceModel.Syndication" Version="4.7.0" />
     <PackageReference Include="WyHash" Version="1.0.4">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>

@@ -7,7 +7,6 @@ using egregore.Filters;
 using egregore.IO;
 using egregore.Network;
 using egregore.Ontology;
-using egregore.Security;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
