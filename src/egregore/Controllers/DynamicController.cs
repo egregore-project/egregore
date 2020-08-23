@@ -55,18 +55,25 @@ namespace egregore.Controllers
         }
 
         [HttpOptions("api/{ns}/v{rs}/[controller]")]
-        public IActionResult Options([FromRoute] string ns, [FromRoute] ulong rs)
+        public IActionResult Options([FromRoute] string controller, [FromRoute] string ns, [FromRoute] ulong rs)
         {
+            var schema = _ontology.GetSchema(controller, ns, rs);
+            if (schema == default)
+                return NotFound();
+
             var schemas = _ontology.GetSchemas(ns, rs);
             return Ok(schemas);
         }
 
-        // FIXME: client cache with E-Tags
         [AcceptCharset]
         [Accepts(Constants.MediaTypeNames.ApplicationRssXml, Constants.MediaTypeNames.ApplicationAtomXml, Constants.MediaTypeNames.TextXml)]
         [HttpGet("api/{ns}/v{rs}/[controller]")]
-        public async Task<IActionResult> GetSyndicationFeed([FromHeader(Name = Constants.HeaderNames.Accept)] string contentType, [FromFilter] Encoding encoding, [FromRoute] string ns, [FromRoute] ulong rs, [FromQuery(Name = "q")] string query = default)
+        public async Task<IActionResult> GetSyndicationFeed([FromRoute] string controller, [FromHeader(Name = Constants.HeaderNames.Accept)] string contentType, [FromFilter] Encoding encoding, [FromRoute] string ns, [FromRoute] ulong rs, [FromQuery(Name = "q")] string query = default)
         {
+            var schema = _ontology.GetSchema(controller, ns, rs);
+            if (schema == default)
+                return NotFound();
+
             var mediaType = contentType?.ToLowerInvariant().Trim();
             var queryUrl = Request.GetEncodedUrl();
             var charset = encoding.WebName;
@@ -101,10 +108,8 @@ namespace egregore.Controllers
                 return File(stream, $"{mediaType}; charset={charset}");
             }
 
-            var (records, total) = await QueryAsync(ns, rs, query, CancellationToken);
-            if (total == 0)
-                return NotFound();
-
+            var (records, _) = await QueryAsync(ns, rs, query, CancellationToken);
+           
             if (!FeedBuilder.TryBuildFeedAsync(queryUrl, ns, rs, records, mediaType, encoding, out stream))
                 return new UnsupportedMediaTypeResult();
 
@@ -114,18 +119,15 @@ namespace egregore.Controllers
             return File(stream, $"{mediaType}; charset={charset}");
         }
 
-        private StatusCodeResult NotModified()
-        {
-            return StatusCode((int) HttpStatusCode.NotModified);
-        }
-
         [HttpGet("api/{ns}/v{rs}/[controller]")]
-        public async Task<IActionResult> Get([FromRoute] string ns, [FromRoute] ulong rs, [FromQuery(Name = "q")] string query = default)
+        public async Task<IActionResult> Get([FromRoute] string controller, [FromRoute] string ns, [FromRoute] ulong rs, [FromQuery(Name = "q")] string query = default)
         {
-            var (records, total) = await QueryAsync(ns, rs, query, CancellationToken);
-            if (total == 0)
+            var schema = _ontology.GetSchema(controller, ns, rs);
+            if (schema == default)
                 return NotFound();
 
+            var (records, total) = await QueryAsync(ns, rs, query, CancellationToken);
+            
             Response.Headers.Add(Constants.HeaderNames.XTotalCount, $"{total}");
             return Ok(records);
         }
@@ -156,7 +158,7 @@ namespace egregore.Controllers
             model.Uuid = Guid.NewGuid();
 
             var record = model.ToRecord();
-            await _store.AddRecordAsync(record, cancellationToken: HttpContext.RequestAborted);
+            await _store.AddRecordAsync(record, cancellationToken: CancellationToken);
 
             return Created($"/api/{ns}/v{rs}/{controller?.ToLowerInvariant()}/{record.Uuid}", model);
         }
@@ -184,6 +186,11 @@ namespace egregore.Controllers
                 models.Add(_example.ToModel(record));
 
             return (models, total);
+        }
+
+        private StatusCodeResult NotModified()
+        {
+            return StatusCode((int) HttpStatusCode.NotModified);
         }
     }
 }
