@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.ServiceModel.Syndication;
 using System.Text;
 using System.Threading;
@@ -10,10 +9,12 @@ using egregore.Caching;
 using egregore.Data;
 using egregore.Extensions;
 using egregore.Filters;
+using egregore.Generators;
 using egregore.Ontology;
 using Lunr;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Net.Http.Headers;
 
 namespace egregore.Controllers
 {
@@ -48,26 +49,35 @@ namespace egregore.Controllers
         public async Task<IActionResult> GetSyndicationFeed([FromRoute] string controller, [FromHeader(Name = Constants.HeaderNames.Accept)] string contentType, [FromFilter] Encoding encoding, [FromRoute] string ns, [FromRoute] ulong rs, [FromQuery(Name = "q")] string query = default)
         {
             var mediaType = contentType?.ToLowerInvariant().Trim();
-            var queryUrl = Request.GetEncodedUrl();
             var charset = encoding.WebName;
-
+            var queryUrl = Request.GetEncodedUrl();
+            
             var cacheKey = $"{mediaType}:{charset}:{queryUrl}";
 
             if (!Request.IfNoneMatch(cacheKey, _cache, out var stream, out var result))
                 return result;
-            
+
+            // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Modified-Since
+            // "When used in combination with If-None-Match, it is ignored, unless the server doesn't support If-None-Match."
+            if (!Request.IfModifiedSince(cacheKey, _cache, out var lastModified, out result))
+                return result;
+
             if (stream != default || _cache.TryGetValue(cacheKey, out stream))
             {
+                Response.Headers.TryAdd(HeaderNames.LastModified, $"{lastModified:R}");
                 Response.AppendETags(cacheKey, stream);
                 return File(stream, $"{mediaType}; charset={charset}");
             }
 
             var (records, _) = await QueryAsync(ns, rs, query, CancellationToken);
-            if (!FeedBuilder.TryBuildFeedAsync(queryUrl, ns, rs, records, mediaType, encoding, out stream))
+            if (!SyndicationGenerator.TryBuildFeedAsync(queryUrl, ns, rs, records, mediaType, encoding, out stream, out lastModified))
                 return UnsupportedMediaType();
             _cache.Set(cacheKey, stream);
-
+            _cache.Set($"{cacheKey}:{HeaderNames.LastModified}", lastModified);
+            
+            Response.Headers.TryAdd(HeaderNames.LastModified, $"{lastModified:R}");
             Response.AppendETags(cacheKey, stream);
+
             return File(stream, $"{mediaType}; charset={charset}");
         }
 
@@ -131,12 +141,6 @@ namespace egregore.Controllers
                 models.Add(_example.ToModel(record));
 
             return (models, total);
-        }
-
-        [NonAction]
-        private StatusCodeResult NotModified()
-        {
-            return StatusCode((int) HttpStatusCode.NotModified);
         }
         
         [NonAction]

@@ -96,7 +96,7 @@ namespace egregore.Configuration
                 UsingSystemLinq(),
                 UsingSystemRuntime(),
                 UsingSystemText(),
-                UsingEgregore(),
+                UsingEgregore()
             }.Distinct();
         }
 

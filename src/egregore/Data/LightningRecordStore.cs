@@ -45,7 +45,7 @@ namespace egregore.Data
 
         public async Task<ulong> AddRecordAsync(Record record, byte[] secretKey = null, CancellationToken cancellationToken = default)
         {
-            var sequence = AddRecord(record, await _sequence.GetNextValueAsync());
+            var sequence = AddRecord(record, await _sequence.GetNextValueAsync(), cancellationToken);
             await _events.OnAddedAsync(this, record, cancellationToken);
             return sequence;
         }
@@ -57,6 +57,9 @@ namespace egregore.Data
         
         public IAsyncEnumerable<Record> StreamRecordsAsync(CancellationToken cancellationToken = default)
         {
+            if (cancellationToken.IsCancellationRequested)
+                return AsyncEnumerableExtensions.Empty<Record>();
+
             using var tx = env.Value.BeginTransaction(TransactionBeginFlags.ReadOnly);
             using var db = tx.OpenDatabase(configuration: Config);
             using var cursor = tx.CreateCursor(db);
@@ -70,7 +73,7 @@ namespace egregore.Data
                 return AsyncEnumerableExtensions.Empty<Record>();
 
             var records = new List<Record>();
-            while (current.resultCode == MDBResultCode.Success)
+            while (current.resultCode == MDBResultCode.Success && !cancellationToken.IsCancellationRequested)
             {
                 unsafe
                 {
@@ -112,13 +115,18 @@ namespace egregore.Data
                 _sequence.Destroy();
         }
 
-        private ulong AddRecord(Record record, ulong sequence)
+        private ulong AddRecord(Record record, ulong sequence, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (record.Uuid == default)
                 record.Uuid = Guid.NewGuid();
 
             if(record.Index == default)
                 record.Index = sequence;
+
+            if (record.TimestampV2 == default)
+                record.TimestampV2 = TimestampFactory.Now.v2;
 
             using var ms = new MemoryStream();
             using var bw = new BinaryWriter(ms);
@@ -147,9 +155,10 @@ namespace egregore.Data
             return sequence;
         }
 
-
-        private ulong GetLengthByType(string type, CancellationToken cancellationToken = default)
+        private ulong GetLengthByType(string type, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             using var tx = env.Value.BeginTransaction(TransactionBeginFlags.ReadOnly);
             using var db = tx.OpenDatabase(configuration: Config);
             using var cursor = tx.CreateCursor(db);
@@ -160,7 +169,7 @@ namespace egregore.Data
 
             var count = 0UL;
             var current = cursor.GetCurrent();
-            while (current.resultCode == MDBResultCode.Success)
+            while (current.resultCode == MDBResultCode.Success && !cancellationToken.IsCancellationRequested)
             {
                 count++;
                 var next = cursor.Next();
@@ -175,7 +184,9 @@ namespace egregore.Data
         
         private IEnumerable<Record> GetByType(string type, out ulong total, CancellationToken cancellationToken)
         {
-            total = GetLengthByType(type);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            total = GetLengthByType(type, cancellationToken);
 
             using var tx = env.Value.BeginTransaction(TransactionBeginFlags.ReadOnly);
             using var db = tx.OpenDatabase(configuration: Config);
@@ -188,7 +199,7 @@ namespace egregore.Data
                 return results;
             
             var current = cursor.GetCurrent();
-            while (current.resultCode == MDBResultCode.Success)
+            while (current.resultCode == MDBResultCode.Success && !cancellationToken.IsCancellationRequested)
             {
                 var index = current.value.AsSpan();
                 var record = GetByIndex(index, tx, cancellationToken);
@@ -209,8 +220,7 @@ namespace egregore.Data
 
         private unsafe Record GetByIndex(ReadOnlySpan<byte> index, LightningTransaction parent, CancellationToken cancellationToken)
         {
-            if (cancellationToken.IsCancellationRequested)
-                return default;
+            cancellationToken.ThrowIfCancellationRequested();
 
             using var tx = env.Value.BeginTransaction(parent == null ? TransactionBeginFlags.ReadOnly : TransactionBeginFlags.None);
             using var db = tx.OpenDatabase(configuration: Config);
@@ -243,8 +253,7 @@ namespace egregore.Data
 
         private IEnumerable<Record> GetByColumnValue(string type, string name, string value, CancellationToken cancellationToken)
         {
-            if (cancellationToken.IsCancellationRequested)
-                return default;
+            cancellationToken.ThrowIfCancellationRequested();
 
             using var tx = env.Value.BeginTransaction(TransactionBeginFlags.ReadOnly);
             using var db = tx.OpenDatabase(configuration: Config);
@@ -257,7 +266,7 @@ namespace egregore.Data
                 return results;
 
             var current = cursor.GetCurrent();
-            while(current.resultCode == MDBResultCode.Success)
+            while(current.resultCode == MDBResultCode.Success && !cancellationToken.IsCancellationRequested)
             {
                 var record = GetByIndex(current.value.AsSpan(), tx, cancellationToken);
                 if (record == default)

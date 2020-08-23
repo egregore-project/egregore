@@ -32,6 +32,12 @@ namespace egregore.Generators
                 sb.AppendLine($"[ReadOnly(true)]");
                 sb.AppendLine($"public Guid Uuid {{ get; set; }}");
 
+                sb.AppendLine($"[ReadOnly(true)]");
+                sb.AppendLine($"public ulong TimestampV1 {{ get; set; }}");
+
+                sb.AppendLine($"[ReadOnly(true)]");
+                sb.AppendLine($"public ulong TimestampV2 {{ get; set; }}");
+                
                 foreach(var property in schema.Properties)
                     sb.AppendLine($"public {property.Type} {property.Name} {{ get; set; }}");
 
@@ -40,6 +46,8 @@ namespace egregore.Generators
                 sb.AppendLine($"{{");
                 sb.AppendLine($"    var record = new Record {{ Type = \"{schema.Name}\" }};");
                 sb.AppendLine($"    record.Uuid = Uuid;");
+                sb.AppendLine($"    record.TimestampV1 = TimestampV1;");
+                sb.AppendLine($"    record.TimestampV2 = TimestampV2;");
                 for (var i = 0; i < schema.Properties.Count; i++)
                 {
                     var property = schema.Properties[i];
@@ -53,6 +61,8 @@ namespace egregore.Generators
                 sb.AppendLine($"{{");
                 sb.AppendLine($"    var model = new {schema.Name}();");
                 sb.AppendLine($"    model.Uuid = record.Uuid;");
+                sb.AppendLine($"    model.TimestampV1 = record.TimestampV1;");
+                sb.AppendLine($"    model.TimestampV2 = record.TimestampV2;");
                 foreach (var property in schema.Properties)
                 {
                     sb.AppendLine($"    var value = record.Columns.SingleOrDefault(x => x.Name.Equals(\"{property.Name}\", StringComparison.OrdinalIgnoreCase))?.Value;");

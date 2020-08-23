@@ -17,10 +17,28 @@ using WyHash;
 
 namespace egregore.Extensions
 {
-    internal static class ETagExtensions
+    internal static class ConditionalHttpExtensions
     {
-        private static readonly ulong Seed = BitConverter.ToUInt64(Encoding.UTF8.GetBytes(nameof(ETagExtensions)));
+        private static readonly ulong Seed = BitConverter.ToUInt64(Encoding.UTF8.GetBytes(nameof(ConditionalHttpExtensions)));
 
+        // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Modified-Since
+        public static bool IfModifiedSince<TRegion>(this HttpRequest request, string cacheKey, ICacheRegion<TRegion> cache, out DateTimeOffset? lastModified, out IActionResult result)
+        {
+            var headers = request.GetTypedHeaders();
+            var ifModifiedSince = headers.IfModifiedSince;
+            
+            if (cache.TryGetValue($"{cacheKey}:{HeaderNames.LastModified}", out lastModified) && 
+                lastModified <= ifModifiedSince)
+            {
+                result = new StatusCodeResult((int)HttpStatusCode.NotModified);
+                return false;
+            }
+
+            result = default;
+            return true;
+        }
+
+        // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-None-Match
         public static bool IfNoneMatch<TRegion>(this HttpRequest request, string cacheKey, ICacheRegion<TRegion> cache, out byte[] stream, out IActionResult result)
         {
             var headers = request.GetTypedHeaders();
@@ -31,19 +49,15 @@ namespace egregore.Extensions
                 {
                     if (!etag.Tag.Equals(cacheKey.WeakETag(false)))
                         continue;
-
                     result = new StatusCodeResult((int) HttpStatusCode.NotModified);
                     stream = default;
                     return false;
                 }
-                else
-                {
-                    if (!cache.TryGetValue(cacheKey, out stream) || !etag.Tag.Equals(stream.StrongETag()))
-                        continue;
 
-                    result = new StatusCodeResult((int)HttpStatusCode.UnsupportedMediaType);
-                    return false;
-                }
+                if (!cache.TryGetValue(cacheKey, out stream) || !etag.Tag.Equals(stream.StrongETag()))
+                    continue;
+                result = new StatusCodeResult((int)HttpStatusCode.NotModified);
+                return false;
             }
 
             result = default;

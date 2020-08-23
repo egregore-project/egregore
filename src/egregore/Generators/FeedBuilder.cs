@@ -10,37 +10,36 @@ using System.IO;
 using System.ServiceModel.Syndication;
 using System.Text;
 using System.Xml;
+using egregore.Data;
 using WyHash;
 
-namespace egregore.Data
+namespace egregore.Generators
 {
-    internal sealed class FeedBuilder
+    internal sealed class SyndicationGenerator
     {
         public static bool TryBuildFeedAsync<T>(string url, string ns, ulong rs, IEnumerable<T> records,
-            string mediaType, Encoding encoding, out byte[] stream) where T : IRecord<T>
+            string mediaType, Encoding encoding, out byte[] stream, out DateTimeOffset? lastModified) where T : IRecord<T>
         {
-            var timestamp = TimeZoneLookup.Now.Timestamp;
-                
             // FIXME: need to normalize this to produce stable IDs (i.e. when query strings are in a different order)
             var id = WyHash64.ComputeHash64(Encoding.UTF8.GetBytes(url), BitConverter.ToUInt64(Encoding.UTF8.GetBytes(nameof(SyndicationFeed)))); 
 
-            var feed = new SyndicationFeed($"{typeof(T).Name} Query Feed",
-                $"A feed containing {typeof(T).Name} records for the query specified by the feed URI'", new Uri(url),
-                $"{id}", timestamp);
-
             var items = new List<SyndicationItem>();
+            lastModified = default;
             foreach (var record in records)
             {
                 var title = $"{typeof(T).Name}";
                 var description = $"Location of the {typeof(T).Name} record at the specified feed item URI";
                 var uri = $"/api/{ns}/v{rs}/{typeof(T).Name}/{record.Uuid}";
-                var ts = timestamp; // FIXME: need to surface record creation timestamps
 
-                var item = new SyndicationItem(title, description, new Uri(uri, UriKind.Relative), title, ts);
+                var timestamp = TimestampFactory.FromUInt64(record.TimestampV2);
+                var item = new SyndicationItem(title, description, new Uri(uri, UriKind.Relative), title, timestamp);
                 items.Add(item);
+                lastModified = timestamp;
             }
 
-            feed.Items = items;
+            var feed = new SyndicationFeed($"{typeof(T).Name} Query Feed",
+                $"A feed containing {typeof(T).Name} records for the query specified by the feed URI'", new Uri(url),
+                $"{id}", lastModified.GetValueOrDefault(DateTimeOffset.Now)) {Items = items};
 
             var settings = new XmlWriterSettings
             {

@@ -20,6 +20,9 @@ namespace egregore.Data
         public ulong? Index { get; set; }
         public Guid Uuid { get; set; }
         public string Type { get; set; }
+        public ulong TimestampV1 { get; set; }
+        public ulong TimestampV2 { get; set; }
+
         public List<RecordColumn> Columns { get; }
         
         #region Serialization
@@ -28,6 +31,9 @@ namespace egregore.Data
         {
             context.bw.Write(Uuid);
             context.bw.Write(Type);
+            context.bw.Write(TimestampV1);
+            context.bw.Write(TimestampV2);
+
             context.bw.Write(Columns.Count);
             foreach (var column in Columns)
                 column.Serialize(context, hash);
@@ -37,6 +43,9 @@ namespace egregore.Data
         {
             Uuid = context.br.ReadGuid();
             Type = context.br.ReadString();
+            TimestampV1 = context.br.ReadUInt64();
+            TimestampV2 = context.br.ReadUInt64();
+
             var columns = context.br.ReadInt32();
             for (var i = 0; i < columns; i++)
                 Columns.Add(new RecordColumn(context));
@@ -46,6 +55,9 @@ namespace egregore.Data
         {
             Uuid = id;
             Type = context.br.ReadString();
+            TimestampV1 = context.br.ReadUInt64();
+            TimestampV2 = context.br.ReadUInt64();
+            
             var columns = context.br.ReadInt32();
             for (var i = 0; i < columns; i++)
                 Columns.Add(new RecordColumn(context));

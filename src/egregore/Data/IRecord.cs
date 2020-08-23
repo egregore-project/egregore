@@ -11,6 +11,8 @@ namespace egregore.Data
     public interface IRecord<out T>
     {
         Guid Uuid { get; set; }
+        ulong TimestampV1 { get; set; }
+        ulong TimestampV2 { get; set; }
         Record ToRecord();
         T ToModel(Record record);
     }
