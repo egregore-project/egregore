@@ -8,35 +8,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using egregore.Caching;
 using egregore.Data;
+using egregore.Extensions;
 using egregore.Filters;
 using egregore.Ontology;
 using Lunr;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Primitives;
-using Microsoft.Net.Http.Headers;
-using WyHash;
 
 namespace egregore.Controllers
 {
-    internal static class ETagExtensions
-    {
-        private static readonly ulong Seed = BitConverter.ToUInt64(Encoding.UTF8.GetBytes(nameof(ETagExtensions)));
-
-        public static string StrongETag(this byte[] data)
-        {
-            var value = WyHash64.ComputeHash64(data, Seed);
-            return $"\"{value}\"";
-        }
-
-        public static string WeakETag(this string key, bool prefix)
-        {
-            var value = WyHash64.ComputeHash64(Encoding.UTF8.GetBytes(key), Seed);
-            return prefix ? $"W/\"{value}\"" : $"\"{value}\"";
-        }
-    }
-
     public class DynamicController<T> : Controller where T : IRecord<T>, new()
     {
         private readonly ICacheRegion<SyndicationFeed> _cache;
@@ -80,42 +60,21 @@ namespace egregore.Controllers
 
             var cacheKey = $"{mediaType}:{charset}:{queryUrl}";
 
-            var headers = Request.GetTypedHeaders();
-
-            byte[] stream = default;
-
-            foreach (var etag in headers.IfNoneMatch)
-            {
-                if (etag.IsWeak)
-                {
-                    if (etag.Tag.Equals(cacheKey.WeakETag(false)))
-                    {
-                        return NotModified();
-                    }
-                }
-                else
-                {
-                    if (_cache.TryGetValue(cacheKey, out stream) && etag.Tag.Equals(stream.StrongETag()))
-                    {
-                        return NotModified();
-                    }
-                }
-            }
-
+            if (!Request.IfNoneMatch(cacheKey, _cache, out var stream, out var result))
+                return result;
+            
             if (stream != default || _cache.TryGetValue(cacheKey, out stream))
             {
-                Response.Headers.TryAdd(HeaderNames.ETag, new StringValues(new[] { cacheKey.WeakETag(true), stream.StrongETag() }));
+                Response.AppendETags(cacheKey, stream);
                 return File(stream, $"{mediaType}; charset={charset}");
             }
 
             var (records, _) = await QueryAsync(ns, rs, query, CancellationToken);
-           
             if (!FeedBuilder.TryBuildFeedAsync(queryUrl, ns, rs, records, mediaType, encoding, out stream))
-                return new UnsupportedMediaTypeResult();
-
+                return UnsupportedMediaType();
             _cache.Set(cacheKey, stream);
 
-            Response.Headers.TryAdd(HeaderNames.ETag, new StringValues(new[] { cacheKey.WeakETag(true), stream.StrongETag() }));
+            Response.AppendETags(cacheKey, stream);
             return File(stream, $"{mediaType}; charset={charset}");
         }
 
@@ -191,6 +150,11 @@ namespace egregore.Controllers
         private StatusCodeResult NotModified()
         {
             return StatusCode((int) HttpStatusCode.NotModified);
+        }
+        
+        private static UnsupportedMediaTypeResult UnsupportedMediaType()
+        {
+            return new UnsupportedMediaTypeResult();
         }
     }
 }
