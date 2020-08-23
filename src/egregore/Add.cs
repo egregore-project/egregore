@@ -140,6 +140,7 @@ namespace egregore
             services.AddSingleton<IActionDescriptorChangeProvider, OntologyChangeProvider>(r => r.GetRequiredService<OntologyChangeProvider>());
             
             services.AddSingleton<ThrottleFilter>();
+            services.AddSingleton<OntologyFilter>();
             services.AddScoped<BaseViewModelFilter>();
 
             services.AddSingleton<WebServerHostedService>();

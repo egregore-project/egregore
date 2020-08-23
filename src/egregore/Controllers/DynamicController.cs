@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace egregore.Controllers
 {
+    [OntologyExists]
     public class DynamicController<T> : Controller where T : IRecord<T>, new()
     {
         private readonly ICacheRegion<SyndicationFeed> _cache;
@@ -37,10 +38,6 @@ namespace egregore.Controllers
         [HttpOptions("api/{ns}/v{rs}/[controller]")]
         public IActionResult Options([FromRoute] string controller, [FromRoute] string ns, [FromRoute] ulong rs)
         {
-            var schema = _ontology.GetSchema(controller, ns, rs);
-            if (schema == default)
-                return NotFound();
-
             var schemas = _ontology.GetSchemas(ns, rs);
             return Ok(schemas);
         }
@@ -50,10 +47,6 @@ namespace egregore.Controllers
         [HttpGet("api/{ns}/v{rs}/[controller]")]
         public async Task<IActionResult> GetSyndicationFeed([FromRoute] string controller, [FromHeader(Name = Constants.HeaderNames.Accept)] string contentType, [FromFilter] Encoding encoding, [FromRoute] string ns, [FromRoute] ulong rs, [FromQuery(Name = "q")] string query = default)
         {
-            var schema = _ontology.GetSchema(controller, ns, rs);
-            if (schema == default)
-                return NotFound();
-
             var mediaType = contentType?.ToLowerInvariant().Trim();
             var queryUrl = Request.GetEncodedUrl();
             var charset = encoding.WebName;
@@ -81,10 +74,6 @@ namespace egregore.Controllers
         [HttpGet("api/{ns}/v{rs}/[controller]")]
         public async Task<IActionResult> Get([FromRoute] string controller, [FromRoute] string ns, [FromRoute] ulong rs, [FromQuery(Name = "q")] string query = default)
         {
-            var schema = _ontology.GetSchema(controller, ns, rs);
-            if (schema == default)
-                return NotFound();
-
             var (records, total) = await QueryAsync(ns, rs, query, CancellationToken);
             
             Response.Headers.Add(Constants.HeaderNames.XTotalCount, $"{total}");
@@ -92,7 +81,7 @@ namespace egregore.Controllers
         }
 
         [HttpGet("api/{ns}/v{rs}/[controller]/{id}")]
-        public async Task<IActionResult> GetById([FromRoute] string ns, [FromRoute] ulong rs, [FromRoute] Guid id)
+        public async Task<IActionResult> GetById([FromRoute] string controller, [FromRoute] string ns, [FromRoute] ulong rs, [FromRoute] Guid id)
         {
             var record = await _store.GetByIdAsync(id, CancellationToken);
             if (record == default)
@@ -104,10 +93,6 @@ namespace egregore.Controllers
         [HttpPost("api/{ns}/v{rs}/[controller]")]
         public async Task<IActionResult> Post([FromRoute] string controller, [FromRoute] string ns, [FromRoute] ulong rs, [FromBody] T model)
         {
-            var schema = _ontology.GetSchema(controller, ns, rs);
-            if (schema == default)
-                return NotFound();
-
             if (model.Uuid != default)
                 return BadRequest();
 
@@ -121,7 +106,8 @@ namespace egregore.Controllers
 
             return Created($"/api/{ns}/v{rs}/{controller?.ToLowerInvariant()}/{record.Uuid}", model);
         }
-
+        
+        [NonAction]
         private async Task<(IEnumerable<T>, ulong)> QueryAsync(string ns, ulong rs, string query = default, CancellationToken cancellationToken = default)
         {
             IEnumerable<Record> records;
@@ -147,11 +133,13 @@ namespace egregore.Controllers
             return (models, total);
         }
 
+        [NonAction]
         private StatusCodeResult NotModified()
         {
             return StatusCode((int) HttpStatusCode.NotModified);
         }
         
+        [NonAction]
         private static UnsupportedMediaTypeResult UnsupportedMediaType()
         {
             return new UnsupportedMediaTypeResult();
