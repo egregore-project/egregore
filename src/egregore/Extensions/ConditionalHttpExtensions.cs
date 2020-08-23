@@ -21,7 +21,24 @@ namespace egregore.Extensions
     {
         private static readonly ulong Seed = BitConverter.ToUInt64(Encoding.UTF8.GetBytes(nameof(ConditionalHttpExtensions)));
 
-        // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Modified-Since
+        public static bool IsContentStale<TRegion>(this HttpRequest request, string cacheKey,
+            ICacheRegion<TRegion> cache, out byte[] stream, out DateTimeOffset? lastModified, out IActionResult result)
+        {
+            // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-None-Match
+            if (!request.IfNoneMatch(cacheKey, cache, out stream, out result))
+            {
+                lastModified = default;
+                return false;
+            }
+
+            // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Modified-Since
+            // "When used in combination with If-None-Match, it is ignored, unless the server doesn't support If-None-Match."
+            if (!request.IfModifiedSince(cacheKey, cache, out lastModified, out result))
+                return false;
+
+            return true;
+        }
+
         public static bool IfModifiedSince<TRegion>(this HttpRequest request, string cacheKey, ICacheRegion<TRegion> cache, out DateTimeOffset? lastModified, out IActionResult result)
         {
             var headers = request.GetTypedHeaders();
@@ -38,7 +55,6 @@ namespace egregore.Extensions
             return true;
         }
 
-        // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-None-Match
         public static bool IfNoneMatch<TRegion>(this HttpRequest request, string cacheKey, ICacheRegion<TRegion> cache, out byte[] stream, out IActionResult result)
         {
             var headers = request.GetTypedHeaders();

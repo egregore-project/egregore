@@ -54,14 +54,9 @@ namespace egregore.Controllers
             
             var cacheKey = $"{mediaType}:{charset}:{queryUrl}";
 
-            if (!Request.IfNoneMatch(cacheKey, _cache, out var stream, out var result))
+            if(!Request.IsContentStale(cacheKey, _cache, out var stream, out var lastModified, out var result))
                 return result;
-
-            // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Modified-Since
-            // "When used in combination with If-None-Match, it is ignored, unless the server doesn't support If-None-Match."
-            if (!Request.IfModifiedSince(cacheKey, _cache, out var lastModified, out result))
-                return result;
-
+            
             if (stream != default || _cache.TryGetValue(cacheKey, out stream))
             {
                 Response.Headers.TryAdd(HeaderNames.LastModified, $"{lastModified:R}");
