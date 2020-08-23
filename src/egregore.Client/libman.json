@@ -41,6 +41,33 @@
         "dist/browser/signalr.js.map",
         "dist/browser/signalr.js"
       ]
+    },
+    {
+      "library": "dagre-d3@0.6.4",
+      "destination": "wwwroot/lib/dagre-d3/",
+      "files": [
+        "LICENSE",
+        "README.md",
+        "dist/dagre-d3.core.js",
+        "dist/dagre-d3.core.min.js",
+        "dist/dagre-d3.core.min.js.map",
+        "dist/dagre-d3.js",
+        "dist/dagre-d3.min.js",
+        "dist/dagre-d3.min.js.map"
+      ]
+    },
+    {
+      "library": "d3@5.16.0",
+      "destination": "wwwroot/lib/d3/",
+      "files": [
+        "README.md",
+        "LICENSE",
+        "CHANGES.md",
+        "dist/d3.js",
+        "dist/d3.min.js",
+        "dist/d3.node.js",
+        "dist/package.js"
+      ]
     }
   ]
 }

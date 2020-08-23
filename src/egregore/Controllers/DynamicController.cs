@@ -64,9 +64,10 @@ namespace egregore.Controllers
                 return File(stream, $"{mediaType}; charset={charset}");
             }
 
-            var (records, _) = await QueryAsync(ns, rs, query, CancellationToken);
+            var (records, _) = await QueryAsync(controller, ns, rs, query, CancellationToken);
             if (!SyndicationGenerator.TryBuildFeedAsync(queryUrl, ns, rs, records, mediaType, encoding, out stream, out lastModified))
-                return UnsupportedMediaType();
+                return new UnsupportedMediaTypeResult();
+
             _cache.Set(cacheKey, stream);
             _cache.Set($"{cacheKey}:{HeaderNames.LastModified}", lastModified);
             
@@ -79,7 +80,7 @@ namespace egregore.Controllers
         [HttpGet("api/{ns}/v{rs}/[controller]")]
         public async Task<IActionResult> Get([FromRoute] string controller, [FromRoute] string ns, [FromRoute] ulong rs, [FromQuery(Name = "q")] string query = default)
         {
-            var (records, total) = await QueryAsync(ns, rs, query, CancellationToken);
+            var (records, total) = await QueryAsync(controller, ns, rs, query, CancellationToken);
             
             Response.Headers.Add(Constants.HeaderNames.XTotalCount, $"{total}");
             return Ok(records);
@@ -113,7 +114,7 @@ namespace egregore.Controllers
         }
         
         [NonAction]
-        private async Task<(IEnumerable<T>, ulong)> QueryAsync(string ns, ulong rs, string query = default, CancellationToken cancellationToken = default)
+        private async Task<(IEnumerable<T>, ulong)> QueryAsync(string type, string ns, ulong rs, string query = default, CancellationToken cancellationToken = default)
         {
             IEnumerable<Record> records;
             ulong total;
@@ -136,12 +137,6 @@ namespace egregore.Controllers
                 models.Add(_example.ToModel(record));
 
             return (models, total);
-        }
-        
-        [NonAction]
-        private static UnsupportedMediaTypeResult UnsupportedMediaType()
-        {
-            return new UnsupportedMediaTypeResult();
         }
     }
 }
