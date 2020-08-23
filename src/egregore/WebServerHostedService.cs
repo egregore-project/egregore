@@ -68,7 +68,7 @@ namespace egregore
                 _ontology.Init(_options.CurrentValue.PublicKey);
                 _records.Init(Path.Combine(Constants.DefaultRootPath, $"{owner}.egg"));
 
-                await _events.OnInitAsync(_records);
+                await _events.OnInitAsync(_records, cancellationToken);
 
                 DutyCycle();
             }

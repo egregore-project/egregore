@@ -46,7 +46,7 @@ namespace egregore.Data
         public async Task<ulong> AddRecordAsync(Record record, byte[] secretKey = null, CancellationToken cancellationToken = default)
         {
             var sequence = AddRecord(record, await _sequence.GetNextValueAsync());
-            await _events.OnAddedAsync(this, record);
+            await _events.OnAddedAsync(this, record, cancellationToken);
             return sequence;
         }
 

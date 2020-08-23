@@ -37,7 +37,6 @@ namespace egregore.Controllers
             return Ok(schemas);
         }
 
-        // FIXME: strong cache, invalidated on listener
         [AcceptCharset]
         [Accepts(Constants.MediaTypeNames.ApplicationRssXml, Constants.MediaTypeNames.ApplicationAtomXml, Constants.MediaTypeNames.TextXml)]
         [HttpGet("api/{ns}/v{rs}/[controller]")]

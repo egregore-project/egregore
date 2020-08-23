@@ -118,9 +118,9 @@ namespace egregore
             
             services.AddSingleton<IRecordIndex, LunrRecordIndex>();
 
-            services.TryAddEnumerable(ServiceDescriptor.Singleton<IRecordEventHandler, IndexRecordEventHandler>());
-            services.TryAddEnumerable(ServiceDescriptor.Singleton<IRecordEventHandler, NotificationRecordEventHandler>());
-            services.TryAddEnumerable(ServiceDescriptor.Singleton<IRecordEventHandler, InvalidateCacheRecordEventHandler>());
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<IRecordEventHandler, RebuildIndexOnRecordEvents>());
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<IRecordEventHandler, NotifyHubsWhenRecordAdded>());
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<IRecordEventHandler, InvalidateCachesWhenRecordAdded>());
             services.AddSingleton<RecordEvents>();
 
             services.AddSingleton<ILogStore, LightningLogStore>();

@@ -54,6 +54,8 @@ namespace egregore
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapHub<NotificationHub>("/notify");
+                endpoints.MapHub<LiveQueryHub>("/query");
+
                 endpoints.MapControllers();
                 endpoints.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
                 endpoints.MapRazorPages();

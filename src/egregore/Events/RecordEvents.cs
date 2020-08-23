@@ -6,36 +6,21 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using egregore.Data;
+using egregore.Extensions;
 
 namespace egregore.Events
 {
     public sealed class RecordEvents
     {
-        private static readonly IEnumerable<IRecordEventHandler> NoListeners = new List<IRecordEventHandler>(0);
+        private static readonly IReadOnlyList<IRecordEventHandler> NoListeners = new List<IRecordEventHandler>(0);
 
         private readonly IEnumerable<IRecordEventHandler> _listeners;
 
-        public RecordEvents(IEnumerable<IRecordEventHandler> listeners = default)
-        {
-            _listeners = listeners ?? NoListeners;
-        }
-
-        public async Task OnInitAsync(IRecordStore store)
-        {
-            var pending = new List<Task>();
-            foreach (var listener in _listeners)
-                pending.Add(listener.OnRecordsInitAsync(store));
-            await Task.WhenAll(pending);
-        }
-        
-        public async Task OnAddedAsync(IRecordStore store, Record record)
-        {
-            var pending = new List<Task>();
-            foreach (var listener in _listeners)
-                pending.Add(listener.OnRecordAddedAsync(store, record));
-            await Task.WhenAll(pending);
-        }
+        public RecordEvents(IEnumerable<IRecordEventHandler> listeners = default) => _listeners = listeners ?? NoListeners;
+        public Task OnInitAsync(IRecordStore store, CancellationToken cancellationToken = default) => _listeners.OnRecordsInitAsync(store, cancellationToken);
+        public Task OnAddedAsync(IRecordStore store, Record record, CancellationToken cancellationToken = default) => _listeners.OnRecordAddedAsync(store, record, cancellationToken);
     }
 }

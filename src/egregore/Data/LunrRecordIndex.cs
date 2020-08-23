@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,10 +38,8 @@ namespace egregore.Data
 
                 await foreach (var entry in store.StreamRecordsAsync(cancellationToken))
                 {
-                    foreach (var column in entry.Columns)
+                    foreach (var column in entry.Columns.Where(column => !fields.Contains(column.Name)))
                     {
-                        if (fields.Contains(column.Name))
-                            continue;
                         builder.AddField(column.Name);
                         fields.Add(column.Name);
                     }

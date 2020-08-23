@@ -5,27 +5,25 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System.ServiceModel.Syndication;
+using System.Threading;
 using System.Threading.Tasks;
 using egregore.Caching;
 using egregore.Data;
 
 namespace egregore.Events
 {
-    internal sealed class InvalidateCacheRecordEventHandler : IRecordEventHandler
+    internal sealed class InvalidateCachesWhenRecordAdded : RecordAddedEventHandler
     {
         private readonly ICacheRegion<SyndicationFeed> _cache;
 
-        public InvalidateCacheRecordEventHandler(ICacheRegion<SyndicationFeed> cache)
+        public InvalidateCachesWhenRecordAdded(ICacheRegion<SyndicationFeed> cache)
         {
             _cache = cache;
         }
 
-        public Task OnRecordsInitAsync(IRecordStore store) => Task.CompletedTask;
-
-        public Task OnRecordAddedAsync(IRecordStore store, Record record)
+        public override Task OnRecordAddedAsync(IRecordStore store, Record record, CancellationToken cancellationToken = default)
         {
-            _cache.Clear();
-            return Task.CompletedTask;
+            return Task.Run(() => _cache.Clear(), cancellationToken);
         }
     }
 }
