@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using egregore.Configuration;
 using egregore.Data;
+using egregore.Events;
 using egregore.Hubs;
 using egregore.Network;
 using egregore.Ontology;
@@ -32,18 +33,18 @@ namespace egregore
         private readonly IOptionsMonitor<WebServerOptions> _options;
         private readonly ILogStore _logs;
         private readonly IRecordStore _records;
-        private readonly IEnumerable<IRecordListener> _listeners;
+        private readonly RecordEvents _events;
 
         private Timer _timer;
         private long _head = -1;
 
-        public WebServerHostedService(PeerBus bus, IOntologyLog ontology, ILogStore logs, IRecordStore records, IEnumerable<IRecordListener> listeners, OntologyChangeProvider change, IHubContext<NotificationHub> hub, IOptionsMonitor<WebServerOptions> options, ILogger<WebServerHostedService> logger)
+        public WebServerHostedService(PeerBus bus, IOntologyLog ontology, ILogStore logs, IRecordStore records, RecordEvents events, IEnumerable<IRecordEventHandler> listeners, OntologyChangeProvider change, IHubContext<NotificationHub> hub, IOptionsMonitor<WebServerOptions> options, ILogger<WebServerHostedService> logger)
         {
             _bus = bus;
             _ontology = ontology;
             _logs = logs;
             _records = records;
-            _listeners = listeners;
+            _events = events;
             _change = change;
             _hub = hub;
             _options = options;
@@ -67,8 +68,7 @@ namespace egregore
                 _ontology.Init(_options.CurrentValue.PublicKey);
                 _records.Init(Path.Combine(Constants.DefaultRootPath, $"{owner}.egg"));
 
-                foreach (var listener in _listeners)
-                    await listener.OnRecordsInitAsync(_records);
+                await _events.OnInitAsync(_records);
 
                 DutyCycle();
             }

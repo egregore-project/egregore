@@ -6,6 +6,7 @@
 
 using System;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using LightningDB;
 
@@ -70,8 +71,10 @@ namespace egregore.Data
             }
         }
 
-        public Task<ulong> GetLengthAsync()
+        public Task<ulong> GetLengthAsync(CancellationToken cancellationToken = default)
         {
+            if (cancellationToken.IsCancellationRequested)
+                return Task.FromResult(0UL);
             using var tx = env.Value.BeginTransaction(TransactionBeginFlags.ReadOnly);
             using var db = tx.OpenDatabase(configuration: Config);
             var count = (ulong) tx.GetEntriesCount(db); // entries also contains handles to databases

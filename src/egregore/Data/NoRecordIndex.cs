@@ -7,12 +7,13 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Lunr;
 
 namespace egregore.Data
 {
-    public interface IRecordIndex
+    internal sealed class NoRecordIndex : IRecordIndex
     {
-        Task RebuildAsync(IRecordStore store, CancellationToken cancellationToken = default);
-        IAsyncEnumerable<RecordSearchResult> SearchAsync(string query, CancellationToken cancellationToken = default);
+        public Task RebuildAsync(IRecordStore store, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public IAsyncEnumerable<RecordSearchResult> SearchAsync(string query, CancellationToken cancellationToken = default) => AsyncEnumerableExtensions.Empty<RecordSearchResult>();
     }
 }

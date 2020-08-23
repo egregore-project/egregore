@@ -11,6 +11,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using egregore.Events;
 using egregore.Extensions;
 using LightningDB;
 using Lunr;
@@ -20,20 +21,20 @@ namespace egregore.Data
 {
     internal sealed class LightningRecordStore : LightningDataStore, IRecordStore
     {
-        private readonly IEnumerable<IRecordListener> _listeners;
         private readonly ISequenceProvider _sequence;
         private readonly ILogObjectTypeProvider _typeProvider;
         private readonly IRecordIndex _index;
+        private readonly RecordEvents _events;
 
         private readonly RecordColumnKeyBuilder _columnKeyBuilder;
         private readonly RecordKeyBuilder _recordKeyBuilder;
 
         private readonly ILogger<LightningRecordStore> _logger;
 
-        public LightningRecordStore(string sequence = Constants.DefaultSequence, IRecordIndex index = default, IEnumerable<IRecordListener> listeners = default, ILogger<LightningRecordStore> logger = default)
+        public LightningRecordStore(string sequence, IRecordIndex index, RecordEvents events, ILogger<LightningRecordStore> logger = default)
         {
             _index = index;
-            _listeners = listeners;
+            _events = events;
             _logger = logger;
             _columnKeyBuilder = new RecordColumnKeyBuilder();
             _recordKeyBuilder = new RecordKeyBuilder();
@@ -42,22 +43,19 @@ namespace egregore.Data
             _sequence = new GlobalSequenceProvider(sequence);
         }
 
-        public async Task<ulong> AddRecordAsync(Record record, byte[] secretKey = null)
+        public async Task<ulong> AddRecordAsync(Record record, byte[] secretKey = null, CancellationToken cancellationToken = default)
         {
             var sequence = AddRecord(record, await _sequence.GetNextValueAsync());
-            
-            foreach(var listener in _listeners)
-                await listener.OnRecordAddedAsync(this, record);
-
+            await _events.OnAddedAsync(this, record);
             return sequence;
         }
 
-        public Task<IEnumerable<Record>> GetByTypeAsync(string type, out ulong total) => Task.FromResult(GetByType(type, out total));
-        public Task<Record> GetByIdAsync(Guid uuid) => Task.FromResult(GetByIndex(_recordKeyBuilder.ReverseRecordKey(uuid)));
-        public Task<ulong> GetLengthByTypeAsync(string type) => Task.FromResult(GetLengthByType(type));
-        public Task<IEnumerable<Record>> GetByColumnValueAsync(string type, string name, string value) => Task.FromResult(GetByColumnValue(type, name, value));
+        public Task<IEnumerable<Record>> GetByTypeAsync(string type, out ulong total, CancellationToken cancellationToken = default) => Task.FromResult(GetByType(type, out total, cancellationToken));
+        public Task<Record> GetByIdAsync(Guid uuid, CancellationToken cancellationToken = default) => Task.FromResult(GetByIndex(_recordKeyBuilder.ReverseRecordKey(uuid), default, cancellationToken));
+        public Task<ulong> GetLengthByTypeAsync(string type, CancellationToken cancellationToken = default) => Task.FromResult(GetLengthByType(type, cancellationToken));
+        public Task<IEnumerable<Record>> GetByColumnValueAsync(string type, string name, string value, CancellationToken cancellationToken = default) => Task.FromResult(GetByColumnValue(type, name, value, cancellationToken));
         
-        public IAsyncEnumerable<Record> StreamRecordsAsync(CancellationToken cancellationToken)
+        public IAsyncEnumerable<Record> StreamRecordsAsync(CancellationToken cancellationToken = default)
         {
             using var tx = env.Value.BeginTransaction(TransactionBeginFlags.ReadOnly);
             using var db = tx.OpenDatabase(configuration: Config);
@@ -150,7 +148,7 @@ namespace egregore.Data
         }
 
 
-        private ulong GetLengthByType(string type)
+        private ulong GetLengthByType(string type, CancellationToken cancellationToken = default)
         {
             using var tx = env.Value.BeginTransaction(TransactionBeginFlags.ReadOnly);
             using var db = tx.OpenDatabase(configuration: Config);
@@ -175,7 +173,7 @@ namespace egregore.Data
             return count;
         }
         
-        private IEnumerable<Record> GetByType(string type, out ulong total)
+        private IEnumerable<Record> GetByType(string type, out ulong total, CancellationToken cancellationToken)
         {
             total = GetLengthByType(type);
 
@@ -193,7 +191,7 @@ namespace egregore.Data
             while (current.resultCode == MDBResultCode.Success)
             {
                 var index = current.value.AsSpan();
-                var record = GetByIndex(index, tx);
+                var record = GetByIndex(index, tx, cancellationToken);
                 if (record == default)
                     break;
 
@@ -209,8 +207,11 @@ namespace egregore.Data
             return results;
         }
 
-        private unsafe Record GetByIndex(ReadOnlySpan<byte> index, LightningTransaction parent = null)
+        private unsafe Record GetByIndex(ReadOnlySpan<byte> index, LightningTransaction parent, CancellationToken cancellationToken)
         {
+            if (cancellationToken.IsCancellationRequested)
+                return default;
+
             using var tx = env.Value.BeginTransaction(parent == null ? TransactionBeginFlags.ReadOnly : TransactionBeginFlags.None);
             using var db = tx.OpenDatabase(configuration: Config);
             using var cursor = tx.CreateCursor(db);
@@ -240,8 +241,11 @@ namespace egregore.Data
             }
         }
 
-        private IEnumerable<Record> GetByColumnValue(string type, string name, string value)
+        private IEnumerable<Record> GetByColumnValue(string type, string name, string value, CancellationToken cancellationToken)
         {
+            if (cancellationToken.IsCancellationRequested)
+                return default;
+
             using var tx = env.Value.BeginTransaction(TransactionBeginFlags.ReadOnly);
             using var db = tx.OpenDatabase(configuration: Config);
             using var cursor = tx.CreateCursor(db);
@@ -255,7 +259,7 @@ namespace egregore.Data
             var current = cursor.GetCurrent();
             while(current.resultCode == MDBResultCode.Success)
             {
-                var record = GetByIndex(current.value.AsSpan(), tx);
+                var record = GetByIndex(current.value.AsSpan(), tx, cancellationToken);
                 if (record == default)
                     break;
 
@@ -272,11 +276,14 @@ namespace egregore.Data
 
         public async IAsyncEnumerable<Record> SearchAsync(string query, [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
+            if (cancellationToken.IsCancellationRequested)
+                yield break;
+
             await foreach (var result in _index.SearchAsync(query, cancellationToken).WithCancellation(cancellationToken))
             {
                 if (Guid.TryParse(result.DocumentReference, out var uuid))
                 {
-                    yield return await GetByIdAsync(uuid);
+                    yield return await GetByIdAsync(uuid, cancellationToken);
                 }
             }
         }

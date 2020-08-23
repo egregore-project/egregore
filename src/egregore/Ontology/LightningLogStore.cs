@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using egregore.Data;
 using egregore.Extensions;
@@ -17,7 +18,7 @@ namespace egregore.Ontology
     public sealed class LightningLogStore : LightningDataStore, ILogStore
     {
         private readonly ILogEntryHashProvider _hashProvider;
-        private readonly SequentialKeyBuilder _keyBuilder;
+        private readonly SequenceKeyBuilder _keyBuilder;
         private readonly ISequenceProvider _sequence;
         private readonly ILogObjectTypeProvider _typeProvider;
 
@@ -25,12 +26,15 @@ namespace egregore.Ontology
         {
             _typeProvider = new LogObjectTypeProvider();
             _hashProvider = new LogEntryHashProvider(_typeProvider);
-            _keyBuilder = new SequentialKeyBuilder();
+            _keyBuilder = new SequenceKeyBuilder();
             _sequence = new LogStoreSequenceProvider(this);
         }
 
-        public async Task<ulong> AddEntryAsync(LogEntry entry, byte[] secretKey = null)
+        public async Task<ulong> AddEntryAsync(LogEntry entry, byte[] secretKey = null, CancellationToken cancellationToken = default)
         {
+            if (cancellationToken.IsCancellationRequested)
+                return 0UL;
+
             entry.RoundTripCheck(_typeProvider, secretKey);
 
             var ms = new MemoryStream();
@@ -54,27 +58,33 @@ namespace egregore.Ontology
             return index;
         }
 
-        public IEnumerable<LogEntry> StreamEntries(ulong startingFrom = 0, byte[] secretKey = null)
+        public IEnumerable<LogEntry> StreamEntries(ulong startingFrom = 0, byte[] secretKey = null, CancellationToken cancellationToken = default)
         {
+            if (cancellationToken.IsCancellationRequested)
+                yield break;
+
             LogEntry previousEntry = default;
 
             using var tx = env.Value.BeginTransaction(TransactionBeginFlags.ReadOnly);
             using var db = tx.OpenDatabase();
 
             var length = tx.GetEntriesCount(db);
-            while (startingFrom < (ulong) length)
+            while (startingFrom < (ulong) length && !cancellationToken.IsCancellationRequested)
             {
                 var key = BitConverter.GetBytes((long) startingFrom);
-                var value = tx.Get(db, key);
-                if (value.resultCode != MDBResultCode.Success)
+                
+                var (r, _, v) = tx.Get(db, key);
+                if (r != MDBResultCode.Success)
                     yield break;
 
-                using var ms = new MemoryStream(value.value.AsSpan().ToArray());
+                using var ms = new MemoryStream(v.AsSpan().ToArray());
                 using var br = new BinaryReader(ms);
                 var context = new LogDeserializeContext(br, _typeProvider);
-                
-                var entry = new LogEntry(context);
-                entry.Index = startingFrom++;
+
+                var entry = new LogEntry(context)
+                {
+                    Index = startingFrom++
+                };
 
                 if (previousEntry != default)
                     entry.EntryCheck(previousEntry, _hashProvider);

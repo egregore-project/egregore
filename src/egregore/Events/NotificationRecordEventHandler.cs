@@ -5,16 +5,17 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System.Threading.Tasks;
+using egregore.Data;
 using egregore.Hubs;
 using Microsoft.AspNetCore.SignalR;
 
-namespace egregore.Data.Listeners
+namespace egregore.Events
 {
-    internal sealed class NotificationRecordListener : IRecordListener
+    internal sealed class NotificationRecordEventHandler : IRecordEventHandler
     {
         private readonly IHubContext<NotificationHub> _hub;
 
-        public NotificationRecordListener(IHubContext<NotificationHub> hub)
+        public NotificationRecordEventHandler(IHubContext<NotificationHub> hub)
         {
             _hub = hub;
         }

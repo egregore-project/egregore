@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Text;
+using egregore.Caching;
 using egregore.Configuration;
 using egregore.Data;
-using egregore.Data.Listeners;
+using egregore.Events;
 using egregore.Filters;
 using egregore.IO;
 using egregore.Network;
@@ -104,7 +105,6 @@ namespace egregore
             if (env.IsDevelopment())
                 mvc.AddRazorRuntimeCompilation(o => { });
 
-            services.AddMemoryCache(x => { });
             services.AddSignalR();
             services.AddRouting(x =>
             {
@@ -113,9 +113,15 @@ namespace egregore
                 x.LowercaseQueryStrings = false;
             });
 
+            services.AddMemoryCache(x => { });
+            services.TryAdd(ServiceDescriptor.Singleton(typeof(ICacheRegion<>), typeof(InProcessCacheRegion<>)));
+            
             services.AddSingleton<IRecordIndex, LunrRecordIndex>();
-            services.TryAddEnumerable(ServiceDescriptor.Singleton<IRecordListener, IndexRecordListener>());
-            services.TryAddEnumerable(ServiceDescriptor.Singleton<IRecordListener, NotificationRecordListener>());
+
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<IRecordEventHandler, IndexRecordEventHandler>());
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<IRecordEventHandler, NotificationRecordEventHandler>());
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<IRecordEventHandler, InvalidateCacheRecordEventHandler>());
+            services.AddSingleton<RecordEvents>();
 
             services.AddSingleton<ILogStore, LightningLogStore>();
             services.AddSingleton<IRecordStore>(r =>
@@ -123,7 +129,8 @@ namespace egregore
                 var index = r.GetService<IRecordIndex>();
                 
                 var store = new LightningRecordStore(Crypto.ToHexString(publicKey), index,
-                        r.GetServices<IRecordListener>(), r.GetRequiredService<ILogger<LightningRecordStore>>());
+                        r.GetRequiredService<RecordEvents>(), 
+                        r.GetRequiredService<ILogger<LightningRecordStore>>());
 
                 return store;
             });

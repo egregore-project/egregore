@@ -15,16 +15,16 @@ namespace egregore.Data
     {
         string DataFile { get; }
 
-        Task<ulong> AddRecordAsync(Record record, byte[] secretKey = null);
+        Task<ulong> AddRecordAsync(Record record, byte[] secretKey = null, CancellationToken cancellationToken = default);
         
-        Task<ulong> GetLengthAsync();
-        Task<ulong> GetLengthByTypeAsync(string type);
-        Task<Record> GetByIdAsync(Guid uuid);
-        Task<IEnumerable<Record>> GetByTypeAsync(string type, out ulong total);
-        Task<IEnumerable<Record>> GetByColumnValueAsync(string type, string name, string value);
+        Task<ulong> GetLengthAsync(CancellationToken cancellationToken = default);
+        Task<ulong> GetLengthByTypeAsync(string type, CancellationToken cancellationToken = default);
+        Task<Record> GetByIdAsync(Guid uuid, CancellationToken cancellationToken = default);
+        Task<IEnumerable<Record>> GetByTypeAsync(string type, out ulong total, CancellationToken cancellationToken = default);
+        Task<IEnumerable<Record>> GetByColumnValueAsync(string type, string name, string value, CancellationToken cancellationToken = default);
 
-        IAsyncEnumerable<Record> StreamRecordsAsync(CancellationToken cancellationToken);
-        IAsyncEnumerable<Record> SearchAsync(string query, CancellationToken cancellationToken);
+        IAsyncEnumerable<Record> StreamRecordsAsync(CancellationToken cancellationToken = default);
+        IAsyncEnumerable<Record> SearchAsync(string query, CancellationToken cancellationToken = default);
 
         void Init(string path);
         void Destroy(bool destroySequence);

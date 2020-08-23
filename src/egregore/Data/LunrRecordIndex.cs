@@ -27,18 +27,7 @@ namespace egregore.Data
             _logger = logger;
         }
 
-        public async IAsyncEnumerable<RecordSearchResult> SearchAsync(string query, [EnumeratorCancellation] CancellationToken cancellationToken)
-        {
-            await foreach (var result in _index.Search(query, cancellationToken).WithCancellation(cancellationToken))
-            {
-                if (Guid.TryParse(result.DocumentReference, out _))
-                {
-                    yield return new RecordSearchResult { DocumentReference = result.DocumentReference};
-                }
-            }
-        }
-
-        public async Task RebuildAsync(IRecordStore store)
+        public async Task RebuildAsync(IRecordStore store, CancellationToken cancellationToken = default)
         {
             _index = await Index.Build(async builder =>
             {
@@ -46,7 +35,7 @@ namespace egregore.Data
                 var sw = Stopwatch.StartNew();
                 var count = 0UL;
 
-                await foreach (var entry in store.StreamRecordsAsync(default))
+                await foreach (var entry in store.StreamRecordsAsync(cancellationToken))
                 {
                     foreach (var column in entry.Columns)
                     {
@@ -66,6 +55,17 @@ namespace egregore.Data
 
                 _logger?.LogInformation($"Indexing {count} documents took {sw.Elapsed.TotalMilliseconds}ms");
             });
+        }
+
+        public async IAsyncEnumerable<RecordSearchResult> SearchAsync(string query, [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            await foreach (var result in _index.Search(query, cancellationToken).WithCancellation(cancellationToken))
+            {
+                if (Guid.TryParse(result.DocumentReference, out _))
+                {
+                    yield return new RecordSearchResult { DocumentReference = result.DocumentReference};
+                }
+            }
         }
     }
 }

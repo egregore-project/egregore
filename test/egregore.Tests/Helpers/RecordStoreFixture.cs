@@ -6,6 +6,7 @@
 
 using System;
 using egregore.Data;
+using egregore.Events;
 
 namespace egregore.Tests.Helpers
 {
@@ -13,7 +14,7 @@ namespace egregore.Tests.Helpers
     {
         public RecordStoreFixture()
         {
-            var store = new LightningRecordStore($"egregore_sequence_{Guid.NewGuid()}");
+            var store = new LightningRecordStore($"egregore_sequence_{Guid.NewGuid()}", new NoRecordIndex(), new RecordEvents());
             store.Init($"{Guid.NewGuid()}.egg");
             Store = store;
         }

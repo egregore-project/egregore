@@ -5,16 +5,17 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System.Threading.Tasks;
+using egregore.Data;
 using Microsoft.Extensions.Logging;
 
-namespace egregore.Data.Listeners
+namespace egregore.Events
 {
-    internal sealed class IndexRecordListener : IRecordListener
+    internal sealed class IndexRecordEventHandler : IRecordEventHandler
     {
         private readonly IRecordIndex _index;
-        private readonly ILogger<IndexRecordListener> _logger;
+        private readonly ILogger<IndexRecordEventHandler> _logger;
         
-        public IndexRecordListener(IRecordIndex index, ILogger<IndexRecordListener> logger)
+        public IndexRecordEventHandler(IRecordIndex index, ILogger<IndexRecordEventHandler> logger)
         {
             _index = index;
             _logger = logger;

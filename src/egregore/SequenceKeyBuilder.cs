@@ -4,13 +4,15 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-using System.Threading.Tasks;
+using System;
 
-namespace egregore.Data
+namespace egregore
 {
-    public interface IRecordListener
+    internal sealed class SequenceKeyBuilder
     {
-        Task OnRecordsInitAsync(IRecordStore store);
-        Task OnRecordAddedAsync(IRecordStore store, Record record);
+        public byte[] BuildKey<T>(ulong sequence, T state)
+        {
+            return BitConverter.GetBytes(sequence);
+        }
     }
 }

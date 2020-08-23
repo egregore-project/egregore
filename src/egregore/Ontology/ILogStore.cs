@@ -5,6 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace egregore.Ontology
@@ -12,9 +13,10 @@ namespace egregore.Ontology
     public interface ILogStore
     {
         string DataFile { get; }
-        Task<ulong> GetLengthAsync();
-        Task<ulong> AddEntryAsync(LogEntry entry, byte[] secretKey = null);
-        IEnumerable<LogEntry> StreamEntries(ulong startingFrom = 0UL, byte[] secretKey = null);
+
+        Task<ulong> GetLengthAsync(CancellationToken cancellationToken = default);
+        Task<ulong> AddEntryAsync(LogEntry entry, byte[] secretKey = null, CancellationToken cancellationToken = default);
+        IEnumerable<LogEntry> StreamEntries(ulong startingFrom = 0UL, byte[] secretKey = null, CancellationToken cancellationToken = default);
         
         void Init(string path);
         void Destroy();
