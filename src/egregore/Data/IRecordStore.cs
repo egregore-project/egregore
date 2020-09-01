@@ -11,10 +11,8 @@ using System.Threading.Tasks;
 
 namespace egregore.Data
 {
-    public interface IRecordStore
+    public interface IRecordStore : IDataStore
     {
-        string DataFile { get; }
-
         Task<ulong> AddRecordAsync(Record record, byte[] secretKey = null, CancellationToken cancellationToken = default);
         
         Task<ulong> GetLengthAsync(CancellationToken cancellationToken = default);
@@ -26,7 +24,6 @@ namespace egregore.Data
         IAsyncEnumerable<Record> StreamRecordsAsync(CancellationToken cancellationToken = default);
         IAsyncEnumerable<Record> SearchAsync(string query, CancellationToken cancellationToken = default);
 
-        void Init(string path);
         void Destroy(bool destroySequence);
     }
 }

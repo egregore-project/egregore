@@ -11,11 +11,13 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using egregore.Configuration;
 using egregore.Events;
 using egregore.Extensions;
 using LightningDB;
 using Lunr;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace egregore.Data
 {
@@ -25,22 +27,26 @@ namespace egregore.Data
         private readonly ILogObjectTypeProvider _typeProvider;
         private readonly IRecordIndex _index;
         private readonly RecordEvents _events;
+        private readonly IOptions<WebServerOptions> _options;
 
         private readonly RecordColumnKeyBuilder _columnKeyBuilder;
         private readonly RecordKeyBuilder _recordKeyBuilder;
 
         private readonly ILogger<LightningRecordStore> _logger;
 
-        public LightningRecordStore(string sequence, IRecordIndex index, RecordEvents events, ILogger<LightningRecordStore> logger = default)
+        public LightningRecordStore(IRecordIndex index, RecordEvents events, IOptions<WebServerOptions> options, ILogger<LightningRecordStore> logger = default)
         {
             _index = index;
             _events = events;
+            _options = options;
             _logger = logger;
             _columnKeyBuilder = new RecordColumnKeyBuilder();
             _recordKeyBuilder = new RecordKeyBuilder();
 
             _typeProvider = new LogObjectTypeProvider();
-            _sequence = new GlobalSequenceProvider(sequence);
+
+            var sequence = options.Value.PublicKeyString;
+            _sequence =new GlobalSequenceProvider(sequence);
         }
 
         public async Task<ulong> AddRecordAsync(Record record, byte[] secretKey = null, CancellationToken cancellationToken = default)
