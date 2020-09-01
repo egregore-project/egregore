@@ -23,7 +23,8 @@ namespace egregore.Filters
             var charset = headers.AcceptCharset?.FirstOrDefault();
             var encoding = charset == null ? Encoding.UTF8 : Encoding.GetEncoding(charset.Value.Value);
 
-            context.ActionArguments.TryAdd(EncodingParameter, encoding);
+            if(encoding != null)
+                context.ActionArguments.TryAdd(EncodingParameter, encoding);
 
             base.OnActionExecuting(context);
         }

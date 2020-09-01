@@ -15,11 +15,11 @@ namespace egregore.Events
 {
     public sealed class RecordEvents
     {
-        private static readonly IReadOnlyList<IRecordEventHandler> NoListeners = new List<IRecordEventHandler>(0);
+        private static readonly IReadOnlyList<IRecordEventHandler> NoHandlers = new List<IRecordEventHandler>(0);
 
         private readonly IEnumerable<IRecordEventHandler> _listeners;
 
-        public RecordEvents(IEnumerable<IRecordEventHandler> listeners = default) => _listeners = listeners ?? NoListeners;
+        public RecordEvents(IEnumerable<IRecordEventHandler> listeners = default) => _listeners = listeners ?? NoHandlers;
         public Task OnInitAsync(IRecordStore store, CancellationToken cancellationToken = default) => _listeners.OnRecordsInitAsync(store, cancellationToken);
         public Task OnAddedAsync(IRecordStore store, Record record, CancellationToken cancellationToken = default) => _listeners.OnRecordAddedAsync(store, record, cancellationToken);
     }

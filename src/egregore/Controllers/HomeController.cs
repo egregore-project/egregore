@@ -34,7 +34,7 @@ namespace egregore.Controllers
         {
             var model = new WhoIsModel
             {
-                PublicKey = Crypto.ToHexString(_options.Value.PublicKey),
+                PublicKey = _options.Value.PublicKeyString,
                 ServerId = _options.Value.ServerId,
                 TimeZone = TimeZoneLookup.Now
             };

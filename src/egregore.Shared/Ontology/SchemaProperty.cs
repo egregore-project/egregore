@@ -8,12 +8,11 @@ namespace egregore.Ontology
 {
     public class SchemaProperty : ILogSerialized
     {
-        public SchemaProperty()
-        {
-        }
+        public SchemaProperty() { }
 
         public string Name { get; set; }
         public string Type { get; set; }
+        public bool IsRequired { get; set; }
 
         #region Serialization
 
@@ -21,12 +20,16 @@ namespace egregore.Ontology
         {
             Name = context.br.ReadString();
             Type = context.br.ReadString();
+
+            IsRequired = context.br.ReadBoolean();
         }
 
         public void Serialize(LogSerializeContext context, bool hash)
         {
             context.bw.Write(Name);
             context.bw.Write(Type);
+
+            context.bw.Write(IsRequired);
         }
 
         #endregion

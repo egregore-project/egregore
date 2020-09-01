@@ -9,6 +9,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
+using egregore.Events;
 using egregore.Generators;
 using egregore.Hubs;
 using egregore.Ontology.Exceptions;
@@ -18,6 +20,7 @@ namespace egregore.Ontology
 {
     public sealed class MemoryOntologyLog : IOntologyLog
     {
+        private readonly OntologyEvents _events;
         private static readonly Namespace Default = new Namespace(Constants.DefaultNamespace);
 
         private long _index;
@@ -52,22 +55,24 @@ namespace egregore.Ontology
         public Dictionary<string, Dictionary<ulong, List<Schema>>> Manifest { get; set; }
 
         // ReSharper disable once UnusedMember.Global (used for DI)
-        public MemoryOntologyLog() { }
-
-        internal MemoryOntologyLog(ReadOnlySpan<byte> publicKey) => Init(publicKey);
-        internal MemoryOntologyLog(ReadOnlySpan<byte> publicKey, ILogStore store, ulong startingFrom = 0UL, byte[] secretKey = null) : this(publicKey)
+        public MemoryOntologyLog(OntologyEvents events)
         {
-            Interlocked.Exchange(ref _index, (long) startingFrom);
-            Materialize(store, default, default, secretKey);
+            _events = events;
         }
 
+        internal MemoryOntologyLog(OntologyEvents events, ReadOnlySpan<byte> publicKey)
+        {
+            _events = events;
+            Init(publicKey);
+        }
+        
         public List<Namespace> Namespaces { get; set; }
         public Dictionary<string, Dictionary<ulong, List<Schema>>> Schemas { get; set; }
         public Dictionary<string, Dictionary<string, ulong>> Revisions { get; set; }
         public Dictionary<string, List<string>> Roles { get; set; }
         public Dictionary<string, Dictionary<string, List<string>>> RoleGrants { get; set; }
 
-        public void Materialize(ILogStore store, IHubContext<NotificationHub> hub, OntologyChangeProvider change, byte[] secretKey = default, long? startingFrom = default)
+        public async Task MaterializeAsync(ILogStore store, byte[] secretKey = default, long? startingFrom = default, CancellationToken cancellationToken = default)
         {
             if (startingFrom == default)
                 startingFrom = Interlocked.Read(ref _index) + 1;
@@ -114,7 +119,8 @@ namespace egregore.Ontology
 
                             manifest.Add(schema);
                             list.Add(schema);
-                            OnSchemaAdded(schema, hub, change);
+
+                            await _events.OnSchemaAddedAsync(store, schema, cancellationToken);
                             break;
                         }
                         case RevokeRole revokeRole:
@@ -182,12 +188,6 @@ namespace egregore.Ontology
             if (!Manifest.TryGetValue(ns, out var map) || !map.TryGetValue(revision, out var schemas))
                 return default;
             return schemas.FirstOrDefault(schema => schema.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
-        }
-
-        private static void OnSchemaAdded(Schema schema, IHubContext<NotificationHub> hub, OntologyChangeProvider change)
-        {
-            hub?.Clients.All.SendAsync(Constants.Notifications.ReceiveMessage, "info", $"Added new schema '{schema.Name}'");
-            change?.OnChanged();
         }
     }
 }

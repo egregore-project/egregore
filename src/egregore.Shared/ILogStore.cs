@@ -8,17 +8,13 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace egregore.Ontology
+namespace egregore
 {
-    public interface ILogStore
+    public interface ILogStore : IDataStore
     {
-        string DataFile { get; }
-
         Task<ulong> GetLengthAsync(CancellationToken cancellationToken = default);
         Task<ulong> AddEntryAsync(LogEntry entry, byte[] secretKey = null, CancellationToken cancellationToken = default);
         IEnumerable<LogEntry> StreamEntries(ulong startingFrom = 0UL, byte[] secretKey = null, CancellationToken cancellationToken = default);
-        
-        void Init(string path);
         void Destroy();
     }
 }

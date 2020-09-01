@@ -4,14 +4,12 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-namespace egregore.Configuration
+using System;
+
+namespace egregore.Data.Attributes
 {
-    public class WebServerOptions
+    public abstract class ValidationAttribute : Attribute
     {
-        public byte[] PublicKey { get; set; }
-        public string PublicKeyString { get; set; }
-        public string ServerId { get; set; }
-        public string EggPath { get; set; }
-        public short BeaconPort { get; set; }
+        public abstract bool IsValid(object value);
     }
 }

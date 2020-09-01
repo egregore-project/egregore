@@ -4,14 +4,15 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-namespace egregore.Configuration
+using Microsoft.AspNetCore.Mvc;
+
+namespace egregore.Filters
 {
-    public class WebServerOptions
+    public sealed class RemoteAddressAttribute : ServiceFilterAttribute
     {
-        public byte[] PublicKey { get; set; }
-        public string PublicKeyString { get; set; }
-        public string ServerId { get; set; }
-        public string EggPath { get; set; }
-        public short BeaconPort { get; set; }
+        public RemoteAddressAttribute() : base(typeof(RemoteAddressFilter))
+        {
+            IsReusable = true;
+        }
     }
 }

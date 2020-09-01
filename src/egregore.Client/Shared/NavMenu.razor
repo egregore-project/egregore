@@ -1,4 +1,9 @@
-﻿<div class="top-row pl-4 navbar navbar-dark">
+﻿@using egregore.Models
+@using egregore.Ontology
+
+@inject HttpClient http
+
+<div class="top-row pl-4 navbar navbar-dark">
     <a class="navbar-brand" href="">egregore</a>
     <button class="navbar-toggler" @onclick="ToggleNavMenu">
         <span class="navbar-toggler-icon"></span>
@@ -33,15 +38,39 @@
             </NavLink>
         </li>
     </ul>
+
+    @foreach(var schema in Ontology?.Schemas ?? Enumerable.Empty<Schema>())
+    {
+        <ul class="nav flex-column">
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="@GetSchemaUri(schema)">
+                    <span class="oi oi-plus" aria-hidden="true"></span> @schema.Name
+                </NavLink>
+            </li>
+        </ul>
+    }
 </div>
 
 @code {
     private bool collapseNavMenu = true;
+
+    [Parameter]
+    public OntologyViewModel Ontology { get; set; }
 
     private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
 
     private void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        Ontology = await http.GetFromJsonAsync<OntologyViewModel>("ontology");
+    }
+
+    private static string GetSchemaUri(Schema schema)
+    {
+        return $"/ui/{schema.Name.ToLowerInvariant()}";
     }
 }

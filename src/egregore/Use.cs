@@ -91,7 +91,7 @@ namespace egregore
             });
         }
 
-        private static readonly string[] BlazorPaths = {"/", "/counter", "/fetchdata", "/meta", "/privacy"};
+        private static readonly string[] BlazorPaths = {"/", "/counter", "/fetchdata", "/meta", "/privacy", "/multi"};
         private static bool IsBlazorPath(HttpContext context)
         {
             return BlazorPaths.Any(x => x == context.Request.Path);

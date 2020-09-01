@@ -20,6 +20,7 @@ namespace egregore.Generators
             sb.AppendLine("using System.Linq;");
             sb.AppendLine("using System.Text;");
             sb.AppendLine("using egregore.Data;");
+            sb.AppendLine("using egregore.Data.Attributes;");
             sb.AppendLine();
 
             sb.OpenNamespace($"{@namespace.Value}.V{revision}");
@@ -37,9 +38,14 @@ namespace egregore.Generators
 
                 sb.AppendLine($"[ReadOnly(true)]");
                 sb.AppendLine($"public ulong TimestampV2 {{ get; set; }}");
-                
-                foreach(var property in schema.Properties)
+
+                foreach (var property in schema.Properties)
+                {
+                    if (property.IsRequired)
+                        sb.AppendLine("[Required]");
+
                     sb.AppendLine($"public {property.Type} {property.Name} {{ get; set; }}");
+                }
 
                 sb.AppendLine();
                 sb.AppendLine("public Record ToRecord()");

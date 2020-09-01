@@ -19,8 +19,6 @@ namespace egregore.Extensions
 {
     internal static class ConditionalHttpExtensions
     {
-        private static readonly ulong Seed = BitConverter.ToUInt64(Encoding.UTF8.GetBytes(nameof(ConditionalHttpExtensions)));
-
         public static bool IsContentStale<TRegion>(this HttpRequest request, string cacheKey,
             ICacheRegion<TRegion> cache, out byte[] stream, out DateTimeOffset? lastModified, out IActionResult result)
         {
@@ -63,14 +61,14 @@ namespace egregore.Extensions
             {
                 if (etag.IsWeak)
                 {
-                    if (!etag.Tag.Equals(cacheKey.WeakETag(false)))
+                    if (!etag.Tag.Equals(cacheKey.WeakETag(false, cache)))
                         continue;
                     result = new StatusCodeResult((int) HttpStatusCode.NotModified);
                     stream = default;
                     return false;
                 }
 
-                if (!cache.TryGetValue(cacheKey, out stream) || !etag.Tag.Equals(stream.StrongETag()))
+                if (!cache.TryGetValue(cacheKey, out stream) || !etag.Tag.Equals(stream.StrongETag(cache)))
                     continue;
                 result = new StatusCodeResult((int)HttpStatusCode.NotModified);
                 return false;
@@ -81,20 +79,24 @@ namespace egregore.Extensions
             return true;
         }
 
-        public static void AppendETags(this HttpResponse response, string cacheKey, byte[] stream)
+        public static void AppendETags<TRegion>(this HttpResponse response, ICacheRegion<TRegion> cache, string cacheKey, byte[] stream)
         {
-            response.Headers.TryAdd(HeaderNames.ETag, new StringValues(new[] { cacheKey.WeakETag(true), stream.StrongETag() }));
+            response.Headers.TryAdd(HeaderNames.ETag, new StringValues(new[]
+            {
+                cacheKey.WeakETag(true, cache), 
+                stream.StrongETag(cache)
+            }));
         }
 
-        public static string StrongETag(this byte[] data)
+        public static string StrongETag<TRegion>(this byte[] data, ICacheRegion<TRegion> cache)
         {
-            var value = WyHash64.ComputeHash64(data, Seed);
+            var value = WyHash64.ComputeHash64(data, cache.GetSeed());
             return $"\"{value}\"";
         }
 
-        public static string WeakETag(this string key, bool prefix)
+        public static string WeakETag<TRegion>(this string key, bool prefix, ICacheRegion<TRegion> cache)
         {
-            var value = WyHash64.ComputeHash64(Encoding.UTF8.GetBytes(key), Seed);
+            var value = WyHash64.ComputeHash64(Encoding.UTF8.GetBytes(key), cache.GetSeed());
             return prefix ? $"W/\"{value}\"" : $"\"{value}\"";
         }
     }

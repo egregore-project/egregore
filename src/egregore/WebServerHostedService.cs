@@ -5,7 +5,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -13,10 +12,8 @@ using System.Threading.Tasks;
 using egregore.Configuration;
 using egregore.Data;
 using egregore.Events;
-using egregore.Hubs;
 using egregore.Network;
 using egregore.Ontology;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -27,8 +24,6 @@ namespace egregore
     {
         private readonly PeerBus _bus;
         private readonly IOntologyLog _ontology;
-        private readonly OntologyChangeProvider _change;
-        private readonly IHubContext<NotificationHub> _hub;
         private readonly ILogger<WebServerHostedService> _logger;
         private readonly IOptionsMonitor<WebServerOptions> _options;
         private readonly ILogStore _logs;
@@ -38,15 +33,13 @@ namespace egregore
         private Timer _timer;
         private long _head = -1;
 
-        public WebServerHostedService(PeerBus bus, IOntologyLog ontology, ILogStore logs, IRecordStore records, RecordEvents events, IEnumerable<IRecordEventHandler> listeners, OntologyChangeProvider change, IHubContext<NotificationHub> hub, IOptionsMonitor<WebServerOptions> options, ILogger<WebServerHostedService> logger)
+        public WebServerHostedService(PeerBus bus, IOntologyLog ontology, ILogStore logs, IRecordStore records, RecordEvents events, IOptionsMonitor<WebServerOptions> options, ILogger<WebServerHostedService> logger)
         {
             _bus = bus;
             _ontology = ontology;
             _logs = logs;
             _records = records;
             _events = events;
-            _change = change;
-            _hub = hub;
             _options = options;
             _logger = logger;
         }
@@ -98,7 +91,7 @@ namespace egregore
                     _logger?.LogDebug("Initializing ontology log");
 
                 var sw = Stopwatch.StartNew();
-                _ontology.Materialize(_logs, _hub, _change);
+                _ontology.MaterializeAsync(_logs);
                 Interlocked.Exchange(ref _head, _ontology.Index);
                 _logger?.LogDebug($"Restoring ontology log completed ({sw.Elapsed.TotalMilliseconds}ms)");
             }

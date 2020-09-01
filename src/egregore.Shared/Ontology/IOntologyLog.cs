@@ -6,8 +6,8 @@
 
 using System;
 using System.Collections.Generic;
-using egregore.Hubs;
-using Microsoft.AspNetCore.SignalR;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace egregore.Ontology
 {
@@ -15,7 +15,7 @@ namespace egregore.Ontology
     {
         long Index { get; }
         void Init(ReadOnlySpan<byte> publicKey);
-        void Materialize(ILogStore store, IHubContext<NotificationHub> hub, OntologyChangeProvider change, byte[] secretKey = default, long? startingFrom = default);
+        Task MaterializeAsync(ILogStore store, byte[] secretKey = default, long? startingFrom = default, CancellationToken cancellationToken = default);
         bool Exists(string eggPath);
         string GenerateModels();
 

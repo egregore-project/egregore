@@ -4,14 +4,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-namespace egregore.Configuration
+using System.Collections.Generic;
+using egregore.Ontology;
+
+namespace egregore.Models
 {
-    public class WebServerOptions
+    public class OntologyViewModel
     {
-        public byte[] PublicKey { get; set; }
-        public string PublicKeyString { get; set; }
-        public string ServerId { get; set; }
-        public string EggPath { get; set; }
-        public short BeaconPort { get; set; }
+        public IEnumerable<Schema> Schemas { get; set; }
     }
 }

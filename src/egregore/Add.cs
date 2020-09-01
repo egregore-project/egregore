@@ -6,6 +6,7 @@ using egregore.Data;
 using egregore.Events;
 using egregore.Filters;
 using egregore.IO;
+using egregore.Media;
 using egregore.Network;
 using egregore.Ontology;
 using Microsoft.AspNetCore.Hosting;
@@ -16,18 +17,23 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace egregore
 {
     internal static class Add
     {
+        private static MemoryOntologyLog _ontology;
+
         public static unsafe IServiceCollection AddWebServer(this IServiceCollection services, string eggPath, IKeyCapture capture, IWebHostEnvironment env, IConfiguration config, IWebHostBuilder webBuilder)
         {
-            services.AddCors(o => o.AddDefaultPolicy(b =>
+            services.AddCors(x => x.AddDefaultPolicy(b =>
             {
                 b.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
                 b.DisallowCredentials(); // credentials are invalid when origin is *
             }));
+
+            services.AddSignalR();
 
             var keyFileService = new ServerKeyFileService();
             services.AddSingleton<IKeyFileService>(keyFileService);
@@ -62,6 +68,7 @@ namespace egregore
             services.Configure<WebServerOptions>(o =>
             {
                 o.PublicKey = publicKey;
+                o.PublicKeyString = Crypto.ToHexString(publicKey);
                 o.ServerId = serverId;
                 o.EggPath = eggPath;
             });
@@ -77,22 +84,41 @@ namespace egregore
                 o.HeaderName = "X-XSRF-Token";
             });
 
-            services.AddSingleton<PeerBus>();
-
-            var ontology = new MemoryOntologyLog(publicKey);
-            services.AddSingleton<IOntologyLog, MemoryOntologyLog>(r => ontology);
-            
             var mvc = services.AddControllersWithViews(x =>
             {
                 x.Conventions.Add(new DynamicControllerModelConvention());
             });
 
+            var change = new OntologyChangeProvider();
+            services.AddSingleton(change);
+            services.AddSingleton<IActionDescriptorChangeProvider, OntologyChangeProvider>(r => r.GetRequiredService<OntologyChangeProvider>());
+            services.AddSingleton<IRecordIndex, LunrRecordIndex>();
+
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<IRecordEventHandler, RebuildIndexOnRecordEvents>());
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<IRecordEventHandler, NotifyHubsWhenRecordAdded>());
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<IRecordEventHandler, InvalidateCachesWhenRecordAdded>());
+            services.AddSingleton<RecordEvents>();
+
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<IOntologyEventHandler, RebuildControllersWhenSchemaAdded>());
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<IOntologyEventHandler, NotifyHubsWhenSchemaAdded>());
+            services.AddSingleton<OntologyEvents>();
+
+            services.AddSingleton<PeerBus>();
+            services.AddSingleton<OntologyEvents>();
+            services.AddSingleton(r =>
+            {
+                // This is static because the hosted service is called on its own thread, which would otherwise duplicate the log
+                _ontology ??= new MemoryOntologyLog(r.GetRequiredService<OntologyEvents>(), publicKey);
+                return _ontology;
+            });
+            services.AddTransient<IOntologyLog>(r => r.GetRequiredService<MemoryOntologyLog>());
+            
             // FIXME: bad practice
             var sp = services.BuildServiceProvider();
-
             mvc.ConfigureApplicationPartManager(x =>
             {
                 var logger = sp.GetRequiredService<ILogger<DynamicControllerFeatureProvider>>();
+                var ontology = sp.GetRequiredService<IOntologyLog>();
                 var provider = new DynamicControllerFeatureProvider(ontology, logger);
 
                 x.FeatureProviders.Add(provider);
@@ -105,7 +131,6 @@ namespace egregore
             if (env.IsDevelopment())
                 mvc.AddRazorRuntimeCompilation(o => { });
 
-            services.AddSignalR();
             services.AddRouting(x =>
             {
                 x.AppendTrailingSlash = true;
@@ -116,37 +141,29 @@ namespace egregore
             services.AddMemoryCache(x => { });
             services.TryAdd(ServiceDescriptor.Singleton(typeof(ICacheRegion<>), typeof(InProcessCacheRegion<>)));
             
-            services.AddSingleton<IRecordIndex, LunrRecordIndex>();
+            AddDataStores(services);
 
-            services.TryAddEnumerable(ServiceDescriptor.Singleton<IRecordEventHandler, RebuildIndexOnRecordEvents>());
-            services.TryAddEnumerable(ServiceDescriptor.Singleton<IRecordEventHandler, NotifyHubsWhenRecordAdded>());
-            services.TryAddEnumerable(ServiceDescriptor.Singleton<IRecordEventHandler, InvalidateCachesWhenRecordAdded>());
-            services.AddSingleton<RecordEvents>();
-
-            services.AddSingleton<ILogStore, LightningLogStore>();
-            services.AddSingleton<IRecordStore>(r =>
-            {
-                var index = r.GetService<IRecordIndex>();
-                
-                var store = new LightningRecordStore(Crypto.ToHexString(publicKey), index,
-                        r.GetRequiredService<RecordEvents>(), 
-                        r.GetRequiredService<ILogger<LightningRecordStore>>());
-
-                return store;
-            });
-
-            var change = new OntologyChangeProvider();
-            services.AddSingleton(change);
-            services.AddSingleton<IActionDescriptorChangeProvider, OntologyChangeProvider>(r => r.GetRequiredService<OntologyChangeProvider>());
-            
-            services.AddSingleton<ThrottleFilter>();
-            services.AddSingleton<OntologyFilter>();
-            services.AddScoped<BaseViewModelFilter>();
+            AddFilters(services);
 
             services.AddSingleton<WebServerHostedService>();
             services.AddHostedService(r => r.GetRequiredService<WebServerHostedService>());
 
             return services;
+        }
+
+        private static void AddDataStores(IServiceCollection services)
+        {
+            services.AddSingleton<ILogStore, LightningLogStore>();
+            services.AddSingleton<IMediaStore, LightningMediaStore>();
+            services.AddSingleton<IRecordStore, LightningRecordStore>();
+        }
+
+        private static void AddFilters(IServiceCollection services)
+        {
+            services.AddSingleton<ThrottleFilter>();
+            services.AddSingleton<OntologyFilter>();
+            services.AddSingleton<RemoteAddressFilter>();
+            services.AddScoped<BaseViewModelFilter>();
         }
     }
 }

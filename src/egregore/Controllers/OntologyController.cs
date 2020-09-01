@@ -6,6 +6,7 @@
 
 using System.Threading.Tasks;
 using egregore.Configuration;
+using egregore.Models;
 using egregore.Ontology;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -26,14 +27,32 @@ namespace egregore.Controllers
             _service = service;
             _options = options;
         }
-        
+
+        [HttpOptions("api/{ns}/v{rs}")]
+        public IActionResult Options([FromRoute] string ns, [FromRoute] ulong rs)
+        {
+            var schemas = _ontology.GetSchemas(ns, rs);
+            return Ok(schemas);
+        }
+
+
+        [HttpGet("ontology")]
+        public IActionResult GetOntology()
+        {
+            var schemas = _ontology.GetSchemas("default", 1);
+            return Ok(new OntologyViewModel { Schemas = schemas });
+        }
+
         [HttpPost("schema")]
         public async Task<IActionResult> AddSchema()
         {
             _store.Init(_options.Value.EggPath);
 
             var schema = new Schema {Name = "Customer"};
-            schema.Properties.Add(new SchemaProperty {Name = "Name", Type = "string"});
+            var property = new SchemaProperty {Name = "Name", Type = "string"};
+            property.IsRequired = true;
+
+            schema.Properties.Add(property);
 
             var typeProvider = new LogObjectTypeProvider();
             var hashProvider = new LogEntryHashProvider(typeProvider);

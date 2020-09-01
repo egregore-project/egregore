@@ -6,6 +6,7 @@
 
 using System;
 using System.Threading.Tasks;
+using egregore.Events;
 using egregore.IO;
 using egregore.Ontology;
 using egregore.Ontology.Exceptions;
@@ -39,17 +40,22 @@ namespace egregore.Tests.Ontology
             schema.Properties.Add(new SchemaProperty {Name = "Name", Type = "string"});
             await fixture.Store.AddEntryAsync(LogEntryFactory.CreateEntry(schema, @namespace.Hash));
 
+
+            byte[] pk;
             unsafe
             {
-                Crypto.GenerateKeyPair(out var pk, out _);
-                var ontology = new MemoryOntologyLog(pk, fixture.Store);
-                Assert.Equal(2, ontology.Namespaces.Count);
-                Assert.Equal(Constants.DefaultNamespace, ontology.Namespaces[0].Value, StringComparer.OrdinalIgnoreCase);
-                Assert.Equal(ns, ontology.Namespaces[1].Value, StringComparer.OrdinalIgnoreCase);
-
-                Assert.Single(ontology.Roles[Constants.DefaultNamespace]);
-                Assert.Empty(ontology.Roles[ns]);
+                Crypto.GenerateKeyPair(out pk, out _);
             }
+
+            var ontology = new MemoryOntologyLog(new OntologyEvents(), pk);
+            await ontology.MaterializeAsync(fixture.Store, default, default);
+
+            Assert.Equal(2, ontology.Namespaces.Count);
+            Assert.Equal(Constants.DefaultNamespace, ontology.Namespaces[0].Value, StringComparer.OrdinalIgnoreCase);
+            Assert.Equal(ns, ontology.Namespaces[1].Value, StringComparer.OrdinalIgnoreCase);
+
+            Assert.Single(ontology.Roles[Constants.DefaultNamespace]);
+            Assert.Empty(ontology.Roles[ns]);
         }
 
         [Fact]
@@ -66,11 +72,11 @@ namespace egregore.Tests.Ontology
 
             using var fixture = new LogStoreFixture();
 
-            var ontology = new MemoryOntologyLog(publicKey);
+            var ontology = new MemoryOntologyLog(new OntologyEvents(), publicKey);
             Assert.Single(ontology.Roles[Constants.DefaultNamespace]);
 
             await fixture.Store.AddEntryAsync(LogEntryFactory.CreateEntry(revoke));
-            Assert.Throws<CannotRemoveSingleOwnerException>(() => { ontology.Materialize(fixture.Store, default, default); });
+            await Assert.ThrowsAsync<CannotRemoveSingleOwnerException>(() => ontology.MaterializeAsync(fixture.Store, default, default));
         }
 
         [Fact]
@@ -79,7 +85,7 @@ namespace egregore.Tests.Ontology
             unsafe
             {
                 Crypto.GenerateKeyPair(out var pk, out _);
-                var ontology = new MemoryOntologyLog(pk);
+                var ontology = new MemoryOntologyLog(new OntologyEvents(), pk);
                 Assert.Single(ontology.Namespaces);
                 Assert.Equal("default", ontology.Namespaces[0].Value, StringComparer.OrdinalIgnoreCase);
             }

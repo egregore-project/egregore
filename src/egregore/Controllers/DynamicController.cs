@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using egregore.Caching;
+using egregore.Configuration;
 using egregore.Data;
 using egregore.Extensions;
 using egregore.Filters;
@@ -34,14 +35,11 @@ namespace egregore.Controllers
             _ontology = ontology;
             _store = store;
             _example = new T();
-        }
 
-        [HttpOptions("api/{ns}/v{rs}/[controller]")]
-        public IActionResult Options([FromRoute] string controller, [FromRoute] string ns, [FromRoute] ulong rs)
-        {
-            var schemas = _ontology.GetSchemas(ns, rs);
-            return Ok(schemas);
+            ObjectValidator = new DynamicModelValidator();
         }
+        
+        #region API
 
         [AcceptCharset]
         [Accepts(Constants.MediaTypeNames.ApplicationRssXml, Constants.MediaTypeNames.ApplicationAtomXml, Constants.MediaTypeNames.TextXml)]
@@ -59,9 +57,7 @@ namespace egregore.Controllers
             
             if (stream != default || _cache.TryGetValue(cacheKey, out stream))
             {
-                Response.Headers.TryAdd(HeaderNames.LastModified, $"{lastModified:R}");
-                Response.AppendETags(cacheKey, stream);
-                return File(stream, $"{mediaType}; charset={charset}");
+                return ServeFeed(cacheKey, stream, mediaType, charset, lastModified);
             }
 
             var (records, _) = await QueryAsync(controller, ns, rs, query, CancellationToken);
@@ -71,10 +67,7 @@ namespace egregore.Controllers
             _cache.Set(cacheKey, stream);
             _cache.Set($"{cacheKey}:{HeaderNames.LastModified}", lastModified);
             
-            Response.Headers.TryAdd(HeaderNames.LastModified, $"{lastModified:R}");
-            Response.AppendETags(cacheKey, stream);
-
-            return File(stream, $"{mediaType}; charset={charset}");
+            return ServeFeed(cacheKey, stream, mediaType, charset, lastModified);
         }
 
         [HttpGet("api/{ns}/v{rs}/[controller]")]
@@ -138,5 +131,15 @@ namespace egregore.Controllers
 
             return (models, total);
         }
+
+        [NonAction]
+        private IActionResult ServeFeed(string cacheKey, byte[] stream, string mediaType, string charset, DateTimeOffset? lastModified)
+        {
+            Response.Headers.TryAdd(HeaderNames.LastModified, $"{lastModified:R}");
+            Response.AppendETags(_cache, cacheKey, stream);
+            return File(stream, $"{mediaType}; charset={charset}");
+        }
+
+        #endregion
     }
 }
