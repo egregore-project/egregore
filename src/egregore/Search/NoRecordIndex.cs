@@ -7,10 +7,10 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using egregore.Extensions;
+using egregore.Data;
 using Lunr;
 
-namespace egregore.Data
+namespace egregore.Search
 {
     internal sealed class NoRecordIndex : IRecordIndex
     {

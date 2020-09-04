@@ -4,17 +4,16 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using egregore.Data;
 
-namespace egregore.Media
+namespace egregore.Search
 {
-    public interface IMediaStore : IDataStore
+    public interface IRecordIndex
     {
-        Task<IEnumerable<MediaEntry>> GetAsync(CancellationToken cancellationToken = default);
-        Task<MediaEntry> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
-        Task AddMediaAsync(MediaEntry media, CancellationToken cancellationToken = default);
+        Task RebuildAsync(IRecordStore store, CancellationToken cancellationToken = default);
+        IAsyncEnumerable<RecordSearchResult> SearchAsync(string query, CancellationToken cancellationToken = default);
     }
 }

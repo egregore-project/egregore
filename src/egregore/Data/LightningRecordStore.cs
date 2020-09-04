@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using egregore.Configuration;
 using egregore.Events;
 using egregore.Extensions;
+using egregore.Search;
 using LightningDB;
 using Lunr;
 using Microsoft.Extensions.Logging;
@@ -34,16 +35,16 @@ namespace egregore.Data
 
         private readonly ILogger<LightningRecordStore> _logger;
 
-        public LightningRecordStore(IRecordIndex index, RecordEvents events, IOptions<WebServerOptions> options, ILogger<LightningRecordStore> logger = default)
+        public LightningRecordStore(IRecordIndex index, RecordEvents events, ILogObjectTypeProvider typeProvider, IOptions<WebServerOptions> options, ILogger<LightningRecordStore> logger = default)
         {
             _index = index;
             _events = events;
             _options = options;
             _logger = logger;
+            _typeProvider = typeProvider;
+
             _columnKeyBuilder = new RecordColumnKeyBuilder();
             _recordKeyBuilder = new RecordKeyBuilder();
-
-            _typeProvider = new LogObjectTypeProvider();
 
             var sequence = options.Value.PublicKeyString;
             _sequence =new GlobalSequenceProvider(sequence);

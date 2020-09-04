@@ -1,7 +1,7 @@
-﻿@page "/multi"
+﻿@page "/upload"
+
 @using System.IO
 @using System.Net.Http.Headers
-@using System.Net.Mime
 @using System.Threading
 @using BlazorInputFile
 @using egregore.Models
@@ -16,9 +16,9 @@
 <label for="uploadFolder">Select Folder</label>
 <InputFile id="uploadFolder" multiple webkitdirectory OnChange="HandleSelection" />
 
-@if (selectedFiles != null)
+@if (_selectedFiles != null)
 {
-    foreach (var file in selectedFiles)
+    foreach (var file in _selectedFiles)
     {
         var isLoading = file.Data.Position > 0;
 
@@ -53,8 +53,7 @@
 }
 
 @code {
-    IFileListEntry[] selectedFiles;
-
+    IFileListEntry[] _selectedFiles;
 
     [Inject]
     public HttpClient Http { get; set; }
@@ -64,7 +63,7 @@
 
     void HandleSelection(IFileListEntry[] files)
     {
-        selectedFiles = files;
+        _selectedFiles = files;
     }
 
     async Task LoadFile(IFileListEntry file)
@@ -80,12 +79,18 @@
         var content = new ByteArrayContent(buffer);
         content.Headers.ContentType = MediaTypeHeaderValue.Parse(file.Type);
 
+        var disposition = new ContentDispositionHeaderValue("attachment")
+        {
+            ModificationDate = file.LastModified,
+            FileName = file.Name
+        };
+        content.Headers.ContentDisposition = disposition;
+
         var response = await Http.PostAsync("media", content, CancellationToken.None);
         var media = await response.Content.ReadFromJsonAsync<MediaEntryViewModel>();
         ViewModel = media;
         Source = response.Headers.Location.ToString();
     }
-
 
     private string GetFileProgress(IFileListEntry file)
     {
@@ -94,5 +99,4 @@
 
         return (100.0 * file.Data.Position / file.Size).ToString("0") + "%";
     }
-
 }

@@ -6,6 +6,7 @@
 
 using System.IO;
 using egregore.IO;
+using Microsoft.Net.Http.Headers;
 
 namespace egregore
 {
@@ -36,7 +37,9 @@ namespace egregore
         public static class HeaderNames
         {
             public const string Accept = "Accept";
+            public const string ContentDisposition = "Content-Disposition";
             public const string ContentSecurityPolicy = "Content-Security-Policy";
+            public const string ContentType = "Content-Type";
             public const string PermissionsPolicy = "Permissions-Policy";
             public const string PublicKeyPins = "Public-Key-Pins";
             public const string ReferrerPolicy = "Referrer-Policy";
@@ -48,14 +51,33 @@ namespace egregore
 
         public static class MediaTypeNames
         {
-            public const string ApplicationRssXml = "application/rss+xml";
-            public const string ApplicationAtomXml = "application/atom+xml";
-            public const string TextXml = "text/xml";
+            public static class Application
+            {
+                public const string RssXml = "application/rss+xml";
+                public const string AtomXml = "application/atom+xml";
+            }
+
+            public static class Image
+            {
+                public const string Png = "image/png";
+            }
+
+            public static class Text
+            {
+                public const string Markdown = "text/markdown";
+                public const string Xml = "text/xml";
+                public const string Html = "text/html";
+            }
         }
 
         public class Notifications
         {
             public const string ReceiveMessage = nameof(ReceiveMessage);
+        }
+
+        public static class StorageTypes
+        {
+            public const string String = "string";
         }
     }
 }

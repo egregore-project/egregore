@@ -8,9 +8,9 @@ using System.Threading;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.Extensions.Primitives;
 
-namespace egregore.Ontology
+namespace egregore.Configuration
 {
-    public sealed class OntologyChangeProvider : IActionDescriptorChangeProvider
+    public sealed class DynamicActionDescriptorChangeProvider : IActionDescriptorChangeProvider
     {
         public CancellationTokenSource TokenSource { get; private set; }
 

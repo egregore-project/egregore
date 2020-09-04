@@ -8,9 +8,8 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using egregore.Extensions;
-using egregore.Ontology;
 
-namespace egregore.Events
+namespace egregore.Ontology
 {
     public sealed class OntologyEvents
     {

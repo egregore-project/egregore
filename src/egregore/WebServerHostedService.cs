@@ -20,7 +20,7 @@ using Microsoft.Extensions.Options;
 
 namespace egregore
 {
-    public sealed class WebServerHostedService : IHostedService, IDisposable
+    public sealed class WebServerHostedService : IHostedService, IOntologyChangeHandler, IDisposable
     {
         private readonly PeerBus _bus;
         private readonly IOntologyLog _ontology;

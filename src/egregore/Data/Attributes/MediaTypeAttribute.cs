@@ -4,14 +4,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-using System.Threading;
-using System.Threading.Tasks;
-using egregore.Ontology;
+using System;
 
-namespace egregore.Events
+namespace egregore.Data.Attributes
 {
-    public interface IOntologyEventHandler
+    [AttributeUsage(AttributeTargets.Property)]
+    public class MediaTypeAttribute : Attribute
     {
-        Task OnSchemaAddedAsync(ILogStore store, Schema schema, CancellationToken cancellationToken = default);
+        public string MediaType { get; set; }
     }
 }

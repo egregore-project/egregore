@@ -69,5 +69,17 @@
         "dist/package.js"
       ]
     }
+  ,
+{
+  "library": "easymde@2.11.0",
+  "destination": "wwwroot/lib/easymde/",
+  "files": [
+    "dist/easymde.min.css",
+    "dist/easymde.min.js",
+    "CHANGELOG.md",
+    "LICENSE",
+    "README.md"
   ]
+}
+]
 }

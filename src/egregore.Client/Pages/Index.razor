@@ -28,7 +28,6 @@ Welcome to your new app.
         return base.OnAfterRenderAsync(firstRender);
     }
 
-
     private async Task AddSchema()
     {
         await Http.PostAsync("schema", new StringContent(string.Empty, Encoding.UTF8, "application/json"));

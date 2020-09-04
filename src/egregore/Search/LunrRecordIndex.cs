@@ -11,11 +11,12 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using egregore.Data;
 using Lunr;
 using Microsoft.Extensions.Logging;
 using Index = Lunr.Index;
 
-namespace egregore.Data
+namespace egregore.Search
 {
     internal sealed class LunrRecordIndex : IRecordIndex
     {

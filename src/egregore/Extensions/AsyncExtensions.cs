@@ -8,14 +8,16 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using egregore.Data;
-using egregore.Events;
+using egregore.Media;
 using egregore.Ontology;
+using egregore.Pages;
 using Microsoft.Extensions.ObjectPool;
 
 namespace egregore.Extensions
 {
     /// <summary>
-    /// <remarks> `Task.CompletedTask` creates new instances each time the property is accessed, but we want the ability to avoid allocations and skip invoking fake tasks. </remarks> 
+    /// <remarks> `Task.CompletedTask` creates new instances each time the property is accessed, but we want the ability
+    /// to avoid allocations and skip invoking fake or already completed tasks. </remarks> 
     /// </summary>
     internal static class AsyncExtensions
     {
@@ -35,11 +37,12 @@ namespace egregore.Extensions
                 foreach (var handler in handlers)
                 {
                     var task = handler.OnRecordsInitAsync(store, cancellationToken);
+                    
                     if (!task.IsReal())
-                        continue;
+                        continue; // returns AsyncExtensions.NoTask
 
                     if (task.IsCompleted || task.IsCanceled || task.IsFaulted)
-                        continue;
+                        continue; // task is already terminal since being instantiated
 
                     pending.Add(task);
                 }
@@ -79,6 +82,32 @@ namespace egregore.Extensions
             }
         }
 
+        public static async Task OnMediaAddedAsync(this IEnumerable<IMediaEventHandler> handlers, IMediaStore store, MediaEntry entry, CancellationToken cancellationToken = default)
+        {
+            var pending = TaskPool.Get();
+            try
+            {
+                foreach (var handler in handlers)
+                {
+                    var task = handler.OnMediaAddedAsync(store, entry, cancellationToken);
+                    if (!task.IsReal())
+                        continue;
+
+                    if (task.IsCompleted || task.IsCanceled || task.IsFaulted)
+                        continue;
+                    
+                    pending.Add(task);
+                }
+
+                if(pending.Count > 0)
+                    await Task.WhenAll(pending);
+            }
+            finally
+            {
+                TaskPool.Return(pending);
+            }
+        }
+
         public static async Task OnSchemaAddedAsync(this IEnumerable<IOntologyEventHandler> handlers, ILogStore store, Schema schema, CancellationToken cancellationToken = default)
         {
             var pending = TaskPool.Get();
@@ -87,6 +116,32 @@ namespace egregore.Extensions
                 foreach (var handler in handlers)
                 {
                     var task = handler.OnSchemaAddedAsync(store, schema, cancellationToken);
+                    if (!task.IsReal())
+                        continue;
+
+                    if (task.IsCompleted || task.IsCanceled || task.IsFaulted)
+                        continue;
+                    
+                    pending.Add(task);
+                }
+
+                if(pending.Count > 0)
+                    await Task.WhenAll(pending);
+            }
+            finally
+            {
+                TaskPool.Return(pending);
+            }
+        }
+
+        public static async Task OnPageAddedAsync(this IEnumerable<IPageEventHandler> handlers, IPageStore store, Page page, CancellationToken cancellationToken = default)
+        {
+            var pending = TaskPool.Get();
+            try
+            {
+                foreach (var handler in handlers)
+                {
+                    var task = handler.OnPageAddedAsync(store, page, cancellationToken);
                     if (!task.IsReal())
                         continue;
 

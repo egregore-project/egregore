@@ -13,7 +13,7 @@ namespace egregore.Tests.Helpers
     {
         public LogStoreFixture()
         {
-            var store = new LightningLogStore();
+            var store = new LightningLogStore(new LogObjectTypeProvider());
             store.Init($"{Guid.NewGuid()}");
             Store = store;
         }

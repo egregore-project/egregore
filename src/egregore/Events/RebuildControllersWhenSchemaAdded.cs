@@ -6,15 +6,16 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using egregore.Configuration;
 using egregore.Ontology;
 
 namespace egregore.Events
 {
     internal sealed class RebuildControllersWhenSchemaAdded : SchemaAddedEventHandler
     {
-        private readonly OntologyChangeProvider _changeProvider;
+        private readonly DynamicActionDescriptorChangeProvider _changeProvider;
 
-        public RebuildControllersWhenSchemaAdded(OntologyChangeProvider changeProvider) => _changeProvider = changeProvider;
+        public RebuildControllersWhenSchemaAdded(DynamicActionDescriptorChangeProvider changeProvider) => _changeProvider = changeProvider;
         public override Task OnSchemaAddedAsync(ILogStore store, Schema schema, CancellationToken cancellationToken = default) => Task.Run(() => _changeProvider.OnChanged(), cancellationToken);
     }
 }

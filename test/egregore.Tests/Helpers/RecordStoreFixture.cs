@@ -5,8 +5,11 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System;
+using egregore.Configuration;
 using egregore.Data;
 using egregore.Events;
+using egregore.Search;
+using Microsoft.Extensions.Options;
 
 namespace egregore.Tests.Helpers
 {
@@ -14,7 +17,12 @@ namespace egregore.Tests.Helpers
     {
         public RecordStoreFixture()
         {
-            var store = new LightningRecordStore($"egregore_sequence_{Guid.NewGuid()}", new NoRecordIndex(), new RecordEvents());
+            var options = new OptionsWrapper<WebServerOptions>(new WebServerOptions
+            {
+                PublicKeyString = $"{Guid.NewGuid()}"
+            });
+
+            var store = new LightningRecordStore(new NoRecordIndex(), new RecordEvents(), new LogObjectTypeProvider(), options);
             store.Init($"{Guid.NewGuid()}.egg");
             Store = store;
         }

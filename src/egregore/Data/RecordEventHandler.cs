@@ -6,12 +6,11 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using egregore.Data;
 using egregore.Extensions;
 
-namespace egregore.Events
+namespace egregore.Data
 {
-    internal abstract class RecordAddedEventHandler : IRecordEventHandler
+    internal abstract class RecordEventHandler : IRecordEventHandler
     {
         public Task OnRecordsInitAsync(IRecordStore store, CancellationToken cancellationToken = default) => AsyncExtensions.NoTask;
 

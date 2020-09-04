@@ -52,13 +52,13 @@ namespace egregore.Generators
             SyndicationFeedFormatter formatter;
             switch (mediaType)
             {
-                case Constants.MediaTypeNames.ApplicationRssXml:
-                case Constants.MediaTypeNames.TextXml:
+                case Constants.MediaTypeNames.Application.RssXml:
+                case Constants.MediaTypeNames.Text.Xml:
                 {
                     formatter = new Rss20FeedFormatter(feed, false);
                     break;
                 }
-                case Constants.MediaTypeNames.ApplicationAtomXml:
+                case Constants.MediaTypeNames.Application.AtomXml:
                 {
                     formatter = new Atom10FeedFormatter(feed);
                     break;

@@ -1,6 +1,5 @@
 ﻿@using egregore.Models
 @inherits LayoutComponentBase
-
 @inject HttpClient http
 
 <div class="sidebar">
@@ -8,9 +7,7 @@
 </div>
 
 <div class="main">
-    <div class="top-row px-4">
-        <a href="http://blazor.net" target="_blank" class="ml-md-auto">About</a>
-    </div>
+    <TopBar></TopBar>
 
     <div class="content px-4">
         @Body
@@ -25,6 +22,7 @@
 
     private WhoIsModel _whoIs;
 
+    
     protected override async Task OnInitializedAsync()
     {
         _whoIs = await http.GetFromJsonAsync<WhoIsModel>("whois");

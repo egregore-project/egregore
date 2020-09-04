@@ -48,7 +48,7 @@ namespace egregore.IO
             Monitor.Enter(Lock);
             try
             {
-                var store = new LightningLogStore();
+                var store = new LightningLogStore(new LogObjectTypeProvider());
                 store.Init(eggPath);
                 Console.Out.WriteLine("Created egg file '{0}'", Path.GetFileName(eggPath));
                 return true;

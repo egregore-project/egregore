@@ -11,7 +11,6 @@ using egregore.Data;
 using egregore.Extensions;
 using egregore.Filters;
 using egregore.Generators;
-using egregore.Ontology;
 using Lunr;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
@@ -22,27 +21,25 @@ namespace egregore.Controllers
     [OntologyExists]
     public class DynamicController<T> : Controller where T : IRecord<T>, new()
     {
-        private readonly ICacheRegion<SyndicationFeed> _cache;
-        private readonly IOntologyLog _ontology;
+        private readonly ICacheRegion<SyndicationFeed> _feeds;
         private readonly IRecordStore _store;
         private readonly T _example;
         
         private CancellationToken CancellationToken => HttpContext.RequestAborted;
 
-        public DynamicController(ICacheRegion<SyndicationFeed> cache, IOntologyLog ontology, IRecordStore store)
+        public DynamicController(IRecordStore store, ICacheRegion<SyndicationFeed> feeds)
         {
-            _cache = cache;
-            _ontology = ontology;
             _store = store;
+            _feeds = feeds;
             _example = new T();
 
             ObjectValidator = new DynamicModelValidator();
         }
-        
-        #region API
+
+        #region Syndication
 
         [AcceptCharset]
-        [Accepts(Constants.MediaTypeNames.ApplicationRssXml, Constants.MediaTypeNames.ApplicationAtomXml, Constants.MediaTypeNames.TextXml)]
+        [Accepts(Constants.MediaTypeNames.Application.RssXml, Constants.MediaTypeNames.Application.AtomXml, Constants.MediaTypeNames.Text.Xml)]
         [HttpGet("api/{ns}/v{rs}/[controller]")]
         public async Task<IActionResult> GetSyndicationFeed([FromRoute] string controller, [FromHeader(Name = Constants.HeaderNames.Accept)] string contentType, [FromFilter] Encoding encoding, [FromRoute] string ns, [FromRoute] ulong rs, [FromQuery(Name = "q")] string query = default)
         {
@@ -52,10 +49,10 @@ namespace egregore.Controllers
             
             var cacheKey = $"{mediaType}:{charset}:{queryUrl}";
 
-            if(!Request.IsContentStale(cacheKey, _cache, out var stream, out var lastModified, out var result))
+            if(!Request.IsContentStale(cacheKey, _feeds, out var stream, out var lastModified, out var result))
                 return result;
             
-            if (stream != default || _cache.TryGetValue(cacheKey, out stream))
+            if (stream != default || _feeds.TryGetValue(cacheKey, out stream))
             {
                 return ServeFeed(cacheKey, stream, mediaType, charset, lastModified);
             }
@@ -64,11 +61,21 @@ namespace egregore.Controllers
             if (!SyndicationGenerator.TryBuildFeedAsync(queryUrl, ns, rs, records, mediaType, encoding, out stream, out lastModified))
                 return new UnsupportedMediaTypeResult();
 
-            _cache.Set(cacheKey, stream);
-            _cache.Set($"{cacheKey}:{HeaderNames.LastModified}", lastModified);
+            _feeds.Set(cacheKey, stream);
+            _feeds.Set($"{cacheKey}:{HeaderNames.LastModified}", lastModified);
             
             return ServeFeed(cacheKey, stream, mediaType, charset, lastModified);
         }
+
+        [NonAction]
+        private IActionResult ServeFeed(string cacheKey, byte[] stream, string mediaType, string charset, DateTimeOffset? lastModified)
+        {
+            Response.Headers.TryAdd(HeaderNames.LastModified, $"{lastModified:R}");
+            Response.AppendETags(_feeds, cacheKey, stream);
+            return File(stream, $"{mediaType}; charset={charset}");
+        }
+
+        #endregion
 
         [HttpGet("api/{ns}/v{rs}/[controller]")]
         public async Task<IActionResult> Get([FromRoute] string controller, [FromRoute] string ns, [FromRoute] ulong rs, [FromQuery(Name = "q")] string query = default)
@@ -124,22 +131,22 @@ namespace egregore.Controllers
 
             if (records == null)
                 return (Enumerable.Empty<T>(), 0);
-            
-            var models = new List<T>();
-            foreach(var record in records)
-                models.Add(_example.ToModel(record));
+
+            var models = ProjectModelsFromRecords(records);
 
             return (models, total);
         }
 
-        [NonAction]
-        private IActionResult ServeFeed(string cacheKey, byte[] stream, string mediaType, string charset, DateTimeOffset? lastModified)
+        private IEnumerable<T> ProjectModelsFromRecords(IEnumerable<Record> records)
         {
-            Response.Headers.TryAdd(HeaderNames.LastModified, $"{lastModified:R}");
-            Response.AppendETags(_cache, cacheKey, stream);
-            return File(stream, $"{mediaType}; charset={charset}");
-        }
+            var models = new List<T>();
+            foreach (var record in records)
+            {
+                var model = _example.ToModel(record);
+                models.Add(model);
+            }
 
-        #endregion
+            return models;
+        }
     }
 }

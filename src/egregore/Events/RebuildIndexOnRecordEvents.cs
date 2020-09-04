@@ -7,6 +7,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using egregore.Data;
+using egregore.Search;
 using Microsoft.Extensions.Logging;
 
 namespace egregore.Events

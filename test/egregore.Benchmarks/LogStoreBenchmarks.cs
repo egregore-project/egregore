@@ -27,9 +27,9 @@ namespace egregore.Benchmarks
         [GlobalSetup]
         public void Setup()
         {
-            _store = new LightningLogStore();
             _typeProvider = new LogObjectTypeProvider();
             _hashProvider = new LogEntryHashProvider(_typeProvider);
+            _store = new LightningLogStore(_typeProvider);
             _previousHash = default;
         }
 

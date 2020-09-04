@@ -5,20 +5,34 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta http-equiv="Content-Security-Policy"
-          content="base-uri 'self';
+          content="
+               base-uri 'self';
                block-all-mixed-content;
                default-src 'self';
                img-src data: blob: https:;
                object-src 'none';
+
                script-src https://stackpath.bootstrapcdn.com/
+                          https://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css/
                           'self'
                           'sha256-v8ZC9OgMhcnEQ/Me77/R9TlJfzOBqrMTW8e1KuqLaqc='
                           'sha256-If//FtbPc03afjLezvWHnC3Nbu4fDM04IIzkPaf3pH0='
                           'sha256-v8v3RKRPmN4odZ1CWM5gw80QKPCCWMcpNeOmimNL2AA='
-                          'unsafe-eval';
-               style-src https://stackpath.bootstrapcdn.com/
-                         'self'
-                         'unsafe-inline';
+                          'unsafe-eval'
+                          'unsafe-inline';
+
+               connect-src https://cdn.jsdelivr.net/codemirror.spell-checker/latest/en_US.aff
+                           https://cdn.jsdelivr.net/codemirror.spell-checker/latest/en_US.dic
+                           'self';
+                
+               font-src https://maxcdn.bootstrapcdn.com/font-awesome/latest/fonts/fontawesome-webfont.ttf
+                        https://maxcdn.bootstrapcdn.com/font-awesome/latest/fonts/fontawesome-webfont.woff
+                        https://maxcdn.bootstrapcdn.com/font-awesome/latest/fonts/fontawesome-webfont.woff2
+                        'self';
+
+               style-src https://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css
+                         'self';
+
                upgrade-insecure-requests;">
     <title>egregore</title>
 
@@ -32,8 +46,11 @@
     <meta name="theme-color" content="#ffffff">
 
     <base href="/" />
+
     <link rel="stylesheet" type="text/css" href="/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" type="text/css" href="/lib/toastr/build/toastr.min.css" />
+    <link rel="stylesheet" type="text/css" href="/lib/easymde/dist/easymde.min.css" />
+
     <link rel="stylesheet" type="text/css" href="/css/notify.css" />
     <link rel="stylesheet" type="text/css" href="/css/app.css" />
     <link rel="stylesheet" type="text/css" href="/css/demo.css" />
@@ -41,19 +58,24 @@
 
 <body>
     <app>Loading...</app>
+
     <div id="blazor-error-ui">
         An unhandled error has occurred.
         <a href="" class="reload">Reload</a>
         <a class="dismiss">🗙</a>
     </div>
+
     <script type="text/javascript" src="/lib/jquery/dist/jquery.min.js"></script>
     <script type="text/javascript" src="/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script type="text/javascript" src="/lib/microsoft/signalr/dist/browser/signalr.min.js"></script>
     <script type="text/javascript" src="/lib/toastr/build/toastr.min.js"></script>
     <script type="text/javascript" src="/lib/d3/dist/d3.min.js"></script>
     <script type="text/javascript" src="/lib/dagre-d3/dist/dagre-d3.min.js"></script>
+    <script type="text/javascript" src="/lib/easymde/dist/easymde.min.js"></script>   
+
     <script type="text/javascript" src="/js/notify.js"></script>
     <script type="text/javascript" src="/js/demo.js"></script>
+    <script type="text/javascript" src="/js/md.js"></script>
 
     <script src="_content/BlazorInputFile/inputfile.js"></script>
     <script type="text/javascript" src="_framework/blazor.webassembly.js"></script>

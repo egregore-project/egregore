@@ -6,13 +6,11 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using egregore.Data;
 
-namespace egregore.Events
+namespace egregore.Media
 {
-    public interface IRecordEventHandler
+    internal abstract class MediaAddedEventHandler : IMediaEventHandler
     {
-        Task OnRecordsInitAsync(IRecordStore store, CancellationToken cancellationToken = default);
-        Task OnRecordAddedAsync(IRecordStore store, Record record, CancellationToken cancellationToken = default);
+        public abstract Task OnMediaAddedAsync(IMediaStore store, MediaEntry entry, CancellationToken cancellationToken = default);
     }
 }

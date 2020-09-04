@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Reflection;
+using egregore.Media;
 using egregore.Ontology;
 
 namespace egregore
@@ -28,6 +29,9 @@ namespace egregore
             AddKnownType<SchemaProperty>();
             AddKnownType<GrantRole>();
             AddKnownType<RevokeRole>();
+
+            AddKnownType<MediaEntry>();
+            AddKnownType<Page>();
         }
 
         public ulong? Get(Type type)

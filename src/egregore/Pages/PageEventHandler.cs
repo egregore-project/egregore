@@ -4,15 +4,14 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-using System;
+using System.Threading;
+using System.Threading.Tasks;
+using egregore.Ontology;
 
-namespace egregore.Models
+namespace egregore.Pages
 {
-    public class MediaEntryViewModel
+    internal abstract class PageEventHandler : IPageEventHandler
     {
-        public Guid Uuid { get; set; }
-        public string Type { get; set; }
-        public string Name { get; set; }
-        public ulong Length { get; set; }
+        public abstract Task OnPageAddedAsync(IPageStore store, Page page, CancellationToken cancellationToken = default);
     }
 }

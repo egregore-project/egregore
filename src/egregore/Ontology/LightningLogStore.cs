@@ -22,9 +22,9 @@ namespace egregore.Ontology
         private readonly ISequenceProvider _sequence;
         private readonly ILogObjectTypeProvider _typeProvider;
 
-        public LightningLogStore()
+        public LightningLogStore(ILogObjectTypeProvider typeProvider)
         {
-            _typeProvider = new LogObjectTypeProvider();
+            _typeProvider = typeProvider;
             _hashProvider = new LogEntryHashProvider(_typeProvider);
             _keyBuilder = new SequenceKeyBuilder();
             _sequence = new LogStoreSequenceProvider(this);

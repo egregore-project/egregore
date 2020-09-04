@@ -8,13 +8,14 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using egregore.Ontology;
 
-namespace egregore.Media
+namespace egregore.Pages
 {
-    public interface IMediaStore : IDataStore
+    public interface IPageStore : IDataStore
     {
-        Task<IEnumerable<MediaEntry>> GetAsync(CancellationToken cancellationToken = default);
-        Task<MediaEntry> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
-        Task AddMediaAsync(MediaEntry media, CancellationToken cancellationToken = default);
+        Task<IEnumerable<Page>> GetAsync(CancellationToken cancellationToken = default);
+        Task<Page> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+        Task AddPageAsync(Page page, CancellationToken cancellationToken = default);
     }
 }

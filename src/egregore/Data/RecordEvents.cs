@@ -5,13 +5,11 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using egregore.Data;
 using egregore.Extensions;
 
-namespace egregore.Events
+namespace egregore.Data
 {
     public sealed class RecordEvents
     {

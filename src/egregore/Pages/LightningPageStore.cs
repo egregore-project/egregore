@@ -5,80 +5,76 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using egregore.Data;
-using egregore.Events;
+using egregore.Ontology;
 using LightningDB;
 
-namespace egregore.Media
+namespace egregore.Pages
 {
-    public class LightningMediaStore : LightningDataStore, IMediaStore
+    public class LightningPageStore : LightningDataStore, IPageStore
     {
-        private static readonly ImmutableList<MediaEntry> NoEntries = new List<MediaEntry>(0).ToImmutableList();
+        private static readonly ImmutableList<Page> NoEntries = new List<Page>(0).ToImmutableList();
 
-        private readonly MediaEvents _events;
-        private readonly MediaKeyBuilder _mediaKeyBuilder;
+        private readonly PageEvents _events;
+        private readonly PageKeyBuilder _pageKeyBuilder;
         private readonly ILogObjectTypeProvider _typeProvider;
 
-        public LightningMediaStore(MediaEvents events, ILogObjectTypeProvider typeProvider)
+        public LightningPageStore(PageEvents events, ILogObjectTypeProvider typeProvider)
         {
             _events = events;
             _typeProvider = typeProvider;
-            _mediaKeyBuilder = new MediaKeyBuilder();
+            _pageKeyBuilder = new PageKeyBuilder();
         }
 
-        public Task<IEnumerable<MediaEntry>> GetAsync(CancellationToken cancellationToken = default)
+        public Task<IEnumerable<Page>> GetAsync(CancellationToken cancellationToken = default)
         {
             return Task.Run(() => Get(cancellationToken), cancellationToken);
         }
 
-        public Task<MediaEntry> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        public Task<Page> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
             return Task.Run(() => GetById(id), cancellationToken);
         }
 
-        public Task AddMediaAsync(MediaEntry media, CancellationToken cancellationToken = default)
+        public Task AddPageAsync(Page page, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             return Task.Run(async ()=>
             {
-                AddMedia(media);
-                await _events.OnAddedAsync(this, media, cancellationToken);
+                AddPage(page);
+                await _events.OnPageAddedAsync(this, page, cancellationToken);
             }, cancellationToken);
         }
 
-        private void AddMedia(MediaEntry media)
+        private void AddPage(Page page)
         {
-            if (media.Uuid == default)
-                media.Uuid = Guid.NewGuid();
+            if (page.Uuid == default)
+                page.Uuid = Guid.NewGuid();
 
             var ms = new MemoryStream();
             var bw = new BinaryWriter(ms);
-            media.Serialize(new LogSerializeContext(bw, _typeProvider), false);
+            page.Serialize(new LogSerializeContext(bw, _typeProvider), false);
             var value = ms.ToArray();
 
             using var tx = env.Value.BeginTransaction(TransactionBeginFlags.None);
             using var db = tx.OpenDatabase(configuration: Config);
 
-            var key = _mediaKeyBuilder.GetKey(media);
+            var key = _pageKeyBuilder.GetKey(page);
             tx.Put(db, key, value, PutOptions.NoOverwrite);
 
-            // index by media type
+            // index by page name
 
-            // index by hashes (check-sums, spectral, etc.)
+            // index by hashes (check-sums, etc.)
 
-            // full text search on name and meta-data
-
-            // allow only streaming out the header data, via MediaEntryHeader
-
-            // allow ranged requests for streaming
-
+            // full text search on title, plaintext body, and tags
+            
             var result = tx.Commit();
 
             if (result != MDBResultCode.Success)
                 throw new InvalidOperationException();
         }
 
-        private IEnumerable<MediaEntry> Get(CancellationToken cancellationToken)
+        private IEnumerable<Page> Get(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -86,9 +82,9 @@ namespace egregore.Media
             using var db = tx.OpenDatabase(configuration: Config);
             using var cursor = tx.CreateCursor(db);
 
-            var results = new List<MediaEntry>();
+            var results = new List<Page>();
 
-            var key = _mediaKeyBuilder.GetAllKey();
+            var key = _pageKeyBuilder.GetAllKey();
             if (cursor.SetRange(key) != MDBResultCode.Success)
                 return NoEntries;
 
@@ -104,8 +100,8 @@ namespace egregore.Media
                         var br = new BinaryReader(ms);
                         var context = new LogDeserializeContext(br, _typeProvider);
 
-                        var entry = new MediaEntry(context);
-                        results.Add(entry);
+                        var page = new Page(context);
+                        results.Add(page);
                     }
                     
                     var next = cursor.Next();
@@ -119,7 +115,7 @@ namespace egregore.Media
             return results;
         }
 
-        private MediaEntry GetById(Guid id)
+        private Page GetById(Guid id)
         {
             unsafe
             {
@@ -127,7 +123,7 @@ namespace egregore.Media
                 using var db = tx.OpenDatabase(configuration: Config);
                 using var cursor = tx.CreateCursor(db);
 
-                var key = _mediaKeyBuilder.GetKey(id);
+                var key = _pageKeyBuilder.GetKey(id);
                 var (sr, _, _) = cursor.SetKey(key);
                 if (sr != MDBResultCode.Success)
                     return default;
@@ -142,7 +138,7 @@ namespace egregore.Media
                     var ms = new UnmanagedMemoryStream(buf, buffer.Length);
                     var br = new BinaryReader(ms);
                     var context = new LogDeserializeContext(br, _typeProvider);
-                    var entry = new MediaEntry(context);
+                    var entry = new Page(context);
                     return entry;
                 }
             }

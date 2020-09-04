@@ -12,7 +12,7 @@ using egregore.Data;
 
 namespace egregore.Events
 {
-    internal sealed class InvalidateCachesWhenRecordAdded : RecordAddedEventHandler
+    internal sealed class InvalidateCachesWhenRecordAdded : RecordEventHandler
     {
         private readonly ICacheRegion<SyndicationFeed> _cache;
 
