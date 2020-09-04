@@ -5,7 +5,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System;
-using System.Net;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ActionConstraints;
 using Microsoft.Net.Http.Headers;
@@ -29,13 +28,9 @@ namespace egregore.Filters
             var headers = context.RouteContext.HttpContext.Request.GetTypedHeaders();
 
             foreach (var accept in headers.Accept)
-            {
-                foreach (var contentType in _supportedMediaTypes)
-                {
-                    if (accept.IsSubsetOf(contentType))
-                        return true;
-                }
-            }
+            foreach (var contentType in _supportedMediaTypes)
+                if (accept.IsSubsetOf(contentType))
+                    return true;
 
             return false;
         }

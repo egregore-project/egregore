@@ -18,10 +18,12 @@ namespace egregore.Generators
     internal sealed class SyndicationGenerator
     {
         public static bool TryBuildFeedAsync<T>(string url, string ns, ulong rs, IEnumerable<T> records,
-            string mediaType, Encoding encoding, out byte[] stream, out DateTimeOffset? lastModified) where T : IRecord<T>
+            string mediaType, Encoding encoding, out byte[] stream, out DateTimeOffset? lastModified)
+            where T : IRecord<T>
         {
             // FIXME: need to normalize this to produce stable IDs (i.e. when query strings are in a different order)
-            var id = WyHash64.ComputeHash64(Encoding.UTF8.GetBytes(url), BitConverter.ToUInt64(Encoding.UTF8.GetBytes(nameof(SyndicationFeed)))); 
+            var id = WyHash64.ComputeHash64(Encoding.UTF8.GetBytes(url),
+                BitConverter.ToUInt64(Encoding.UTF8.GetBytes(nameof(SyndicationFeed))));
 
             var items = new List<SyndicationItem>();
             lastModified = default;

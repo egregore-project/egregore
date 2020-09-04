@@ -4,14 +4,12 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using egregore.Data;
 using egregore.Extensions;
 using egregore.Hubs;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.ObjectPool;
 
 namespace egregore.Events
 {
@@ -26,16 +24,18 @@ namespace egregore.Events
             _queries = queries;
         }
 
-        public override Task OnRecordAddedAsync(IRecordStore store, Record record, CancellationToken cancellationToken = default)
+        public override Task OnRecordAddedAsync(IRecordStore store, Record record,
+            CancellationToken cancellationToken = default)
         {
             var pending = AsyncExtensions.TaskPool.Get();
             try
             {
-                var notify = _notify.Clients.All.SendAsync(Constants.Notifications.ReceiveMessage, "info", $"Added new record with ID '{record.Uuid}'", cancellationToken);
+                var notify = _notify.Clients.All.SendAsync(Constants.Notifications.ReceiveMessage, "info",
+                    $"Added new record with ID '{record.Uuid}'", cancellationToken);
                 if (notify.IsCompleted || notify.IsCanceled || notify.IsFaulted)
                     return AsyncExtensions.NoTask;
 
-                if(notify.Status != TaskStatus.Running)
+                if (notify.Status != TaskStatus.Running)
                     notify.Start();
 
                 pending.Add(notify);

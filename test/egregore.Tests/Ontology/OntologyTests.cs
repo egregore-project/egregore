@@ -6,7 +6,6 @@
 
 using System;
 using System.Threading.Tasks;
-using egregore.Events;
 using egregore.IO;
 using egregore.Ontology;
 using egregore.Ontology.Exceptions;
@@ -48,7 +47,7 @@ namespace egregore.Tests.Ontology
             }
 
             var ontology = new MemoryOntologyLog(new OntologyEvents(), pk);
-            await ontology.MaterializeAsync(fixture.Store, default, default);
+            await ontology.MaterializeAsync(fixture.Store);
 
             Assert.Equal(2, ontology.Namespaces.Count);
             Assert.Equal(Constants.DefaultNamespace, ontology.Namespaces[0].Value, StringComparer.OrdinalIgnoreCase);
@@ -76,7 +75,7 @@ namespace egregore.Tests.Ontology
             Assert.Single(ontology.Roles[Constants.DefaultNamespace]);
 
             await fixture.Store.AddEntryAsync(LogEntryFactory.CreateEntry(revoke));
-            await Assert.ThrowsAsync<CannotRemoveSingleOwnerException>(() => ontology.MaterializeAsync(fixture.Store, default, default));
+            await Assert.ThrowsAsync<CannotRemoveSingleOwnerException>(() => ontology.MaterializeAsync(fixture.Store));
         }
 
         [Fact]

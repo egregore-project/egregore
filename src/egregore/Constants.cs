@@ -6,7 +6,6 @@
 
 using System.IO;
 using egregore.IO;
-using Microsoft.Net.Http.Headers;
 
 namespace egregore
 {
@@ -16,7 +15,7 @@ namespace egregore
         public const string DefaultSequence = "global";
         public const string DefaultOwnerRole = "owner";
         public const int DefaultPort = 5001;
-        
+
         public static readonly string DefaultRootPath = ".egregore";
         public static readonly string DefaultKeyFilePath = Path.Combine(DefaultRootPath, "egregore.key");
         public static readonly string DefaultEggPath = Path.Combine(DefaultRootPath, "default.egg");
@@ -43,7 +42,7 @@ namespace egregore
             public const string PermissionsPolicy = "Permissions-Policy";
             public const string PublicKeyPins = "Public-Key-Pins";
             public const string ReferrerPolicy = "Referrer-Policy";
-           
+
             public const string XContentTypeOptions = "X-Content-Type-Options";
             public const string XFrameOptions = "X-Frame-Options";
             public const string XTotalCount = "X-Total-Count";

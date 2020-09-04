@@ -1,4 +1,10 @@
-﻿using System;
+﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
+// 
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,7 +30,7 @@ namespace egregore.Controllers
         }
 
         public CancellationToken CancellationToken => HttpContext.RequestAborted;
-        
+
         [HttpGet("pages")]
         public async Task<IActionResult> GetPages()
         {
@@ -32,7 +38,6 @@ namespace egregore.Controllers
             return Ok(pages);
         }
 
-        
         [HttpGet("pages/{id}")]
         public async Task<IActionResult> GetPageById(Guid id)
         {
@@ -49,7 +54,7 @@ namespace egregore.Controllers
             // FIXME: add page slug
 
             await _store.AddPageAsync(page, CancellationToken);
-            
+
             return Created($"/pages/{page.Uuid}", page);
         }
     }

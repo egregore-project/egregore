@@ -59,7 +59,8 @@ namespace egregore
             Console.ResetColor();
         }
 
-        internal static IHostBuilder CreateHostBuilder(int? port, string eggPath, IKeyCapture capture, Type startupType = default, params string[] args)
+        internal static IHostBuilder CreateHostBuilder(int? port, string eggPath, IKeyCapture capture,
+            Type startupType = default, params string[] args)
         {
             var builder = Host.CreateDefaultBuilder(args);
 
@@ -94,12 +95,13 @@ namespace egregore
                     loggingBuilder.AddDebug();
                     loggingBuilder.AddEventSourceLogger();
 
-                    if(context.HostingEnvironment.IsDevelopment())
+                    if (context.HostingEnvironment.IsDevelopment())
                         loggingBuilder.AddConsole(); // unnecessary overhead
                 });
                 webBuilder.ConfigureServices((context, services) =>
                 {
-                    services.AddWebServer(eggPath, capture, context.HostingEnvironment, context.Configuration, webBuilder);
+                    services.AddWebServer(eggPath, capture, context.HostingEnvironment, context.Configuration,
+                        webBuilder);
                 });
 
                 webBuilder.Configure((context, app) => { app.UseWebServer(context.HostingEnvironment); });
@@ -117,7 +119,7 @@ namespace egregore
                 webBuilder.UseWebRoot(webRoot);
 
 #endif
-                if(startupType != default)
+                if (startupType != default)
                     webBuilder.UseStartup(startupType);
             });
 

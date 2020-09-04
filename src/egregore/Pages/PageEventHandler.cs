@@ -12,6 +12,7 @@ namespace egregore.Pages
 {
     internal abstract class PageEventHandler : IPageEventHandler
     {
-        public abstract Task OnPageAddedAsync(IPageStore store, Page page, CancellationToken cancellationToken = default);
+        public abstract Task OnPageAddedAsync(IPageStore store, Page page,
+            CancellationToken cancellationToken = default);
     }
 }

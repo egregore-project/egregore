@@ -17,8 +17,14 @@ namespace egregore.Media
 
         private readonly IEnumerable<IMediaEventHandler> _listeners;
 
-        public MediaEvents(IEnumerable<IMediaEventHandler> listeners = default) => _listeners = listeners ?? NoHandlers;
-        
-        public Task OnAddedAsync(IMediaStore store, MediaEntry entry, CancellationToken cancellationToken = default) => _listeners.OnMediaAddedAsync(store, entry, cancellationToken);
+        public MediaEvents(IEnumerable<IMediaEventHandler> listeners = default)
+        {
+            _listeners = listeners ?? NoHandlers;
+        }
+
+        public Task OnAddedAsync(IMediaStore store, MediaEntry entry, CancellationToken cancellationToken = default)
+        {
+            return _listeners.OnMediaAddedAsync(store, entry, cancellationToken);
+        }
     }
 }

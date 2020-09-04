@@ -21,7 +21,8 @@ namespace egregore.Events
             _cache = cache;
         }
 
-        public override Task OnRecordAddedAsync(IRecordStore store, Record record, CancellationToken cancellationToken = default)
+        public override Task OnRecordAddedAsync(IRecordStore store, Record record,
+            CancellationToken cancellationToken = default)
         {
             return Task.Run(() => _cache.Clear(), cancellationToken);
         }

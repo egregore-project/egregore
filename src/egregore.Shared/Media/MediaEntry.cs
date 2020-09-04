@@ -11,17 +11,16 @@ namespace egregore.Media
 {
     public class MediaEntry : ILogSerialized
     {
+        public MediaEntry()
+        {
+        }
+
         public Guid Uuid { get; set; }
         public string Type { get; set; }
         public string Name { get; set; }
         public ulong Length { get; set; }
         public byte[] Data { get; set; }
 
-        public MediaEntry()
-        {
-
-        }
-        
         #region Serialization
 
         public void Serialize(LogSerializeContext context, bool hash)

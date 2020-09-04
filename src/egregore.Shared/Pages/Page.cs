@@ -11,21 +11,8 @@ namespace egregore.Ontology
 {
     public sealed class Page : ILogSerialized
     {
-        public Guid Uuid { get; set; }
-        public string Title { get; set; }
-        public string Body { get; set; }
-        public string BodyPlainText { get; set; }
-        public string BodyHtml { get; set; }
-
-        public Page() { }
-
-        public void Serialize(LogSerializeContext context, bool hash)
+        public Page()
         {
-            context.bw.Write(Uuid);
-            context.bw.WriteNullableString(Title);
-            context.bw.WriteNullableString(Body);
-            context.bw.WriteNullableString(BodyPlainText);
-            context.bw.WriteNullableString(BodyHtml);
         }
 
         public Page(LogDeserializeContext context)
@@ -35,6 +22,21 @@ namespace egregore.Ontology
             Body = context.br.ReadNullableString();
             BodyPlainText = context.br.ReadNullableString();
             BodyHtml = context.br.ReadNullableString();
+        }
+
+        public Guid Uuid { get; set; }
+        public string Title { get; set; }
+        public string Body { get; set; }
+        public string BodyPlainText { get; set; }
+        public string BodyHtml { get; set; }
+
+        public void Serialize(LogSerializeContext context, bool hash)
+        {
+            context.bw.Write(Uuid);
+            context.bw.WriteNullableString(Title);
+            context.bw.WriteNullableString(Body);
+            context.bw.WriteNullableString(BodyPlainText);
+            context.bw.WriteNullableString(BodyHtml);
         }
     }
 }

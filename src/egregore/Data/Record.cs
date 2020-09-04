@@ -24,7 +24,7 @@ namespace egregore.Data
         public ulong TimestampV2 { get; set; }
 
         public List<RecordColumn> Columns { get; }
-        
+
         #region Serialization
 
         public void Serialize(LogSerializeContext context, bool hash)
@@ -57,12 +57,12 @@ namespace egregore.Data
             Type = context.br.ReadString();
             TimestampV1 = context.br.ReadUInt64();
             TimestampV2 = context.br.ReadUInt64();
-            
+
             var columns = context.br.ReadInt32();
             for (var i = 0; i < columns; i++)
                 Columns.Add(new RecordColumn(context));
         }
-        
+
         #endregion
     }
 }

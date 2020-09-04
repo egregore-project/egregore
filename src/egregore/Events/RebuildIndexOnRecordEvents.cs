@@ -16,7 +16,7 @@ namespace egregore.Events
     {
         private readonly IRecordIndex _index;
         private readonly ILogger<RebuildIndexOnRecordEvents> _logger;
-        
+
         public RebuildIndexOnRecordEvents(IRecordIndex index, ILogger<RebuildIndexOnRecordEvents> logger)
         {
             _index = index;

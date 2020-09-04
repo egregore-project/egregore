@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using egregore.Configuration;
 using egregore.Data;
-using egregore.Events;
 using egregore.Network;
 using egregore.Ontology;
 using Microsoft.Extensions.Hosting;
@@ -23,17 +22,18 @@ namespace egregore
     public sealed class WebServerHostedService : IHostedService, IOntologyChangeHandler, IDisposable
     {
         private readonly PeerBus _bus;
-        private readonly IOntologyLog _ontology;
-        private readonly ILogger<WebServerHostedService> _logger;
-        private readonly IOptionsMonitor<WebServerOptions> _options;
-        private readonly ILogStore _logs;
-        private readonly IRecordStore _records;
         private readonly RecordEvents _events;
-
-        private Timer _timer;
+        private readonly ILogger<WebServerHostedService> _logger;
+        private readonly ILogStore _logs;
+        private readonly IOntologyLog _ontology;
+        private readonly IOptionsMonitor<WebServerOptions> _options;
+        private readonly IRecordStore _records;
         private long _head = -1;
 
-        public WebServerHostedService(PeerBus bus, IOntologyLog ontology, ILogStore logs, IRecordStore records, RecordEvents events, IOptionsMonitor<WebServerOptions> options, ILogger<WebServerHostedService> logger)
+        private Timer _timer;
+
+        public WebServerHostedService(PeerBus bus, IOntologyLog ontology, ILogStore logs, IRecordStore records,
+            RecordEvents events, IOptionsMonitor<WebServerOptions> options, ILogger<WebServerHostedService> logger)
         {
             _bus = bus;
             _ontology = ontology;
@@ -44,19 +44,20 @@ namespace egregore
             _logger = logger;
         }
 
-        public void OnOntologyChanged(long index) => Interlocked.Exchange(ref _head, index);
+        public void Dispose()
+        {
+            _timer?.Dispose();
+        }
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             if (!_ontology.Exists(_options.CurrentValue.EggPath))
-            {
                 _logger?.LogWarning("Could not find ontology log at '{EggPath}'", _options.CurrentValue.EggPath);
-            }
-             
+
             try
             {
                 var owner = Crypto.ToHexString(_options.CurrentValue.PublicKey);
-                
+
                 _logs.Init(_options.CurrentValue.EggPath);
                 _ontology.Init(_options.CurrentValue.PublicKey);
                 _records.Init(Path.Combine(Constants.DefaultRootPath, $"{owner}.egg"));
@@ -71,30 +72,8 @@ namespace egregore
                 _logger?.LogError(e, "Failed to restore ontology logs");
             }
 
-            _timer = new Timer(DutyCycle, null, TimeSpan.Zero, 
+            _timer = new Timer(DutyCycle, null, TimeSpan.Zero,
                 TimeSpan.FromSeconds(5));
-        }
-
-        private void DutyCycle(object state = default)
-        { 
-            if (Interlocked.Read(ref _head) == _ontology.Index)
-                return;
-
-            lock(this)
-            {
-                if (Interlocked.Read(ref _head) == _ontology.Index)
-                    return;
-
-                _logger?.LogDebug("Restoring ontology log started for '{EggPath}'", _options.CurrentValue.EggPath);
-
-                if (Interlocked.Read(ref _head) == -1)
-                    _logger?.LogDebug("Initializing ontology log");
-
-                var sw = Stopwatch.StartNew();
-                _ontology.MaterializeAsync(_logs);
-                Interlocked.Exchange(ref _head, _ontology.Index);
-                _logger?.LogDebug($"Restoring ontology log completed ({sw.Elapsed.TotalMilliseconds}ms)");
-            }
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
@@ -115,9 +94,31 @@ namespace egregore
             return Task.CompletedTask;
         }
 
-        public void Dispose()
+        public void OnOntologyChanged(long index)
         {
-            _timer?.Dispose();
+            Interlocked.Exchange(ref _head, index);
+        }
+
+        private void DutyCycle(object state = default)
+        {
+            if (Interlocked.Read(ref _head) == _ontology.Index)
+                return;
+
+            lock (this)
+            {
+                if (Interlocked.Read(ref _head) == _ontology.Index)
+                    return;
+
+                _logger?.LogDebug("Restoring ontology log started for '{EggPath}'", _options.CurrentValue.EggPath);
+
+                if (Interlocked.Read(ref _head) == -1)
+                    _logger?.LogDebug("Initializing ontology log");
+
+                var sw = Stopwatch.StartNew();
+                _ontology.MaterializeAsync(_logs);
+                Interlocked.Exchange(ref _head, _ontology.Index);
+                _logger?.LogDebug($"Restoring ontology log completed ({sw.Elapsed.TotalMilliseconds}ms)");
+            }
         }
     }
 }

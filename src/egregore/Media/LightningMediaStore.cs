@@ -1,11 +1,16 @@
-﻿using System;
+﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
+// 
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using egregore.Data;
-using egregore.Events;
 using LightningDB;
 
 namespace egregore.Media
@@ -39,7 +44,7 @@ namespace egregore.Media
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            return Task.Run(async ()=>
+            return Task.Run(async () =>
             {
                 AddMedia(media);
                 await _events.OnAddedAsync(this, media, cancellationToken);
@@ -94,7 +99,6 @@ namespace egregore.Media
 
             var current = cursor.GetCurrent();
             while (current.resultCode == MDBResultCode.Success && !cancellationToken.IsCancellationRequested)
-            {
                 unsafe
                 {
                     var value = current.value.AsSpan();
@@ -107,14 +111,13 @@ namespace egregore.Media
                         var entry = new MediaEntry(context);
                         results.Add(entry);
                     }
-                    
+
                     var next = cursor.Next();
                     if (next == MDBResultCode.Success)
                         current = cursor.GetCurrent();
                     else
                         break;
                 }
-            }
 
             return results;
         }

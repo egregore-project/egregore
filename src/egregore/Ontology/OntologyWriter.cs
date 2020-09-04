@@ -12,13 +12,14 @@ namespace egregore.Ontology
 {
     public class OntologyWriter
     {
+        private readonly IOntologyChangeHandler _changeHandler;
+        private readonly ILogEntryHashProvider _hashProvider;
+        private readonly IOptions<WebServerOptions> _options;
         private readonly ILogStore _store;
         private readonly ILogObjectTypeProvider _typeProvider;
-        private readonly ILogEntryHashProvider _hashProvider;
-        private readonly IOntologyChangeHandler _changeHandler;
-        private readonly IOptions<WebServerOptions> _options;
 
-        public OntologyWriter(ILogStore store, ILogObjectTypeProvider typeProvider, ILogEntryHashProvider hashProvider, IOntologyChangeHandler changeHandler, IOptions<WebServerOptions> options)
+        public OntologyWriter(ILogStore store, ILogObjectTypeProvider typeProvider, ILogEntryHashProvider hashProvider,
+            IOntologyChangeHandler changeHandler, IOptions<WebServerOptions> options)
         {
             _store = store;
             _typeProvider = typeProvider;
@@ -52,9 +53,9 @@ namespace egregore.Ontology
 
             // FIXME: inefficient, cache the last value somewhere?
             var previousHash = new byte[0];
-            foreach(var item in _store.StreamEntries())
+            foreach (var item in _store.StreamEntries())
                 previousHash = item.Hash;
-            
+
             var entry = new LogEntry
             {
                 PreviousHash = previousHash,

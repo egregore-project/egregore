@@ -30,7 +30,8 @@ namespace egregore.Ontology
             _sequence = new LogStoreSequenceProvider(this);
         }
 
-        public async Task<ulong> AddEntryAsync(LogEntry entry, byte[] secretKey = null, CancellationToken cancellationToken = default)
+        public async Task<ulong> AddEntryAsync(LogEntry entry, byte[] secretKey = null,
+            CancellationToken cancellationToken = default)
         {
             if (cancellationToken.IsCancellationRequested)
                 return 0UL;
@@ -58,7 +59,8 @@ namespace egregore.Ontology
             return index;
         }
 
-        public IEnumerable<LogEntry> StreamEntries(ulong startingFrom = 0, byte[] secretKey = null, CancellationToken cancellationToken = default)
+        public IEnumerable<LogEntry> StreamEntries(ulong startingFrom = 0, byte[] secretKey = null,
+            CancellationToken cancellationToken = default)
         {
             if (cancellationToken.IsCancellationRequested)
                 yield break;
@@ -72,7 +74,7 @@ namespace egregore.Ontology
             while (startingFrom < (ulong) length && !cancellationToken.IsCancellationRequested)
             {
                 var key = BitConverter.GetBytes((long) startingFrom);
-                
+
                 var (r, _, v) = tx.Get(db, key);
                 if (r != MDBResultCode.Success)
                     yield break;
@@ -88,7 +90,7 @@ namespace egregore.Ontology
 
                 if (previousEntry != default)
                     entry.EntryCheck(previousEntry, _hashProvider);
-                
+
                 yield return entry;
                 previousEntry = entry;
             }

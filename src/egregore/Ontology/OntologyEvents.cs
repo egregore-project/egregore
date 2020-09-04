@@ -15,7 +15,15 @@ namespace egregore.Ontology
     {
         private static readonly IReadOnlyList<IOntologyEventHandler> NoHandlers = new List<IOntologyEventHandler>(0);
         private readonly IEnumerable<IOntologyEventHandler> _handlers;
-        public OntologyEvents(IEnumerable<IOntologyEventHandler> handlers = default) => _handlers = handlers ?? NoHandlers;
-        public Task OnSchemaAddedAsync(ILogStore store, Schema schema, CancellationToken cancellationToken = default) => _handlers.OnSchemaAddedAsync(store, schema, cancellationToken);
+
+        public OntologyEvents(IEnumerable<IOntologyEventHandler> handlers = default)
+        {
+            _handlers = handlers ?? NoHandlers;
+        }
+
+        public Task OnSchemaAddedAsync(ILogStore store, Schema schema, CancellationToken cancellationToken = default)
+        {
+            return _handlers.OnSchemaAddedAsync(store, schema, cancellationToken);
+        }
     }
 }

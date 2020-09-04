@@ -7,7 +7,6 @@
 using System;
 using egregore.Configuration;
 using egregore.Data;
-using egregore.Events;
 using egregore.Search;
 using Microsoft.Extensions.Options;
 
@@ -22,7 +21,8 @@ namespace egregore.Tests.Helpers
                 PublicKeyString = $"{Guid.NewGuid()}"
             });
 
-            var store = new LightningRecordStore(new NoRecordIndex(), new RecordEvents(), new LogObjectTypeProvider(), options);
+            var store = new LightningRecordStore(new NoRecordIndex(), new RecordEvents(), new LogObjectTypeProvider(),
+                options);
             store.Init($"{Guid.NewGuid()}.egg");
             Store = store;
         }

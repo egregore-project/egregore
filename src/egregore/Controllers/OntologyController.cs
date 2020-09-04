@@ -32,8 +32,8 @@ namespace egregore.Controllers
         [HttpGet("ontology")]
         public IActionResult GetOntology()
         {
-            var schemas = _ontology.GetSchemas("default", 1);
-            return Ok(new OntologyViewModel { Schemas = schemas });
+            var schemas = _ontology.GetSchemas("default");
+            return Ok(new OntologyViewModel {Schemas = schemas});
         }
 
 

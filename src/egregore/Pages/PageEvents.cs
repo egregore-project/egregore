@@ -16,7 +16,15 @@ namespace egregore.Pages
     {
         private static readonly IReadOnlyList<IPageEventHandler> NoHandlers = new List<IPageEventHandler>(0);
         private readonly IEnumerable<IPageEventHandler> _handlers;
-        public PageEvents(IEnumerable<IPageEventHandler> handlers = default) => _handlers = handlers ?? NoHandlers;
-        public Task OnPageAddedAsync(IPageStore store, Page page, CancellationToken cancellationToken = default) => _handlers.OnPageAddedAsync(store, page, cancellationToken);
+
+        public PageEvents(IEnumerable<IPageEventHandler> handlers = default)
+        {
+            _handlers = handlers ?? NoHandlers;
+        }
+
+        public Task OnPageAddedAsync(IPageStore store, Page page, CancellationToken cancellationToken = default)
+        {
+            return _handlers.OnPageAddedAsync(store, page, cancellationToken);
+        }
     }
 }

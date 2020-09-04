@@ -27,12 +27,10 @@ namespace egregore.Filters
             {
                 var schema = _ontology.GetSchema(controller, ns, rs);
                 if (schema == default)
-                {
                     context.Result = new NotFoundObjectResult(new
                     {
                         Message = $"No API found for {ns.ToLowerInvariant()}.v{rs}.{controller.ToLowerInvariant()}"
                     });
-                }
             }
         }
     }

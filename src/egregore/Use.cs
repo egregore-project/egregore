@@ -21,6 +21,9 @@ namespace egregore
 {
     internal static class Use
     {
+        private static readonly string[] BlazorPaths =
+            {"/", "/counter", "/fetchdata", "/meta", "/privacy", "/upload", "/markdown"};
+
         public static IApplicationBuilder UseWebServer(this IApplicationBuilder app, IWebHostEnvironment env)
         {
             app.UseCors();
@@ -43,7 +46,7 @@ namespace egregore
 
             app.UseHttpsRedirection();
             app.UseBlazorFrameworkFiles();
-            
+
             var provider = new FileExtensionContentTypeProvider();
             provider.Mappings[".webmanifest"] = "application/manifest+json";
             app.UseStaticFiles(new StaticFileOptions {ContentTypeProvider = provider});
@@ -69,16 +72,18 @@ namespace egregore
         {
             app.Use(async (context, next) =>
             {
-                if(!IsApiPath(context) && !IsBlazorPath(context))
+                if (!IsApiPath(context) && !IsBlazorPath(context))
                 {
                     if (context.Request.Method == HttpMethods.Get)
-                        context.Response.Headers.TryAdd(Constants.HeaderNames.ContentSecurityPolicy, "default-src 'self'");
+                        context.Response.Headers.TryAdd(Constants.HeaderNames.ContentSecurityPolicy,
+                            "default-src 'self'");
 
                     var options = context.RequestServices.GetService<IOptionsSnapshot<WebServerOptions>>();
                     if (options != default && options.Value.PublicKey.Length > 0)
                     {
                         var keyPin = Convert.ToBase64String(Crypto.Sha256(options.Value.PublicKey));
-                        context.Response.Headers.TryAdd(Constants.HeaderNames.PublicKeyPins, $"pin-sha256=\"{keyPin}\"; max-age={TimeSpan.FromDays(7).Seconds}; includeSubDomains");
+                        context.Response.Headers.TryAdd(Constants.HeaderNames.PublicKeyPins,
+                            $"pin-sha256=\"{keyPin}\"; max-age={TimeSpan.FromDays(7).Seconds}; includeSubDomains");
                     }
 
                     context.Response.Headers.TryAdd(Constants.HeaderNames.XFrameOptions, "DENY");
@@ -91,7 +96,6 @@ namespace egregore
             });
         }
 
-        private static readonly string[] BlazorPaths = {"/", "/counter", "/fetchdata", "/meta", "/privacy", "/upload", "/markdown"};
         private static bool IsBlazorPath(HttpContext context)
         {
             return BlazorPaths.Any(x => x == context.Request.Path);

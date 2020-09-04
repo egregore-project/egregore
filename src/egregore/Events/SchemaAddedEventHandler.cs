@@ -12,6 +12,7 @@ namespace egregore.Events
 {
     internal abstract class SchemaAddedEventHandler : IOntologyEventHandler
     {
-        public abstract Task OnSchemaAddedAsync(ILogStore store, Schema schema, CancellationToken cancellationToken = default);
+        public abstract Task OnSchemaAddedAsync(ILogStore store, Schema schema,
+            CancellationToken cancellationToken = default);
     }
 }

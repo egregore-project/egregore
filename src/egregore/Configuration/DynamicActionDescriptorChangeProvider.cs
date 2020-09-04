@@ -14,12 +14,15 @@ namespace egregore.Configuration
     {
         public CancellationTokenSource TokenSource { get; private set; }
 
-        public void OnChanged() => TokenSource?.Cancel();
-
         public IChangeToken GetChangeToken()
         {
             TokenSource = new CancellationTokenSource();
             return new CancellationChangeToken(TokenSource.Token);
+        }
+
+        public void OnChanged()
+        {
+            TokenSource?.Cancel();
         }
     }
 }

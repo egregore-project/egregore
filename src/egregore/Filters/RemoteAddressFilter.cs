@@ -28,7 +28,8 @@ namespace egregore.Filters
         {
             var seed = _cache.GetSeed();
 
-            var privateAddress = typeof(IPAddress).GetProperty("PrivateAddress", BindingFlags.Instance | BindingFlags.NonPublic)?
+            var privateAddress = typeof(IPAddress)
+                .GetProperty("PrivateAddress", BindingFlags.Instance | BindingFlags.NonPublic)?
                 .GetValue(context.HttpContext.Connection.RemoteIpAddress);
 
             if (privateAddress != default)
@@ -37,12 +38,13 @@ namespace egregore.Filters
                 {
                     var address = (uint) privateAddress;
                     var addressBytes = stackalloc byte[4];
-                    addressBytes[0] = (byte)(address);
-                    addressBytes[1] = (byte)(address >> 8);
-                    addressBytes[2] = (byte)(address >> 16);
-                    addressBytes[3] = (byte)(address >> 24);
+                    addressBytes[0] = (byte) address;
+                    addressBytes[1] = (byte) (address >> 8);
+                    addressBytes[2] = (byte) (address >> 16);
+                    addressBytes[3] = (byte) (address >> 24);
 
-                    var hash = BitConverter.GetBytes(WyHash64.ComputeHash64(new ReadOnlySpan<byte>(addressBytes, 4), seed));
+                    var hash = BitConverter.GetBytes(WyHash64.ComputeHash64(new ReadOnlySpan<byte>(addressBytes, 4),
+                        seed));
                     context.ActionArguments["addressHash"] = hash;
                 }
             }
@@ -52,7 +54,6 @@ namespace egregore.Filters
                     .GetValue(context.HttpContext.Connection.RemoteIpAddress);
 
                 if (privateAddress != default)
-                {
                     unsafe
                     {
                         var address = (ushort[]) privateAddress;
@@ -60,14 +61,14 @@ namespace egregore.Filters
                         var j = 0;
                         for (var i = 0; i < 8; i++)
                         {
-                            addressBytes[j++] = (byte)((address[i] >> 8) & 0xFF);
-                            addressBytes[j++] = (byte)(address[i] & 0xFF);
+                            addressBytes[j++] = (byte) ((address[i] >> 8) & 0xFF);
+                            addressBytes[j++] = (byte) (address[i] & 0xFF);
                         }
 
-                        var hash = BitConverter.GetBytes(WyHash64.ComputeHash64(new ReadOnlySpan<byte>(addressBytes, 16), seed));
+                        var hash = BitConverter.GetBytes(
+                            WyHash64.ComputeHash64(new ReadOnlySpan<byte>(addressBytes, 16), seed));
                         context.ActionArguments["addressHash"] = hash;
                     }
-                }
             }
 
             base.OnActionExecuting(context);

@@ -48,7 +48,7 @@ namespace egregore.Controllers
                 Name = x.Name
             }));
         }
-        
+
         [HttpGet("media/{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {
@@ -77,7 +77,7 @@ namespace egregore.Controllers
                 "image/tiff" => await UploadImageAsync(disposition),
                 "image/jpeg" => await UploadImageAsync(disposition),
                 "image/Png" => await UploadImageAsync(disposition),
-                
+
                 _ => new UnsupportedMediaTypeResult()
             };
         }
@@ -109,7 +109,7 @@ namespace egregore.Controllers
                 Type = mediaType,
                 Name = disposition.FileName.Value,
                 Data = buffer,
-                Length = (ulong) buffer.Length,
+                Length = (ulong) buffer.Length
             };
 
             await _store.AddMediaAsync(media, CancellationToken);

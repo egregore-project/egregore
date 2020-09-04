@@ -5,7 +5,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using egregore.Extensions;
 
@@ -29,7 +28,7 @@ namespace egregore
         public byte[] HashRoot { get; set; }
         public UInt128 Timestamp { get; set; }
         public byte[] Nonce { get; set; }
-        
+
         #region Serialization
 
         public void Serialize(LogSerializeContext context, bool hash)

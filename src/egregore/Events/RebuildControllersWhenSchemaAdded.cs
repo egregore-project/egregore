@@ -15,7 +15,15 @@ namespace egregore.Events
     {
         private readonly DynamicActionDescriptorChangeProvider _changeProvider;
 
-        public RebuildControllersWhenSchemaAdded(DynamicActionDescriptorChangeProvider changeProvider) => _changeProvider = changeProvider;
-        public override Task OnSchemaAddedAsync(ILogStore store, Schema schema, CancellationToken cancellationToken = default) => Task.Run(() => _changeProvider.OnChanged(), cancellationToken);
+        public RebuildControllersWhenSchemaAdded(DynamicActionDescriptorChangeProvider changeProvider)
+        {
+            _changeProvider = changeProvider;
+        }
+
+        public override Task OnSchemaAddedAsync(ILogStore store, Schema schema,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.Run(() => _changeProvider.OnChanged(), cancellationToken);
+        }
     }
 }

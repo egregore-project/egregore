@@ -12,7 +12,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using egregore.Configuration;
-using egregore.Events;
 using egregore.Extensions;
 using egregore.Search;
 using LightningDB;
@@ -24,18 +23,18 @@ namespace egregore.Data
 {
     internal sealed class LightningRecordStore : LightningDataStore, IRecordStore
     {
-        private readonly ISequenceProvider _sequence;
-        private readonly ILogObjectTypeProvider _typeProvider;
-        private readonly IRecordIndex _index;
-        private readonly RecordEvents _events;
-        private readonly IOptions<WebServerOptions> _options;
-
         private readonly RecordColumnKeyBuilder _columnKeyBuilder;
-        private readonly RecordKeyBuilder _recordKeyBuilder;
+        private readonly RecordEvents _events;
+        private readonly IRecordIndex _index;
 
         private readonly ILogger<LightningRecordStore> _logger;
+        private readonly IOptions<WebServerOptions> _options;
+        private readonly RecordKeyBuilder _recordKeyBuilder;
+        private readonly ISequenceProvider _sequence;
+        private readonly ILogObjectTypeProvider _typeProvider;
 
-        public LightningRecordStore(IRecordIndex index, RecordEvents events, ILogObjectTypeProvider typeProvider, IOptions<WebServerOptions> options, ILogger<LightningRecordStore> logger = default)
+        public LightningRecordStore(IRecordIndex index, RecordEvents events, ILogObjectTypeProvider typeProvider,
+            IOptions<WebServerOptions> options, ILogger<LightningRecordStore> logger = default)
         {
             _index = index;
             _events = events;
@@ -47,21 +46,39 @@ namespace egregore.Data
             _recordKeyBuilder = new RecordKeyBuilder();
 
             var sequence = options.Value.PublicKeyString;
-            _sequence =new GlobalSequenceProvider(sequence);
+            _sequence = new GlobalSequenceProvider(sequence);
         }
 
-        public async Task<ulong> AddRecordAsync(Record record, byte[] secretKey = null, CancellationToken cancellationToken = default)
+        public async Task<ulong> AddRecordAsync(Record record, byte[] secretKey = null,
+            CancellationToken cancellationToken = default)
         {
             var sequence = AddRecord(record, await _sequence.GetNextValueAsync(), cancellationToken);
             await _events.OnAddedAsync(this, record, cancellationToken);
             return sequence;
         }
 
-        public Task<IEnumerable<Record>> GetByTypeAsync(string type, out ulong total, CancellationToken cancellationToken = default) => Task.FromResult(GetByType(type, out total, cancellationToken));
-        public Task<Record> GetByIdAsync(Guid uuid, CancellationToken cancellationToken = default) => Task.FromResult(GetByIndex(_recordKeyBuilder.ReverseRecordKey(uuid), default, cancellationToken));
-        public Task<ulong> GetLengthByTypeAsync(string type, CancellationToken cancellationToken = default) => Task.FromResult(GetLengthByType(type, cancellationToken));
-        public Task<IEnumerable<Record>> GetByColumnValueAsync(string type, string name, string value, CancellationToken cancellationToken = default) => Task.FromResult(GetByColumnValue(type, name, value, cancellationToken));
-        
+        public Task<IEnumerable<Record>> GetByTypeAsync(string type, out ulong total,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(GetByType(type, out total, cancellationToken));
+        }
+
+        public Task<Record> GetByIdAsync(Guid uuid, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(GetByIndex(_recordKeyBuilder.ReverseRecordKey(uuid), default, cancellationToken));
+        }
+
+        public Task<ulong> GetLengthByTypeAsync(string type, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(GetLengthByType(type, cancellationToken));
+        }
+
+        public Task<IEnumerable<Record>> GetByColumnValueAsync(string type, string name, string value,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(GetByColumnValue(type, name, value, cancellationToken));
+        }
+
         public IAsyncEnumerable<Record> StreamRecordsAsync(CancellationToken cancellationToken = default)
         {
             if (cancellationToken.IsCancellationRequested)
@@ -122,6 +139,18 @@ namespace egregore.Data
                 _sequence.Destroy();
         }
 
+        public async IAsyncEnumerable<Record> SearchAsync(string query,
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            if (cancellationToken.IsCancellationRequested)
+                yield break;
+
+            await foreach (var result in _index.SearchAsync(query, cancellationToken)
+                .WithCancellation(cancellationToken))
+                if (Guid.TryParse(result.DocumentReference, out var uuid))
+                    yield return await GetByIdAsync(uuid, cancellationToken);
+        }
+
         private ulong AddRecord(Record record, ulong sequence, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -129,7 +158,7 @@ namespace egregore.Data
             if (record.Uuid == default)
                 record.Uuid = Guid.NewGuid();
 
-            if(record.Index == default)
+            if (record.Index == default)
                 record.Index = sequence;
 
             if (record.TimestampV2 == default)
@@ -188,7 +217,7 @@ namespace egregore.Data
 
             return count;
         }
-        
+
         private IEnumerable<Record> GetByType(string type, out ulong total, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -204,7 +233,7 @@ namespace egregore.Data
             var key = _recordKeyBuilder.ReverseTypeKey(type);
             if (cursor.SetRange(key) != MDBResultCode.Success)
                 return results;
-            
+
             var current = cursor.GetCurrent();
             while (current.resultCode == MDBResultCode.Success && !cancellationToken.IsCancellationRequested)
             {
@@ -225,11 +254,15 @@ namespace egregore.Data
             return results;
         }
 
-        private unsafe Record GetByIndex(ReadOnlySpan<byte> index, LightningTransaction parent, CancellationToken cancellationToken)
+        private unsafe Record GetByIndex(ReadOnlySpan<byte> index, LightningTransaction parent,
+            CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using var tx = env.Value.BeginTransaction(parent == null ? TransactionBeginFlags.ReadOnly : TransactionBeginFlags.None);
+            using var tx =
+                env.Value.BeginTransaction(parent == null
+                    ? TransactionBeginFlags.ReadOnly
+                    : TransactionBeginFlags.None);
             using var db = tx.OpenDatabase(configuration: Config);
             using var cursor = tx.CreateCursor(db);
 
@@ -258,7 +291,8 @@ namespace egregore.Data
             }
         }
 
-        private IEnumerable<Record> GetByColumnValue(string type, string name, string value, CancellationToken cancellationToken)
+        private IEnumerable<Record> GetByColumnValue(string type, string name, string value,
+            CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -273,7 +307,7 @@ namespace egregore.Data
                 return results;
 
             var current = cursor.GetCurrent();
-            while(current.resultCode == MDBResultCode.Success && !cancellationToken.IsCancellationRequested)
+            while (current.resultCode == MDBResultCode.Success && !cancellationToken.IsCancellationRequested)
             {
                 var record = GetByIndex(current.value.AsSpan(), tx, cancellationToken);
                 if (record == default)
@@ -287,21 +321,8 @@ namespace egregore.Data
                 else
                     break;
             }
+
             return results;
-        }
-
-        public async IAsyncEnumerable<Record> SearchAsync(string query, [EnumeratorCancellation] CancellationToken cancellationToken = default)
-        {
-            if (cancellationToken.IsCancellationRequested)
-                yield break;
-
-            await foreach (var result in _index.SearchAsync(query, cancellationToken).WithCancellation(cancellationToken))
-            {
-                if (Guid.TryParse(result.DocumentReference, out var uuid))
-                {
-                    yield return await GetByIdAsync(uuid, cancellationToken);
-                }
-            }
         }
 
         protected override void Dispose(bool disposing)

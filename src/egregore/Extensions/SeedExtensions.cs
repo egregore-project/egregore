@@ -14,7 +14,7 @@ namespace egregore.Extensions
     {
         public static ulong GetSeed<T>(this ICacheRegion<T> cache)
         {
-            if(!cache.TryGetValue(nameof(GetSeed), out ulong seed))
+            if (!cache.TryGetValue(nameof(GetSeed), out ulong seed))
                 cache.Set(nameof(GetSeed), seed = BitConverter.ToUInt64(Encoding.UTF8.GetBytes(typeof(T).Name)));
 
             return seed;

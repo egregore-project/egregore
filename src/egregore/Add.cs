@@ -1,4 +1,10 @@
-﻿using System;
+﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
+// 
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+using System;
 using System.Text;
 using egregore.Caching;
 using egregore.Configuration;
@@ -26,7 +32,8 @@ namespace egregore
     {
         private static MemoryOntologyLog _ontology;
 
-        public static unsafe IServiceCollection AddWebServer(this IServiceCollection services, string eggPath, IKeyCapture capture, IWebHostEnvironment env, IConfiguration config, IWebHostBuilder webBuilder)
+        public static unsafe IServiceCollection AddWebServer(this IServiceCollection services, string eggPath,
+            IKeyCapture capture, IWebHostEnvironment env, IConfiguration config, IWebHostBuilder webBuilder)
         {
             services.AddCors(x => x.AddDefaultPolicy(b =>
             {
@@ -59,7 +66,8 @@ namespace egregore
             fixed (byte* id = fingerprint)
             fixed (byte* key = app)
             {
-                if (NativeMethods.crypto_generichash(id, fingerprint.Length, pk, Crypto.PublicKeyBytes, key, app.Length) != 0)
+                if (NativeMethods.crypto_generichash(id, fingerprint.Length, pk, Crypto.PublicKeyBytes, key,
+                    app.Length) != 0)
                     throw new InvalidOperationException(nameof(NativeMethods.crypto_generichash));
             }
 
@@ -97,10 +105,11 @@ namespace egregore
             AddFilters(services);
 
             AddDaemonService(services);
-            
+
             var change = new DynamicActionDescriptorChangeProvider();
             services.AddSingleton(change);
-            services.AddSingleton<IActionDescriptorChangeProvider, DynamicActionDescriptorChangeProvider>(r => r.GetRequiredService<DynamicActionDescriptorChangeProvider>());
+            services.AddSingleton<IActionDescriptorChangeProvider, DynamicActionDescriptorChangeProvider>(r =>
+                r.GetRequiredService<DynamicActionDescriptorChangeProvider>());
             services.AddSingleton<IRecordIndex, LunrRecordIndex>();
 
             services.AddSingleton<PeerBus>();
@@ -111,7 +120,7 @@ namespace egregore
                 return _ontology;
             });
             services.AddTransient<IOntologyLog>(r => r.GetRequiredService<MemoryOntologyLog>());
-            
+
             // FIXME: bad practice
             var sp = services.BuildServiceProvider();
             mvc.ConfigureApplicationPartManager(x =>
@@ -139,8 +148,7 @@ namespace egregore
 
             services.AddMemoryCache(x => { });
             services.TryAdd(ServiceDescriptor.Singleton(typeof(ICacheRegion<>), typeof(InProcessCacheRegion<>)));
-            
-           
+
 
             return services;
         }
@@ -169,10 +177,12 @@ namespace egregore
             services.AddSingleton<RecordEvents>();
             services.TryAddEnumerable(ServiceDescriptor.Singleton<IRecordEventHandler, RebuildIndexOnRecordEvents>());
             services.TryAddEnumerable(ServiceDescriptor.Singleton<IRecordEventHandler, NotifyHubsWhenRecordAdded>());
-            services.TryAddEnumerable(ServiceDescriptor.Singleton<IRecordEventHandler, InvalidateCachesWhenRecordAdded>());
+            services.TryAddEnumerable(
+                ServiceDescriptor.Singleton<IRecordEventHandler, InvalidateCachesWhenRecordAdded>());
 
             services.AddSingleton<OntologyEvents>();
-            services.TryAddEnumerable(ServiceDescriptor.Singleton<IOntologyEventHandler, RebuildControllersWhenSchemaAdded>());
+            services.TryAddEnumerable(ServiceDescriptor
+                .Singleton<IOntologyEventHandler, RebuildControllersWhenSchemaAdded>());
             services.TryAddEnumerable(ServiceDescriptor.Singleton<IOntologyEventHandler, NotifyHubsWhenSchemaAdded>());
 
             services.AddSingleton<MediaEvents>();

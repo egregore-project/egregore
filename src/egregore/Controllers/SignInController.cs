@@ -22,7 +22,9 @@ namespace egregore.Controllers
             _options = options;
         }
 
-        [AllowAnonymous, RemoteAddress, Throttle]
+        [AllowAnonymous]
+        [RemoteAddress]
+        [Throttle]
         [HttpGet("signin")]
         public IActionResult Index([FromFilter] byte[] addressHash = default)
         {

@@ -40,6 +40,5 @@ namespace egregore.Pooling
                 return collection.Count == 0;
             }
         }
-
     }
 }

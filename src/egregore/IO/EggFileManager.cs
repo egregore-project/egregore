@@ -41,7 +41,8 @@ namespace egregore.IO
 
             if (File.Exists(eggPath))
             {
-                Console.Error.WriteErrorLine("Egg file already exists at this path. For safety, you must manually remove it before generating a new egg with this path.");
+                Console.Error.WriteErrorLine(
+                    "Egg file already exists at this path. For safety, you must manually remove it before generating a new egg with this path.");
                 return false;
             }
 

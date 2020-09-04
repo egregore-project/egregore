@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using egregore.Extensions;
 using egregore.Hubs;
 using egregore.Media;
-using egregore.Ontology;
 using Microsoft.AspNetCore.SignalR;
 
 namespace egregore.Events
@@ -23,16 +22,18 @@ namespace egregore.Events
             _notify = notify;
         }
 
-        public override Task OnMediaAddedAsync(IMediaStore store, MediaEntry entry, CancellationToken cancellationToken = default)
+        public override Task OnMediaAddedAsync(IMediaStore store, MediaEntry entry,
+            CancellationToken cancellationToken = default)
         {
             var pending = AsyncExtensions.TaskPool.Get();
             try
             {
-                var notify = _notify.Clients.All.SendAsync(Constants.Notifications.ReceiveMessage, "info", $"Added new {entry.Type} '{entry.Name}'", cancellationToken);
+                var notify = _notify.Clients.All.SendAsync(Constants.Notifications.ReceiveMessage, "info",
+                    $"Added new {entry.Type} '{entry.Name}'", cancellationToken);
                 if (notify.IsCompleted || notify.IsCanceled || notify.IsFaulted)
                     return AsyncExtensions.NoTask;
 
-                if(notify.Status != TaskStatus.Running)
+                if (notify.Status != TaskStatus.Running)
                     notify.Start();
 
                 pending.Add(notify);

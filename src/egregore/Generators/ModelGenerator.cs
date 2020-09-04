@@ -30,14 +30,14 @@ namespace egregore.Generators
 
             sb.Indent++;
             {
-                sb.AppendLine($"[ReadOnly(true)]");
-                sb.AppendLine($"public Guid Uuid {{ get; set; }}");
+                sb.AppendLine("[ReadOnly(true)]");
+                sb.AppendLine("public Guid Uuid { get; set; }");
 
-                sb.AppendLine($"[ReadOnly(true)]");
-                sb.AppendLine($"public ulong TimestampV1 {{ get; set; }}");
+                sb.AppendLine("[ReadOnly(true)]");
+                sb.AppendLine("public ulong TimestampV1 { get; set; }");
 
-                sb.AppendLine($"[ReadOnly(true)]");
-                sb.AppendLine($"public ulong TimestampV2 {{ get; set; }}");
+                sb.AppendLine("[ReadOnly(true)]");
+                sb.AppendLine("public ulong TimestampV2 { get; set; }");
 
                 foreach (var property in schema.Properties)
                 {
@@ -49,36 +49,40 @@ namespace egregore.Generators
 
                 sb.AppendLine();
                 sb.AppendLine("public Record ToRecord()");
-                sb.AppendLine($"{{");
+                sb.AppendLine("{");
                 sb.AppendLine($"    var record = new Record {{ Type = \"{schema.Name}\" }};");
-                sb.AppendLine($"    record.Uuid = Uuid;");
-                sb.AppendLine($"    record.TimestampV1 = TimestampV1;");
-                sb.AppendLine($"    record.TimestampV2 = TimestampV2;");
+                sb.AppendLine("    record.Uuid = Uuid;");
+                sb.AppendLine("    record.TimestampV1 = TimestampV1;");
+                sb.AppendLine("    record.TimestampV2 = TimestampV2;");
                 for (var i = 0; i < schema.Properties.Count; i++)
                 {
                     var property = schema.Properties[i];
-                    sb.AppendLine($"    record.Columns.Add(new RecordColumn({i}, \"{property.Name}\", \"{property.Type}\", {property.Name}?.ToString()));");
+                    sb.AppendLine(
+                        $"    record.Columns.Add(new RecordColumn({i}, \"{property.Name}\", \"{property.Type}\", {property.Name}?.ToString()));");
                 }
+
                 sb.AppendLine("    return record;");
-                sb.AppendLine($"}}");
+                sb.AppendLine("}");
 
                 sb.AppendLine();
                 sb.AppendLine($"public {schema.Name} ToModel(Record record)");
-                sb.AppendLine($"{{");
+                sb.AppendLine("{");
                 sb.AppendLine($"    var model = new {schema.Name}();");
-                sb.AppendLine($"    model.Uuid = record.Uuid;");
-                sb.AppendLine($"    model.TimestampV1 = record.TimestampV1;");
-                sb.AppendLine($"    model.TimestampV2 = record.TimestampV2;");
+                sb.AppendLine("    model.Uuid = record.Uuid;");
+                sb.AppendLine("    model.TimestampV1 = record.TimestampV1;");
+                sb.AppendLine("    model.TimestampV2 = record.TimestampV2;");
                 foreach (var property in schema.Properties)
                 {
-                    sb.AppendLine($"    var value = record.Columns.SingleOrDefault(x => x.Name.Equals(\"{property.Name}\", StringComparison.OrdinalIgnoreCase))?.Value;");
-                    sb.AppendLine($"    model.{property.Name} = ({property.Type})(value == default ? default : Convert.ChangeType(value, typeof({property.Type})));");
+                    sb.AppendLine(
+                        $"    var value = record.Columns.SingleOrDefault(x => x.Name.Equals(\"{property.Name}\", StringComparison.OrdinalIgnoreCase))?.Value;");
+                    sb.AppendLine(
+                        $"    model.{property.Name} = ({property.Type})(value == default ? default : Convert.ChangeType(value, typeof({property.Type})));");
                 }
+
                 sb.AppendLine("    return model;");
-                sb.AppendLine($"}}");
+                sb.AppendLine("}");
             }
             sb.Indent--;
-
 
 
             sb.AppendLine("}");

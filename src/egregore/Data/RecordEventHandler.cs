@@ -12,8 +12,12 @@ namespace egregore.Data
 {
     internal abstract class RecordEventHandler : IRecordEventHandler
     {
-        public Task OnRecordsInitAsync(IRecordStore store, CancellationToken cancellationToken = default) => AsyncExtensions.NoTask;
+        public Task OnRecordsInitAsync(IRecordStore store, CancellationToken cancellationToken = default)
+        {
+            return AsyncExtensions.NoTask;
+        }
 
-        public abstract Task OnRecordAddedAsync(IRecordStore store, Record record, CancellationToken cancellationToken = default);
+        public abstract Task OnRecordAddedAsync(IRecordStore store, Record record,
+            CancellationToken cancellationToken = default);
     }
 }

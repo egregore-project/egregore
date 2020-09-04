@@ -11,7 +11,15 @@ namespace egregore
     internal static class TimestampFactory
     {
         public static UInt128 Now => new UInt128(0UL, (ulong) DateTimeOffset.Now.ToUnixTimeSeconds());
-        public static DateTimeOffset FromUInt128(UInt128 value) => DateTimeOffset.FromUnixTimeSeconds((long) value.v2);
-        public static DateTimeOffset FromUInt64(ulong value) => DateTimeOffset.FromUnixTimeSeconds((long) value);
+
+        public static DateTimeOffset FromUInt128(UInt128 value)
+        {
+            return DateTimeOffset.FromUnixTimeSeconds((long) value.v2);
+        }
+
+        public static DateTimeOffset FromUInt64(ulong value)
+        {
+            return DateTimeOffset.FromUnixTimeSeconds((long) value);
+        }
     }
 }

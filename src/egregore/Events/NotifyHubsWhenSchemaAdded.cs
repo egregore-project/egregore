@@ -22,16 +22,18 @@ namespace egregore.Events
             _notify = notify;
         }
 
-        public override Task OnSchemaAddedAsync(ILogStore store, Schema schema, CancellationToken cancellationToken = default)
+        public override Task OnSchemaAddedAsync(ILogStore store, Schema schema,
+            CancellationToken cancellationToken = default)
         {
             var pending = AsyncExtensions.TaskPool.Get();
             try
             {
-                var notify = _notify.Clients.All.SendAsync(Constants.Notifications.ReceiveMessage, "info", $"Added new schema '{schema.Name}'", cancellationToken);
+                var notify = _notify.Clients.All.SendAsync(Constants.Notifications.ReceiveMessage, "info",
+                    $"Added new schema '{schema.Name}'", cancellationToken);
                 if (notify.IsCompleted || notify.IsCanceled || notify.IsFaulted)
                     return AsyncExtensions.NoTask;
 
-                if(notify.Status != TaskStatus.Running)
+                if (notify.Status != TaskStatus.Running)
                     notify.Start();
 
                 pending.Add(notify);

@@ -1,3 +1,9 @@
+// Copyright (c) The Egregore Project & Contributors. All rights reserved.
+// 
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -14,7 +20,8 @@ namespace egregore.Tests.Compliance
 {
     internal static class OpenSourceCompliance
     {
-        public static async Task<IEnumerable<LicenseEntry>> ShallowLicenseScan(string[] packageIds, string[] versions, TextWriter @out)
+        public static async Task<IEnumerable<LicenseEntry>> ShallowLicenseScan(string[] packageIds, string[] versions,
+            TextWriter @out)
         {
             var result = new List<LicenseEntry>();
 
@@ -24,9 +31,11 @@ namespace egregore.Tests.Compliance
                 var dependencySources = await NuGetClient.SearchForDependencyInfoAsync(packageId);
 
                 if (versions[i] == null || versions[i] == "latest")
-                    dependencySources = dependencySources.OrderByDescending(x => x.Identity.Version).Where(x => x.Listed).Take(1);
+                    dependencySources = dependencySources.OrderByDescending(x => x.Identity.Version)
+                        .Where(x => x.Listed).Take(1);
                 else
-                    dependencySources = dependencySources.Where(x => x.Identity.Version.ToString() == versions[i]).Take(1);
+                    dependencySources = dependencySources.Where(x => x.Identity.Version.ToString() == versions[i])
+                        .Take(1);
 
                 var dependencies = new HashSet<PackageDependency>();
                 var licenseUrls = new HashSet<Uri>();
@@ -40,24 +49,22 @@ namespace egregore.Tests.Compliance
                     WriteDashes(line.Length, @out.WriteLine);
 
                     foreach (var dependencyGroup in dependencySource.DependencyGroups)
+                    foreach (var package in dependencyGroup.Packages)
                     {
-                        foreach (var package in dependencyGroup.Packages)
+                        @out.WriteLine($"{package.Id} ({package.VersionRange.MinVersion})");
+
+                        if (!dependencies.Contains(package))
                         {
-                            @out.WriteLine($"{package.Id} ({package.VersionRange.MinVersion})");
+                            var metadata =
+                                await NuGetClient.SearchForMetadataAsync(package.Id,
+                                    package.VersionRange.MinVersion);
+                            if (metadata == default)
+                                continue;
 
-                            if (!dependencies.Contains(package))
-                            {
-                                var metadata =
-                                    await NuGetClient.SearchForMetadataAsync(package.Id,
-                                        package.VersionRange.MinVersion);
-                                if (metadata == default)
-                                    continue;
-
-                                licenseUrls.Add(metadata.LicenseUrl);
-                                dependencies.Add(package);
-                                result.Add(new LicenseEntry
-                                    {PackageDependency = package, LicenseUrl = metadata.LicenseUrl});
-                            }
+                            licenseUrls.Add(metadata.LicenseUrl);
+                            dependencies.Add(package);
+                            result.Add(new LicenseEntry
+                                {PackageDependency = package, LicenseUrl = metadata.LicenseUrl});
                         }
                     }
                 }
@@ -67,7 +74,8 @@ namespace egregore.Tests.Compliance
             return result;
         }
 
-        public static async Task CreateThirdPartyLicensesFile(string[] packageIds, IReadOnlyDictionary<string, string> exceptions, TextWriter @out)
+        public static async Task CreateThirdPartyLicensesFile(string[] packageIds,
+            IReadOnlyDictionary<string, string> exceptions, TextWriter @out)
         {
             // See: https://github.com/dotnet/roslyn/issues/32022
 
@@ -84,7 +92,7 @@ namespace egregore.Tests.Compliance
             azureLibraryReferences.Add("https://aka.ms/netcoregaeula");
 
             var versions = new List<string>();
-            for(var i = 0; i < packageIds.Length; i++)
+            for (var i = 0; i < packageIds.Length; i++)
                 versions.Add("latest");
 
             var entries = await ShallowLicenseScan(packageIds, versions.ToArray(), @out);
@@ -112,13 +120,13 @@ an issue on GitHub.
             sw.WriteLine(header);
 
             foreach (var entry in entries)
-            {
                 try
                 {
                     var url = entry.LicenseUrl;
                     if (entry.LicenseUrl == null)
                     {
-                        @out.WriteErrorLine($"{entry.PackageDependency.Id} {entry.PackageDependency.VersionRange.MinVersion} does not have a license URL.");
+                        @out.WriteErrorLine(
+                            $"{entry.PackageDependency.Id} {entry.PackageDependency.VersionRange.MinVersion} does not have a license URL.");
                         unlicensed.Add(entry);
                         continue;
                     }
@@ -126,7 +134,8 @@ an issue on GitHub.
                     // If it's a GitHub link, rewrite as raw:
                     if (url.OriginalString.StartsWith("https://github.com/"))
                     {
-                        var rawUrl = url.OriginalString.Replace("https://github.com/", "https://raw.githubusercontent.com/")
+                        var rawUrl = url.OriginalString
+                            .Replace("https://github.com/", "https://raw.githubusercontent.com/")
                             .Replace("blob/master", "master");
 
                         url = new Uri(rawUrl, UriKind.Absolute);
@@ -163,7 +172,8 @@ an issue on GitHub.
                     var now = DateTime.UtcNow;
 
                     // If it's a NuGet link, rewrite to the SPDX link:
-                    var spdx = $"https://www.nuget.org/packages/{entry.PackageDependency.Id}/{entry.PackageDependency.VersionRange.MinVersion}/license";
+                    var spdx =
+                        $"https://www.nuget.org/packages/{entry.PackageDependency.Id}/{entry.PackageDependency.VersionRange.MinVersion}/license";
                     if (url.OriginalString == spdx)
                     {
                         var parser = new HtmlParser();
@@ -197,7 +207,8 @@ an issue on GitHub.
                         }
                     }
 
-                    var line1 = $"egregore-project uses {entry.PackageDependency.Id} {entry.PackageDependency.VersionRange.MinVersion}";
+                    var line1 =
+                        $"egregore-project uses {entry.PackageDependency.Id} {entry.PackageDependency.VersionRange.MinVersion}";
                     var line2 = $"License was downloaded from {url}";
                     var line3 = $"License was downloaded on {now.ToLongDateString()} {now.ToLongTimeString()}";
 
@@ -215,7 +226,6 @@ an issue on GitHub.
                 {
                     @out.WriteErrorLine(e.ToString());
                 }
-            }
 
             if (unlicensed.Count > 0)
             {
@@ -223,7 +233,8 @@ an issue on GitHub.
                 sw.WriteLine("Unlicensed Dependencies:");
                 sw.WriteLine("------------------------");
                 foreach (var item in unlicensed)
-                    sw.WriteLine($"{item.PackageDependency.Id} {item.PackageDependency.VersionRange.ToNormalizedString()}");
+                    sw.WriteLine(
+                        $"{item.PackageDependency.Id} {item.PackageDependency.VersionRange.ToNormalizedString()}");
             }
         }
 

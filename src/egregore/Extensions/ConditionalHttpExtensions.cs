@@ -37,15 +37,16 @@ namespace egregore.Extensions
             return true;
         }
 
-        public static bool IfModifiedSince<TRegion>(this HttpRequest request, string cacheKey, ICacheRegion<TRegion> cache, out DateTimeOffset? lastModified, out IActionResult result)
+        public static bool IfModifiedSince<TRegion>(this HttpRequest request, string cacheKey,
+            ICacheRegion<TRegion> cache, out DateTimeOffset? lastModified, out IActionResult result)
         {
             var headers = request.GetTypedHeaders();
             var ifModifiedSince = headers.IfModifiedSince;
-            
-            if (cache.TryGetValue($"{cacheKey}:{HeaderNames.LastModified}", out lastModified) && 
+
+            if (cache.TryGetValue($"{cacheKey}:{HeaderNames.LastModified}", out lastModified) &&
                 lastModified <= ifModifiedSince)
             {
-                result = new StatusCodeResult((int)HttpStatusCode.NotModified);
+                result = new StatusCodeResult((int) HttpStatusCode.NotModified);
                 return false;
             }
 
@@ -53,7 +54,8 @@ namespace egregore.Extensions
             return true;
         }
 
-        public static bool IfNoneMatch<TRegion>(this HttpRequest request, string cacheKey, ICacheRegion<TRegion> cache, out byte[] stream, out IActionResult result)
+        public static bool IfNoneMatch<TRegion>(this HttpRequest request, string cacheKey, ICacheRegion<TRegion> cache,
+            out byte[] stream, out IActionResult result)
         {
             var headers = request.GetTypedHeaders();
 
@@ -70,7 +72,7 @@ namespace egregore.Extensions
 
                 if (!cache.TryGetValue(cacheKey, out stream) || !etag.Tag.Equals(stream.StrongETag(cache)))
                     continue;
-                result = new StatusCodeResult((int)HttpStatusCode.NotModified);
+                result = new StatusCodeResult((int) HttpStatusCode.NotModified);
                 return false;
             }
 
@@ -79,11 +81,12 @@ namespace egregore.Extensions
             return true;
         }
 
-        public static void AppendETags<TRegion>(this HttpResponse response, ICacheRegion<TRegion> cache, string cacheKey, byte[] stream)
+        public static void AppendETags<TRegion>(this HttpResponse response, ICacheRegion<TRegion> cache,
+            string cacheKey, byte[] stream)
         {
             response.Headers.TryAdd(HeaderNames.ETag, new StringValues(new[]
             {
-                cacheKey.WeakETag(true, cache), 
+                cacheKey.WeakETag(true, cache),
                 stream.StrongETag(cache)
             }));
         }

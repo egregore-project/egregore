@@ -20,8 +20,8 @@ namespace egregore.Controllers
     [ServiceFilter(typeof(BaseViewModelFilter))]
     public class HomeController : Controller
     {
-        private readonly IOptionsSnapshot<WebServerOptions> _options;
         private readonly ILogger<HomeController> _logger;
+        private readonly IOptionsSnapshot<WebServerOptions> _options;
 
         public HomeController(IOptionsSnapshot<WebServerOptions> options, ILogger<HomeController> logger)
         {

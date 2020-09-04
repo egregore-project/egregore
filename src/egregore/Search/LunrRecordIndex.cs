@@ -20,9 +20,8 @@ namespace egregore.Search
 {
     internal sealed class LunrRecordIndex : IRecordIndex
     {
-        private Index _index;
-
         private readonly ILogger<LunrRecordIndex> _logger;
+        private Index _index;
 
         public LunrRecordIndex(ILogger<LunrRecordIndex> logger)
         {
@@ -57,15 +56,12 @@ namespace egregore.Search
             });
         }
 
-        public async IAsyncEnumerable<RecordSearchResult> SearchAsync(string query, [EnumeratorCancellation] CancellationToken cancellationToken)
+        public async IAsyncEnumerable<RecordSearchResult> SearchAsync(string query,
+            [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             await foreach (var result in _index.Search(query, cancellationToken).WithCancellation(cancellationToken))
-            {
                 if (Guid.TryParse(result.DocumentReference, out _))
-                {
-                    yield return new RecordSearchResult { DocumentReference = result.DocumentReference};
-                }
-            }
+                    yield return new RecordSearchResult {DocumentReference = result.DocumentReference};
         }
     }
 }

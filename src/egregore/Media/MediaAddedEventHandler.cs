@@ -11,6 +11,7 @@ namespace egregore.Media
 {
     internal abstract class MediaAddedEventHandler : IMediaEventHandler
     {
-        public abstract Task OnMediaAddedAsync(IMediaStore store, MediaEntry entry, CancellationToken cancellationToken = default);
+        public abstract Task OnMediaAddedAsync(IMediaStore store, MediaEntry entry,
+            CancellationToken cancellationToken = default);
     }
 }

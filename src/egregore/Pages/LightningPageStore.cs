@@ -1,4 +1,10 @@
-﻿using System;
+﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
+// 
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -39,7 +45,7 @@ namespace egregore.Pages
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            return Task.Run(async ()=>
+            return Task.Run(async () =>
             {
                 AddPage(page);
                 await _events.OnPageAddedAsync(this, page, cancellationToken);
@@ -67,7 +73,7 @@ namespace egregore.Pages
             // index by hashes (check-sums, etc.)
 
             // full text search on title, plaintext body, and tags
-            
+
             var result = tx.Commit();
 
             if (result != MDBResultCode.Success)
@@ -90,7 +96,6 @@ namespace egregore.Pages
 
             var current = cursor.GetCurrent();
             while (current.resultCode == MDBResultCode.Success && !cancellationToken.IsCancellationRequested)
-            {
                 unsafe
                 {
                     var value = current.value.AsSpan();
@@ -103,14 +108,13 @@ namespace egregore.Pages
                         var page = new Page(context);
                         results.Add(page);
                     }
-                    
+
                     var next = cursor.Next();
                     if (next == MDBResultCode.Success)
                         current = cursor.GetCurrent();
                     else
                         break;
                 }
-            }
 
             return results;
         }

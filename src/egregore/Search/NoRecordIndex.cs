@@ -14,7 +14,15 @@ namespace egregore.Search
 {
     internal sealed class NoRecordIndex : IRecordIndex
     {
-        public Task RebuildAsync(IRecordStore store, CancellationToken cancellationToken = default) => Task.CompletedTask;
-        public IAsyncEnumerable<RecordSearchResult> SearchAsync(string query, CancellationToken cancellationToken = default) => AsyncEnumerableExtensions.Empty<RecordSearchResult>();
+        public Task RebuildAsync(IRecordStore store, CancellationToken cancellationToken = default)
+        {
+            return Task.CompletedTask;
+        }
+
+        public IAsyncEnumerable<RecordSearchResult> SearchAsync(string query,
+            CancellationToken cancellationToken = default)
+        {
+            return AsyncEnumerableExtensions.Empty<RecordSearchResult>();
+        }
     }
 }

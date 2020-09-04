@@ -91,8 +91,10 @@ namespace egregore
 
             // extend as certificate authority
             request.CertificateExtensions.Add(new X509KeyUsageExtension(usages, false));
-            request.CertificateExtensions.Add(new X509BasicConstraintsExtension(true, true, 1, true)); // identify as a CA
-            request.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension(new OidCollection {new Oid(ServerAuthenticationOid)}, false));
+            request.CertificateExtensions.Add(
+                new X509BasicConstraintsExtension(true, true, 1, true)); // identify as a CA
+            request.CertificateExtensions.Add(
+                new X509EnhancedKeyUsageExtension(new OidCollection {new Oid(ServerAuthenticationOid)}, false));
             request.CertificateExtensions.Add(sanBuilder.Build());
 
             var after = now.Timestamp.AddDays(-1).AddDays(2); // possibly annoying, but better than keeping roots around

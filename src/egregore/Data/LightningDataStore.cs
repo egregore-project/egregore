@@ -20,9 +20,10 @@ namespace egregore.Data
         private const int DefaultMaxDatabases = 5;
         private const long DefaultMapSize = 10_485_760;
 
-        protected Lazy<LightningEnvironment> env;
+        protected static readonly DatabaseConfiguration Config = new DatabaseConfiguration
+            {Flags = DatabaseOpenFlags.None};
 
-        protected static readonly DatabaseConfiguration Config = new DatabaseConfiguration { Flags = DatabaseOpenFlags.None };
+        protected Lazy<LightningEnvironment> env;
 
         public string DataFile { get; private set; }
 
@@ -64,7 +65,7 @@ namespace egregore.Data
             }
             catch (LightningException)
             {
-                using (tx.OpenDatabase(null, new DatabaseConfiguration { Flags = DatabaseOpenFlags.Create }))
+                using (tx.OpenDatabase(null, new DatabaseConfiguration {Flags = DatabaseOpenFlags.Create}))
                 {
                     tx.Commit();
                 }

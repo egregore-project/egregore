@@ -15,7 +15,10 @@ namespace egregore.Ontology
     {
         long Index { get; }
         void Init(ReadOnlySpan<byte> publicKey);
-        Task MaterializeAsync(ILogStore store, byte[] secretKey = default, long? startingFrom = default, CancellationToken cancellationToken = default);
+
+        Task MaterializeAsync(ILogStore store, byte[] secretKey = default, long? startingFrom = default,
+            CancellationToken cancellationToken = default);
+
         bool Exists(string eggPath);
         string GenerateModels();
 
