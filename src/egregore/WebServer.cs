@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Authentication;
+using egregore.Logging;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
@@ -91,12 +92,13 @@ namespace egregore
                 });
                 webBuilder.ConfigureLogging((context, loggingBuilder) =>
                 {
+                    loggingBuilder.ClearProviders();
                     loggingBuilder.AddConfiguration(context.Configuration.GetSection("Logging"));
                     loggingBuilder.AddDebug();
                     loggingBuilder.AddEventSourceLogger();
 
-                    if (context.HostingEnvironment.IsDevelopment())
-                        loggingBuilder.AddConsole(); // unnecessary overhead
+                    if (context.HostingEnvironment.IsDevelopment()) // unnecessary overhead
+                        loggingBuilder.AddColorConsole(); 
                 });
                 webBuilder.ConfigureServices((context, services) =>
                 {
