@@ -12,17 +12,16 @@ using Lunr;
 
 namespace egregore.Search
 {
-    internal sealed class NoRecordIndex : IRecordIndex
+    internal sealed class NoSearchIndex : ISearchIndex
     {
         public Task RebuildAsync(IRecordStore store, CancellationToken cancellationToken = default)
         {
             return Task.CompletedTask;
         }
 
-        public IAsyncEnumerable<RecordSearchResult> SearchAsync(string query,
-            CancellationToken cancellationToken = default)
+        public IAsyncEnumerable<SearchResult> SearchAsync(string query, CancellationToken cancellationToken = default)
         {
-            return AsyncEnumerableExtensions.Empty<RecordSearchResult>();
+            return AsyncEnumerableExtensions.Empty<SearchResult>();
         }
     }
 }

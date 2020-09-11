@@ -11,9 +11,9 @@ using egregore.Data;
 
 namespace egregore.Search
 {
-    public interface IRecordIndex
+    public interface ISearchIndex
     {
         Task RebuildAsync(IRecordStore store, CancellationToken cancellationToken = default);
-        IAsyncEnumerable<RecordSearchResult> SearchAsync(string query, CancellationToken cancellationToken = default);
+        IAsyncEnumerable<SearchResult> SearchAsync(string query, CancellationToken cancellationToken = default);
     }
 }
