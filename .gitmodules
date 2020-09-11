@@ -1,3 +1,9 @@
 [submodule "submodules/noise"]
 	path = submodules/noise
 	url = https://github.com/egregore-project/noise
+[submodule "lib/blowdart.ui"]
+	path = lib/blowdart.ui
+	url = git@github.com:danielcrenna/blowdart-ui
+[submodule "lib/lunr-core"]
+	path = lib/lunr-core
+	url = git@github.com:danielcrenna/lunr-core

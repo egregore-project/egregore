@@ -54,6 +54,7 @@ namespace egregore
             {
                 public const string RssXml = "application/rss+xml";
                 public const string AtomXml = "application/atom+xml";
+                public const string ProblemJson = "application/problem+json";
             }
 
             public static class Image

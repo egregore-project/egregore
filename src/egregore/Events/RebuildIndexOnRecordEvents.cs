@@ -14,10 +14,10 @@ namespace egregore.Events
 {
     internal sealed class RebuildIndexOnRecordEvents : IRecordEventHandler
     {
-        private readonly IRecordIndex _index;
+        private readonly ISearchIndex _index;
         private readonly ILogger<RebuildIndexOnRecordEvents> _logger;
 
-        public RebuildIndexOnRecordEvents(IRecordIndex index, ILogger<RebuildIndexOnRecordEvents> logger)
+        public RebuildIndexOnRecordEvents(ISearchIndex index, ILogger<RebuildIndexOnRecordEvents> logger)
         {
             _index = index;
             _logger = logger;

@@ -11,7 +11,9 @@ using egregore.Configuration;
 using egregore.Data;
 using egregore.Events;
 using egregore.Filters;
+using egregore.Identity;
 using egregore.IO;
+using egregore.Logging;
 using egregore.Media;
 using egregore.Network;
 using egregore.Ontology;
@@ -19,12 +21,14 @@ using egregore.Pages;
 using egregore.Search;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 
 namespace egregore
 {
@@ -108,10 +112,8 @@ namespace egregore
 
             var change = new DynamicActionDescriptorChangeProvider();
             services.AddSingleton(change);
-            services.AddSingleton<IActionDescriptorChangeProvider, DynamicActionDescriptorChangeProvider>(r =>
-                r.GetRequiredService<DynamicActionDescriptorChangeProvider>());
-            services.AddSingleton<IRecordIndex, LunrRecordIndex>();
-
+            services.AddSingleton<IActionDescriptorChangeProvider, DynamicActionDescriptorChangeProvider>(r => r.GetRequiredService<DynamicActionDescriptorChangeProvider>());
+            services.AddSingleton<ISearchIndex, LunrRecordIndex>();
             services.AddSingleton<PeerBus>();
             services.AddSingleton(r =>
             {
@@ -149,8 +151,34 @@ namespace egregore
             services.AddMemoryCache(x => { });
             services.TryAdd(ServiceDescriptor.Singleton(typeof(ICacheRegion<>), typeof(InProcessCacheRegion<>)));
 
+            AddIdentity(services);
+
 
             return services;
+        }
+
+        private static void AddIdentity(IServiceCollection services)
+        {
+            // FIXME: distinguish between app and api
+            
+            services
+                .AddIdentity<IdentityUser, IdentityRole>()
+                .AddUserStore<UserStore>()
+                .AddRoleStore<RoleStore>()
+                .AddDefaultTokenProviders();
+
+            services.AddAuthentication()
+                .AddJwtBearer(x =>
+                {
+                    x.RequireHttpsMetadata = false;
+                    x.SaveToken = true;
+                    x.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidIssuer = "https://localhost:5001",
+                        ValidAudience = "https://localhost:5001",
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("0123456789abcdef"))
+                    };
+                });
         }
 
         private static void AddDaemonService(IServiceCollection services)
@@ -170,6 +198,8 @@ namespace egregore
             services.AddSingleton<IMediaStore, LightningMediaStore>();
             services.AddSingleton<IRecordStore, LightningRecordStore>();
             services.AddSingleton<IPageStore, LightningPageStore>();
+
+            services.AddSingleton<LightningLoggingStore>();
         }
 
         private static void AddEvents(IServiceCollection services)

@@ -12,11 +12,12 @@ namespace egregore.Ontology
 {
     public class OntologyWriter
     {
-        private readonly IOntologyChangeHandler _changeHandler;
-        private readonly ILogEntryHashProvider _hashProvider;
-        private readonly IOptions<WebServerOptions> _options;
         private readonly ILogStore _store;
         private readonly ILogObjectTypeProvider _typeProvider;
+        private readonly ILogEntryHashProvider _hashProvider;
+
+        private readonly IOntologyChangeHandler _changeHandler;
+        private readonly IOptions<WebServerOptions> _options;
 
         public OntologyWriter(ILogStore store, ILogObjectTypeProvider typeProvider, ILogEntryHashProvider hashProvider,
             IOntologyChangeHandler changeHandler, IOptions<WebServerOptions> options)

@@ -25,15 +25,16 @@ namespace egregore.Data
     {
         private readonly RecordColumnKeyBuilder _columnKeyBuilder;
         private readonly RecordEvents _events;
-        private readonly IRecordIndex _index;
+        private readonly ISearchIndex _index;
 
-        private readonly ILogger<LightningRecordStore> _logger;
-        private readonly IOptions<WebServerOptions> _options;
         private readonly RecordKeyBuilder _recordKeyBuilder;
         private readonly ISequenceProvider _sequence;
         private readonly ILogObjectTypeProvider _typeProvider;
 
-        public LightningRecordStore(IRecordIndex index, RecordEvents events, ILogObjectTypeProvider typeProvider,
+        private readonly ILogger<LightningRecordStore> _logger;
+        private readonly IOptions<WebServerOptions> _options;
+
+        public LightningRecordStore(ISearchIndex index, RecordEvents events, ILogObjectTypeProvider typeProvider,
             IOptions<WebServerOptions> options, ILogger<LightningRecordStore> logger = default)
         {
             _index = index;
@@ -254,8 +255,7 @@ namespace egregore.Data
             return results;
         }
 
-        private unsafe Record GetByIndex(ReadOnlySpan<byte> index, LightningTransaction parent,
-            CancellationToken cancellationToken)
+        private unsafe Record GetByIndex(ReadOnlySpan<byte> index, LightningTransaction parent, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 

@@ -7,11 +7,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using egregore.Configuration;
 using egregore.Hubs;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -22,7 +26,7 @@ namespace egregore
     internal static class Use
     {
         private static readonly string[] BlazorPaths =
-            {"/", "/counter", "/fetchdata", "/meta", "/privacy", "/upload", "/markdown"};
+            {"/", "/counter", "/fetchdata", "/meta", "/privacy", "/upload", "/editor", "/logs", "/metrics"};
 
         public static IApplicationBuilder UseWebServer(this IApplicationBuilder app, IWebHostEnvironment env)
         {
@@ -34,15 +38,38 @@ namespace egregore
 
             if (env.IsDevelopment())
             {
-                app.UseDeveloperExceptionPage();
                 app.UseWebAssemblyDebugging();
             }
             else
             {
-                app.UseExceptionHandler("/error");
-                app.UseStatusCodePagesWithReExecute("/error/{0}");
                 app.UseHsts();
             }
+
+            // See: https://tools.ietf.org/html/rfc7807
+            app.UseExceptionHandler(a =>
+            {
+                // FIXME: Use this for pages, and the default handler if not on a page
+                // app.UseExceptionHandler("/error");
+                // app.UseStatusCodePagesWithReExecute("/error/{0}");
+
+                a.Run(async context =>
+                {
+                    var handler = context.Features.Get<IExceptionHandlerFeature>();
+                    var detail =  handler.Error.ToString();
+                    var problemDetails = new ProblemDetails
+                    {
+                        Title = "An unexpected error occurred!",
+                        Status = 500,
+                        Detail = detail,
+                        Instance = $"urn:myorganization:error:{Guid.NewGuid()}"
+                    };
+
+                    context.Response.StatusCode = 500;
+                    context.Response.ContentType = Constants.MediaTypeNames.Application.ProblemJson;
+                    var options = new JsonSerializerOptions();
+                    await JsonSerializer.SerializeAsync(context.Response.Body, problemDetails, options, context.RequestAborted);
+                });
+            });
 
             app.UseHttpsRedirection();
             app.UseBlazorFrameworkFiles();
@@ -62,10 +89,29 @@ namespace egregore
                 endpoints.MapControllers();
                 endpoints.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
                 endpoints.MapRazorPages();
-                endpoints.MapFallbackToFile("index.html");
+
+                //endpoints.MapFallbackToFile("index.html");
+                endpoints.MapGet("/",CreateRequestDelegate(endpoints, "index.html"));
             });
 
             return app;
+        }
+
+        private static RequestDelegate CreateRequestDelegate(IEndpointRouteBuilder endpoints, string filePath)
+        {
+            var app = endpoints.CreateApplicationBuilder();
+            app.Use(next => context =>
+            {
+                context.Request.Path = "/" + filePath;
+
+                // Set endpoint to null so the static files middleware will handle the request.
+                context.SetEndpoint(null);
+
+                return next(context);
+            });
+
+            app.UseStaticFiles();
+            return app.Build();
         }
 
         public static void UseSecurityHeaders(this IApplicationBuilder app)

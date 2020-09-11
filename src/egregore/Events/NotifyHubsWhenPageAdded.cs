@@ -32,7 +32,7 @@ namespace egregore.Events
             try
             {
                 var notify = _notify.Clients.All.SendAsync(Constants.Notifications.ReceiveMessage, "info",
-                    $"Added new page with ID '{page.Uuid}'", cancellationToken);
+                    $"Added new page with Title '{page.Title}' and ID '{page.Uuid}'", cancellationToken);
                 if (notify.IsCompleted || notify.IsCanceled || notify.IsFaulted)
                     return AsyncExtensions.NoTask;
 

@@ -99,7 +99,7 @@ namespace egregore.Data
         {
             if (!disposing)
                 return;
-            if (env.IsValueCreated)
+            if (env != null && env.IsValueCreated)
                 env.Value.Dispose();
         }
     }

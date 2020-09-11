@@ -33,7 +33,7 @@
     <PackageReference Include="LightningDB" Version="0.13.0">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="LunrCore" Version="2.3.8.5" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.8" />
     <PackageReference Include="NetMQ" Version="4.0.1.4">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
@@ -76,6 +76,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\lib\lunr-core\LunrCore\LunrCore.csproj" />
     <ProjectReference Include="..\..\submodules\noise\Noise\Noise.csproj" />
     <ProjectReference Include="..\egregore.Client\egregore.Client.csproj" />
     <ProjectReference Include="..\egregore.Shared\egregore.Shared.csproj" />
