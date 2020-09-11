@@ -21,15 +21,8 @@ namespace egregore.Logging
             _config = config;
         }
 
-        public IDisposable BeginScope<TState>(TState state)
-        {
-            return null;
-        }
-
-        public bool IsEnabled(LogLevel logLevel)
-        {
-            return true; // already pre-filtered by configuration, handle everything
-        }
+        public IDisposable BeginScope<TState>(TState state) => null;
+        public bool IsEnabled(LogLevel logLevel) => true;
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception,
             Func<TState, Exception, string> formatter)
@@ -47,32 +40,28 @@ namespace egregore.Logging
                 Console.Write($@"{alias}: ");
                 Console.ForegroundColor = ConsoleColor.Gray;
                 Console.WriteLine($@"{_category}[{eventId.Id}]");
-                Console.WriteLine($@"      {formatter(state, exception)}");
+                
+                Console.Write(@"      "); // alignment
+                var message = formatter(state, exception);
+                Console.WriteLine(message);
+
                 Console.ForegroundColor = previous;
             }
         }
 
         private object GetLogLevelAlias(LogLevel logLevel)
         {
-            switch (logLevel)
+            return logLevel switch
             {
-                case LogLevel.Trace:
-                    return "trce";
-                case LogLevel.Debug:
-                    return "dbug";
-                case LogLevel.Information:
-                    return "info";
-                case LogLevel.Warning:
-                    return "warn";
-                case LogLevel.Error:
-                    return "erro";
-                case LogLevel.Critical:
-                    return "crit";
-                case LogLevel.None:
-                    return "none";
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(logLevel), logLevel, null);
-            }
+                LogLevel.Trace => "trce",
+                LogLevel.Debug => "dbug",
+                LogLevel.Information => "info",
+                LogLevel.Warning => "warn",
+                LogLevel.Error => "erro",
+                LogLevel.Critical => "crit",
+                LogLevel.None => "none",
+                _ => throw new ArgumentOutOfRangeException(nameof(logLevel), logLevel, null)
+            };
         }
 
         private static ConsoleColor GetTargetColor(LogLevel logLevel)
