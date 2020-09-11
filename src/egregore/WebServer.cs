@@ -93,9 +93,11 @@ namespace egregore
                 webBuilder.ConfigureLogging((context, loggingBuilder) =>
                 {
                     loggingBuilder.ClearProviders();
+                    
                     loggingBuilder.AddConfiguration(context.Configuration.GetSection("Logging"));
                     loggingBuilder.AddDebug();
                     loggingBuilder.AddEventSourceLogger();
+                    loggingBuilder.AddLightning();
 
                     if (context.HostingEnvironment.IsDevelopment()) // unnecessary overhead
                         loggingBuilder.AddColorConsole(); 
