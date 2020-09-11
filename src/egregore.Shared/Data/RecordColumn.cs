@@ -11,19 +11,20 @@ namespace egregore.Data
 {
     public sealed class RecordColumn : ILogSerialized
     {
-        public RecordColumn(int index, string name, string type, string value)
+        public RecordColumn(int index, string name, string type, string value, string @default)
         {
             Index = index;
             Name = name;
             Type = type;
             Value = value;
+            Default = @default;
         }
 
         public int Index { get; }
         public string Name { get; }
         public string Type { get; }
         public string Value { get; }
-        public string Default { get; set; }
+        public string Default { get; }
 
         public static IComparer<RecordColumn> IndexComparer { get; } = new IndexRelationalComparer();
 
