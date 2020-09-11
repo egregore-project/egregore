@@ -15,7 +15,7 @@ namespace egregore
 
         public GlobalSequenceProvider(string name = Constants.DefaultSequence)
         {
-            _sequence = new Sequence(name);
+            _sequence = new Sequence(Constants.DefaultRootPath, name);
         }
 
         public Task<ulong> GetNextValueAsync()

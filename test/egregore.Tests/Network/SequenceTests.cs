@@ -32,12 +32,12 @@ namespace egregore.Tests.Network
             var sequenceName = $"{Guid.NewGuid()}";
             try
             {
-                using var sequence = new Sequence(sequenceName, startWith, incrementBy);
+                using var sequence = new Sequence(string.Empty, sequenceName, startWith, incrementBy);
                 Assert.Equal(afterIncrement, sequence.GetNextValue());
             }
             finally
             {
-                var destroyMe = new Sequence(sequenceName);
+                var destroyMe = new Sequence(string.Empty, sequenceName);
                 using (destroyMe)
                 {
                 }
@@ -63,19 +63,19 @@ namespace egregore.Tests.Network
             {
                 var one = Task.Run(() =>
                 {
-                    using var sequence = new Sequence(sequenceName);
+                    using var sequence = new Sequence(string.Empty, sequenceName);
                     sequence.GetNextValue();
                 });
 
                 var two = Task.Run(() =>
                 {
-                    using var sequence = new Sequence(sequenceName);
+                    using var sequence = new Sequence(string.Empty, sequenceName);
                     sequence.GetNextValue();
                 });
 
                 var three = Task.Run(() =>
                 {
-                    using var sequence = new Sequence(sequenceName);
+                    using var sequence = new Sequence(string.Empty, sequenceName);
                     sequence.GetNextValue();
                 });
 
@@ -83,14 +83,14 @@ namespace egregore.Tests.Network
                 await two;
                 await one;
 
-                using (var sequence = new Sequence(sequenceName))
+                using (var sequence = new Sequence(string.Empty, sequenceName))
                 {
                     Assert.Equal(2, sequence.Current);
                 }
             }
             finally
             {
-                var destroyMe = new Sequence(sequenceName);
+                var destroyMe = new Sequence(string.Empty, sequenceName);
                 using (destroyMe)
                 {
                 }
@@ -106,7 +106,7 @@ namespace egregore.Tests.Network
 
             try
             {
-                using (var sequence = new Sequence(sequenceName, 1))
+                using (var sequence = new Sequence(string.Empty, sequenceName, 1))
                 {
                     Assert.Equal(2, sequence.GetNextValue());
                 }
@@ -115,7 +115,7 @@ namespace egregore.Tests.Network
                 {
                     return Task.Run(() =>
                     {
-                        using (new Sequence(sequenceName, 5))
+                        using (new Sequence(string.Empty, sequenceName, 5))
                         {
                         }
                     });
@@ -123,7 +123,7 @@ namespace egregore.Tests.Network
             }
             finally
             {
-                var destroyMe = new Sequence(sequenceName);
+                var destroyMe = new Sequence(string.Empty, sequenceName);
                 using (destroyMe)
                 {
                 }

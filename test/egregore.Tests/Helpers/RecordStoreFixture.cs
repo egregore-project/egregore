@@ -21,7 +21,7 @@ namespace egregore.Tests.Helpers
                 PublicKeyString = $"{Guid.NewGuid()}"
             });
 
-            var store = new LightningRecordStore(new NoRecordIndex(), new RecordEvents(), new LogObjectTypeProvider(),
+            var store = new LightningRecordStore(new NoSearchIndex(), new RecordEvents(), new LogObjectTypeProvider(),
                 options);
             store.Init($"{Guid.NewGuid()}.egg");
             Store = store;

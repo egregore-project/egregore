@@ -23,7 +23,7 @@ namespace egregore.Benchmarks
         [GlobalSetup]
         public void Setup()
         {
-            _sequence = new Sequence($"{Guid.NewGuid()}");
+            _sequence = new Sequence(string.Empty, $"{Guid.NewGuid()}");
         }
 
         [GlobalCleanup]

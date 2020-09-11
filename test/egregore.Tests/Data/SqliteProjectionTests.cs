@@ -21,7 +21,7 @@ namespace egregore.Tests.Data
         private static void Create_customer_v1_record(SqliteProjectionFixture fixture)
         {
             var record = new Record {Type = "Customer"};
-            record.Columns.Add(new RecordColumn(0, "Order", "int", "123"));
+            record.Columns.Add(new RecordColumn(0, "Order", "int", "123", "0"));
 
             fixture.Projection.Visit(record);
 
@@ -39,8 +39,8 @@ namespace egregore.Tests.Data
         private static void Create_customer_v2_record(SqliteProjectionFixture fixture)
         {
             var record = new Record {Type = "Customer"};
-            record.Columns.Add(new RecordColumn(0, "Name", "string", "Bobby Tables") {Default = "ABC"});
-            record.Columns.Add(new RecordColumn(1, "Order", "int", "456"));
+            record.Columns.Add(new RecordColumn(0, "Name", "string", "Bobby Tables", "ABC"));
+            record.Columns.Add(new RecordColumn(1, "Order", "int", "456", "0"));
 
             fixture.Projection.Visit(record);
 
@@ -63,7 +63,7 @@ namespace egregore.Tests.Data
         private static void Create_customer_v3_record(SqliteProjectionFixture fixture)
         {
             var record = new Record {Type = "Customer"};
-            record.Columns.Add(new RecordColumn(0, "Name", "string", "Bobby Fables") {Default = "ABC"});
+            record.Columns.Add(new RecordColumn(0, "Name", "string", "Bobby Fables", "ABC"));
 
             fixture.Projection.Visit(record);
 
@@ -84,8 +84,8 @@ namespace egregore.Tests.Data
         private static void Create_customer_v4_record(SqliteProjectionFixture fixture)
         {
             var record = new Record {Type = "Customer"};
-            record.Columns.Add(new RecordColumn(0, "Name", "string", "Bobby Cables") {Default = "ABC"});
-            record.Columns.Add(new RecordColumn(0, "Order", "string", "ABC123") {Default = "XYZ000"});
+            record.Columns.Add(new RecordColumn(0, "Name", "string", "Bobby Cables", "ABC"));
+            record.Columns.Add(new RecordColumn(0, "Order", "string", "ABC123", "XYZ000"));
 
             fixture.Projection.Visit(record);
 

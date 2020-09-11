@@ -13,7 +13,7 @@ namespace egregore.Tests.Helpers
     {
         public SequenceFixture()
         {
-            Sequence = new Sequence($"{Guid.NewGuid()}");
+            Sequence = new Sequence(string.Empty, $"{Guid.NewGuid()}");
         }
 
         public Sequence Sequence { get; }

@@ -23,7 +23,7 @@ namespace egregore.Tests.Data
             using var fixture = new RecordStoreFixture();
 
             var record = new Record {Type = "Customer"};
-            record.Columns.Add(new RecordColumn(0, "Order", "int", "123"));
+            record.Columns.Add(new RecordColumn(0, "Order", "int", "123", "0"));
 
             var next = await fixture.Store.AddRecordAsync(record);
             Assert.Equal(0UL, record.Index);
@@ -46,7 +46,7 @@ namespace egregore.Tests.Data
             using var fixture = new RecordStoreFixture();
 
             var record = new Record {Type = "Customer"};
-            record.Columns.Add(new RecordColumn(0, "Order", "int", "123"));
+            record.Columns.Add(new RecordColumn(0, "Order", "int", "123", "0"));
 
             var next = await fixture.Store.AddRecordAsync(record);
             Assert.Equal(0UL, record.Index);

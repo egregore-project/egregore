@@ -16,11 +16,13 @@ namespace egregore.Network
     public class Sequence : IDisposable
     {
         private readonly long _incrementBy;
+        private readonly string _baseDirectory;
         private readonly string _name;
         private readonly long _startWith;
 
-        public Sequence(string name, long startWith = -1, long incrementBy = 1)
+        public Sequence(string baseDirectory, string name, long startWith = -1, long incrementBy = 1)
         {
+            _baseDirectory = baseDirectory;
             _name = name;
             _startWith = startWith;
             _incrementBy = incrementBy;
@@ -28,8 +30,9 @@ namespace egregore.Network
             if (TryAcquireOutOfProcessLock(out var mutex))
                 try
                 {
-                    if (!File.Exists(SequenceName))
-                        CreateNewMapSource(SequenceName);
+                    var sequenceFile = Path.Combine(_baseDirectory, SequenceName);
+                    if (!File.Exists(sequenceFile))
+                        CreateNewMapSource();
                 }
                 finally
                 {
@@ -44,24 +47,29 @@ namespace egregore.Network
 
         public long Current => GetCurrentValue();
 
-        private string SequenceName => $@"egregore_sequence_{_name}";
-        private string MutexName => $@"egregore_mutex_{_name}";
-
+        private string SequenceName => $@"{_name}.seq";
+        private string MutexName => $@"{_name}.mut";
+         
         public void Dispose()
         {
         }
 
-        private static MemoryMappedFile OpenExistingMapSource(string mapName)
+        private MemoryMappedFile OpenExistingMapSource()
         {
-            return MemoryMappedFile.CreateFromFile(mapName, FileMode.Open, mapName, sizeof(long));
+            Directory.CreateDirectory(_baseDirectory);
+            var filePath = Path.Combine(_baseDirectory, SequenceName);
+            return MemoryMappedFile.CreateFromFile(filePath, FileMode.Open, SequenceName, sizeof(long));
         }
 
-        private void CreateNewMapSource(string mapName)
+        private void CreateNewMapSource()
         {
-            using var fs = new FileStream(mapName, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.ReadWrite);
+            Directory.CreateDirectory(_baseDirectory);
+            var filePath = Path.Combine(_baseDirectory, SequenceName);
+            using var fs = new FileStream(filePath, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.ReadWrite);
             using var bw = new BinaryWriter(fs);
             fs.SetLength(sizeof(long));
             bw.Write(_startWith);
+            bw.Flush();
         }
 
         private long GetCurrentValue()
@@ -71,7 +79,7 @@ namespace egregore.Network
 
             try
             {
-                using var mmf = OpenExistingMapSource(SequenceName);
+                using var mmf = OpenExistingMapSource();
                 using var vs = mmf.CreateViewStream();
                 long current;
                 using (var reader = new BinaryReader(vs))
@@ -115,7 +123,7 @@ namespace egregore.Network
             {
                 long current;
 
-                using (var mmf = OpenExistingMapSource(SequenceName))
+                using (var mmf = OpenExistingMapSource())
                 {
                     using (var vs = mmf.CreateViewStream())
                     {
