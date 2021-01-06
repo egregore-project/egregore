@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\lib\blowdart.ui\src\Blowdart.UI.Web\Blowdart.UI.Web.csproj" />
+    <ProjectReference Include="..\egregore.Logging.LightningDb\egregore.Logging.LightningDb.csproj" />
     <ProjectReference Include="..\egregore.Shared\egregore.Shared.csproj" />
   </ItemGroup>
 

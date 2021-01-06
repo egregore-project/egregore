@@ -72,29 +72,16 @@ namespace egregore.Logging.LightningDb
             }
         }
 
-        public Task<ulong> GetLengthAsync(CancellationToken cancellationToken = default)
+        public Task<long> GetLengthAsync(CancellationToken cancellationToken = default)
         {
             if (cancellationToken.IsCancellationRequested)
-                return Task.FromResult(0UL);
+                return Task.FromResult(0L);
             using var tx = env.Value.BeginTransaction(TransactionBeginFlags.ReadOnly);
             using var db = tx.OpenDatabase(configuration: Config);
-            var count = (ulong) tx.GetEntriesCount(db); // entries also contains handles to databases
+            var count = tx.GetEntriesCount(db); // entries also contains handles to databases
             return Task.FromResult(count);
         }
-
-        public void Destroy()
-        {
-            using (var tx = env.Value.BeginTransaction())
-            {
-                var db = tx.OpenDatabase(configuration: Config);
-                tx.DropDatabase(db);
-                tx.Commit();
-            }
-
-            env.Value.Dispose();
-            Directory.Delete(env.Value.Path, true);
-        }
-
+        
         protected virtual void Dispose(bool disposing)
         {
             if (!disposing)
