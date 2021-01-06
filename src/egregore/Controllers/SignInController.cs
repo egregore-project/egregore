@@ -5,6 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using egregore.Configuration;
+using egregore.Cryptography;
 using egregore.Filters;
 using egregore.Models;
 using Microsoft.AspNetCore.Authorization;

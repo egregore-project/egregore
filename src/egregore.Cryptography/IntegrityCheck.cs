@@ -10,7 +10,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-namespace egregore
+namespace egregore.Cryptography
 {
     internal sealed class IntegrityCheck
     {

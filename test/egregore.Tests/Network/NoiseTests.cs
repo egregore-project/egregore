@@ -5,6 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System;
+using egregore.Cryptography;
 using egregore.Network;
 using egregore.Tests.Helpers;
 using Noise;

@@ -6,7 +6,7 @@
 
 using System;
 
-namespace egregore
+namespace egregore.Cryptography
 {
     public interface IPersistedKeyCapture : IKeyCapture, IDisposable
     {

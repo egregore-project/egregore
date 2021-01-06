@@ -7,9 +7,9 @@
 using System;
 using System.IO;
 
-namespace egregore.IO
+namespace egregore.Cryptography
 {
-    internal sealed class ConsoleKeyCapture : IKeyCapture
+    public sealed class ConsoleKeyCapture : IKeyCapture
     {
         public ConsoleKeyInfo ReadKey()
         {

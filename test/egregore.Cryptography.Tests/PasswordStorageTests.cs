@@ -6,12 +6,10 @@
 
 using System;
 using System.IO;
-using egregore.IO;
-using egregore.Tests.Helpers;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace egregore.Tests
+namespace egregore.Cryptography.Tests
 {
     [Collection("Serial")]
     public class PasswordStorageTests
@@ -73,14 +71,12 @@ namespace egregore.Tests
         [Theory]
         [InlineData("rosebud")]
         [InlineData("rosebud", "rosebud\bt")]
-        public void Fails_password_capture_when_confirm_password_is_incorrect(string plaintext,
-            string plaintextConfirm = null)
+        public void Fails_password_capture_when_confirm_password_is_incorrect(string plaintext, string plaintextConfirm = null)
         {
             var capture = new PlaintextKeyCapture(plaintext, plaintextConfirm ?? $"{plaintext}wrong");
             unsafe
             {
-                var result = KeyFileManager.TryCapturePassword("test", capture, Console.Out, Console.Error,
-                    out var password, out var passwordLength);
+                var result = KeyFileManager.TryCapturePassword("test", capture, Console.Out, Console.Error, out var password, out var passwordLength);
                 Assert.False(result);
                 Assert.True(password == default(byte*));
             }
@@ -93,8 +89,7 @@ namespace egregore.Tests
             unsafe
             {
                 var keyFilePath = Path.GetTempFileName();
-                var keyFileStream = File.Open(keyFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite,
-                    FileShare.ReadWrite);
+                var keyFileStream = File.Open(keyFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
 
                 var @out = new XunitDuplexTextWriter(_output, Console.Out);
                 var error = new XunitDuplexTextWriter(_output, Console.Error);

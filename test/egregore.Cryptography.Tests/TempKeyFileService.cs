@@ -8,9 +8,8 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
-using egregore.Cryptography;
 
-namespace egregore.Tests.Helpers
+namespace egregore.Cryptography.Tests
 {
     internal sealed class TempKeyFileService : IKeyFileService
     {
@@ -31,8 +30,7 @@ namespace egregore.Tests.Helpers
 
         public unsafe byte* GetSecretKeyPointer(IKeyCapture capture, [CallerMemberName] string callerMemberName = null)
         {
-            return Crypto.LoadSecretKeyPointerFromFileStream(GetKeyFilePath(), GetKeyFileStream(), capture,
-                callerMemberName);
+            return Crypto.LoadSecretKeyPointerFromFileStream(GetKeyFilePath(), GetKeyFileStream(), capture, callerMemberName);
         }
 
         public void Dispose()

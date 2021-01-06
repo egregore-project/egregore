@@ -6,8 +6,8 @@
 
 using System.Linq;
 using System.Text;
-using egregore.IO;
-using egregore.Tests.Helpers;
+using egregore.Cryptography;
+using egregore.Cryptography.Tests;
 using Xunit;
 using Xunit.Abstractions;
 

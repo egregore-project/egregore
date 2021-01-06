@@ -7,9 +7,9 @@
 using System;
 using System.IO;
 
-namespace egregore.IO
+namespace egregore.Cryptography
 {
-    internal sealed class ServerConsoleKeyCapture : IPersistedKeyCapture
+    public sealed class ServerConsoleKeyCapture : IPersistedKeyCapture
     {
         private unsafe byte* _password;
         private int _passwordLength;

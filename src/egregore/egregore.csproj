@@ -79,6 +79,7 @@
     <ProjectReference Include="..\..\lib\lunr-core\LunrCore\LunrCore.csproj" />
     <ProjectReference Include="..\..\submodules\noise\Noise\Noise.csproj" />
     <ProjectReference Include="..\egregore.Client\egregore.Client.csproj" />
+    <ProjectReference Include="..\egregore.Cryptography\egregore.Cryptography.csproj" />
     <ProjectReference Include="..\egregore.Logging.LightningDb\egregore.Logging.LightningDb.csproj" />
     <ProjectReference Include="..\egregore.Shared\egregore.Shared.csproj" />
   </ItemGroup>

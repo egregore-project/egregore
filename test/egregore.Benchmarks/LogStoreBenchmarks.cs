@@ -8,6 +8,7 @@ using System;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
+using egregore.Cryptography;
 using egregore.Ontology;
 
 namespace egregore.Benchmarks

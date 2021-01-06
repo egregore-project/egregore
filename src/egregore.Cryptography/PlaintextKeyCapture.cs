@@ -8,9 +8,9 @@ using System;
 using System.IO;
 using System.Text;
 
-namespace egregore.IO
+namespace egregore.Cryptography
 {
-    internal sealed class PlaintextKeyCapture : IKeyCapture
+    public sealed class PlaintextKeyCapture : IKeyCapture
     {
         private const char EnterKeyChar = '\u0000';
         private const char BackspaceKeyChar = '\b';

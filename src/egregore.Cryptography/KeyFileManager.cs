@@ -27,9 +27,8 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.MemoryMappedFiles;
-using egregore.Extensions;
 
-namespace egregore.IO
+namespace egregore.Cryptography
 {
     /// <summary>
     ///     Encrypts secret keys by deriving another key from a password and mixing.
@@ -40,7 +39,7 @@ namespace egregore.IO
     ///         then Argon2 is a better choice.
     ///     </remarks>
     /// </summary>
-    internal static class KeyFileManager
+    public static class KeyFileManager
     {
         private const string BackspaceSpaceBackspace = "\b \b";
 

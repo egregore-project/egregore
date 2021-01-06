@@ -10,11 +10,10 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
-using egregore.IO;
 
-namespace egregore
+namespace egregore.Cryptography
 {
-    internal static class Crypto
+    public static class Crypto
     {
         public const uint PublicKeyBytes = 32U;
         public const uint SecretKeyBytes = 64U;
@@ -119,6 +118,27 @@ namespace egregore
             }
         }
 
+        public static string Fingerprint(string appString, ReadOnlySpan<byte> publicKey)
+        {
+            unsafe
+            {
+                var buffer = new byte[8];
+
+                var app = Encoding.UTF8.GetBytes(appString);
+
+                fixed (byte* pk = publicKey)
+                fixed (byte* id = buffer)
+                fixed (byte* key = app)
+                {
+                    if (NativeMethods.crypto_generichash(id, buffer.Length, pk, PublicKeyBytes, key, app.Length) != 0)
+                        throw new InvalidOperationException(nameof(NativeMethods.crypto_generichash));
+                }
+
+                var fingerprint = ToHexString(buffer);
+                return fingerprint;
+            }
+        }
+
         #endregion
 
         #region Cryptographic Hashing
@@ -145,7 +165,7 @@ namespace egregore
 
         #endregion
 
-        #region Public-key cryptography (Ed25519)
+        #region Public-key Cryptography (Ed25519)
 
         public static unsafe void GenerateKeyPair(out byte[] publicKey, out byte* secretKey)
         {
@@ -266,7 +286,7 @@ namespace egregore
 
         #endregion
 
-        #region File operations
+        #region File Operations
 
         public static unsafe byte* LoadSecretKeyPointerFromFileStream(string keyFilePath, FileStream keyFileStream,
             IPersistedKeyCapture capture, [CallerMemberName] string callerMemberName = null)
@@ -289,6 +309,10 @@ namespace egregore
                     $"{callerMemberName}: Cannot load key file at path '{keyFilePath}'");
             return sk;
         }
+
+        #endregion
+
+        #region Helper Functions
 
         #endregion
     }

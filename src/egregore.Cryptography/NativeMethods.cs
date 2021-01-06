@@ -10,10 +10,10 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
-namespace egregore
+namespace egregore.Cryptography
 {
     [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Binding")]
-    internal static class NativeMethods
+    public static class NativeMethods
     {
         public const string DllName = "libsodium";
 

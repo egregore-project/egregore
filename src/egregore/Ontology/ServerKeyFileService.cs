@@ -6,6 +6,7 @@
 
 using System.IO;
 using System.Runtime.CompilerServices;
+using egregore.Cryptography;
 
 namespace egregore.Ontology
 {

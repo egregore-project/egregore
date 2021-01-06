@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.InteropServices;
+using egregore.Cryptography;
 using egregore.Extensions;
 using egregore.IO;
 using egregore.Ontology;

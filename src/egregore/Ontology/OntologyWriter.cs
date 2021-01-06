@@ -6,6 +6,7 @@
 
 using System.Threading.Tasks;
 using egregore.Configuration;
+using egregore.Cryptography;
 using Microsoft.Extensions.Options;
 
 namespace egregore.Ontology

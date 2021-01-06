@@ -6,13 +6,13 @@
 
 using System;
 using System.IO;
-using System.Runtime.CompilerServices;
 
-namespace egregore
+namespace egregore.Cryptography
 {
-    public interface IKeyFileService : IDisposable
+    public interface IKeyCapture
     {
-        FileStream GetKeyFileStream();
-        unsafe byte* GetSecretKeyPointer(IKeyCapture capture, [CallerMemberName] string callerMemberName = null);
+        ConsoleKeyInfo ReadKey();
+        void Reset();
+        void OnKeyRead(TextWriter @out);
     }
 }

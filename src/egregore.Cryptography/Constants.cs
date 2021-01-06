@@ -5,10 +5,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System.IO;
-using egregore.Cryptography;
-using egregore.IO;
 
-namespace egregore
+namespace egregore.Cryptography
 {
     internal static class Constants
     {

@@ -5,12 +5,10 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System;
-using egregore.Cryptography;
-using egregore.IO;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace egregore.Tests.Helpers
+namespace egregore.Cryptography.Tests
 {
     public static class CryptoTestHarness
     {

@@ -4,10 +4,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-using System;
 using System.Text;
 using egregore.Caching;
 using egregore.Configuration;
+using egregore.Cryptography;
 using egregore.Data;
 using egregore.Events;
 using egregore.Filters;
@@ -58,23 +58,11 @@ namespace egregore
             var publicKey = Crypto.SigningPublicKeyFromSigningKey(keyFileService, capture);
             capture.Reset();
 
-            var fingerprint = new byte[8];
             var appString = $"{env.ApplicationName}:" +
                             $"{env.EnvironmentName}:" +
                             $"{webBuilder.GetSetting("https_port")}";
 
-            var app = Encoding.UTF8.GetBytes(appString);
-
-            fixed (byte* pk = publicKey)
-            fixed (byte* id = fingerprint)
-            fixed (byte* key = app)
-            {
-                if (NativeMethods.crypto_generichash(id, fingerprint.Length, pk, Crypto.PublicKeyBytes, key,
-                    app.Length) != 0)
-                    throw new InvalidOperationException(nameof(NativeMethods.crypto_generichash));
-            }
-
-            var serverId = Crypto.ToHexString(fingerprint);
+            var serverId = Crypto.Fingerprint(appString, publicKey);
 
             services.Configure<WebServerOptions>(config.GetSection("WebServer"));
             services.Configure<WebServerOptions>(o =>

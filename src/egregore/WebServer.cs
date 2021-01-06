@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Authentication;
+using egregore.Cryptography;
 using egregore.Logging;
 using egregore.Logging.LightningDb;
 using Microsoft.AspNetCore.Hosting;
@@ -72,9 +73,9 @@ namespace egregore
 
                 webBuilder.ConfigureAppConfiguration((context, configBuilder) =>
                 {
-                    configBuilder
-                        .AddEnvironmentVariables();
+                    configBuilder.AddEnvironmentVariables();
                 });
+
                 webBuilder.ConfigureKestrel((context, options) =>
                 {
                     options.AddServerHeader = false;
@@ -91,6 +92,7 @@ namespace egregore
                         });
                     });
                 });
+
                 webBuilder.ConfigureLogging((context, loggingBuilder) =>
                 {
                     loggingBuilder.ClearProviders();

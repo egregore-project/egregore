@@ -10,6 +10,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
+using egregore.Cryptography;
 using egregore.Extensions;
 using NetMQ;
 using Noise;
