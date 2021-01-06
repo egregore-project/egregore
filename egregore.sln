@@ -64,8 +64,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Demo", "lib\blowdart.ui\tes
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Blowdart.UI.Web", "lib\blowdart.ui\src\Blowdart.UI.Web\Blowdart.UI.Web.csproj", "{0BD3BFE7-DE5F-415B-9C8C-6E93E5CC42D5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LunrCoreContrib", "..\lunr-core\LunrCoreContrib\LunrCoreContrib.csproj", "{A795FD4E-9E8D-4A6F-98F9-DDB0426BA26B}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -140,10 +138,6 @@ Global
 		{0BD3BFE7-DE5F-415B-9C8C-6E93E5CC42D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0BD3BFE7-DE5F-415B-9C8C-6E93E5CC42D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0BD3BFE7-DE5F-415B-9C8C-6E93E5CC42D5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A795FD4E-9E8D-4A6F-98F9-DDB0426BA26B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A795FD4E-9E8D-4A6F-98F9-DDB0426BA26B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A795FD4E-9E8D-4A6F-98F9-DDB0426BA26B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A795FD4E-9E8D-4A6F-98F9-DDB0426BA26B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -166,7 +160,6 @@ Global
 		{35029FEE-1C59-47ED-8C7B-F3C28EF71E21} = {F836212F-01E6-4CA7-9E38-33C5E4A15E12}
 		{A39923A2-2664-4718-A82E-72C25CB4E274} = {F836212F-01E6-4CA7-9E38-33C5E4A15E12}
 		{0BD3BFE7-DE5F-415B-9C8C-6E93E5CC42D5} = {F836212F-01E6-4CA7-9E38-33C5E4A15E12}
-		{A795FD4E-9E8D-4A6F-98F9-DDB0426BA26B} = {F836212F-01E6-4CA7-9E38-33C5E4A15E12}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {EEFF3B3A-327F-4951-BFDA-7931BFDB52BC}
