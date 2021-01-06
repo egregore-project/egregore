@@ -10,6 +10,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Authentication;
 using egregore.Logging;
+using egregore.Logging.LightningDb;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
@@ -97,15 +98,18 @@ namespace egregore
                     loggingBuilder.AddConfiguration(context.Configuration.GetSection("Logging"));
                     loggingBuilder.AddDebug();
                     loggingBuilder.AddEventSourceLogger();
-                    loggingBuilder.AddLightning();
+                    loggingBuilder.AddLightning(() =>
+                    {
+                        throw new NotImplementedException("configuring WebServerOptions needs to be higher");
+                        // return Path.Combine(Constants.DefaultRootPath, $"{options.Value.PublicKeyString}_logs.egg");
+                    });
 
                     if (context.HostingEnvironment.IsDevelopment()) // unnecessary overhead
                         loggingBuilder.AddColorConsole(); 
                 });
                 webBuilder.ConfigureServices((context, services) =>
                 {
-                    services.AddWebServer(eggPath, capture, context.HostingEnvironment, context.Configuration,
-                        webBuilder);
+                    services.AddWebServer(eggPath, capture, context.HostingEnvironment, context.Configuration, webBuilder);
                 });
 
                 webBuilder.Configure((context, app) => { app.UseWebServer(context.HostingEnvironment); });

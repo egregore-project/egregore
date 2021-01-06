@@ -5,27 +5,32 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System;
-using System.IO;
-using egregore.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
-namespace egregore.Logging
+namespace egregore.Logging.LightningDb
 {
     public class LightningLogger : ILogger
     {
         private readonly LightningLoggingStore _store;
 
-        public LightningLogger(LightningLoggingStore store, IOptions<WebServerOptions> options)
+        public LightningLogger(LightningLoggingStore store, Func<string> getStorePath)
         {
             _store = store;
-            _store.Init(Path.Combine(Constants.DefaultRootPath, $"{options.Value.PublicKeyString}_logs.egg"));
+            _store.Init(getStorePath());
         }
 
-        public IDisposable BeginScope<TState>(TState state) => null;
-        public bool IsEnabled(LogLevel logLevel) => true;
+        public IDisposable BeginScope<TState>(TState state)
+        {
+            return null;
+        }
 
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        public bool IsEnabled(LogLevel logLevel)
+        {
+            return true;
+        }
+
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception,
+            Func<TState, Exception, string> formatter)
         {
             if (!IsEnabled(logLevel))
                 return;

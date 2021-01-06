@@ -9,30 +9,20 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
-using egregore.Data;
-using egregore.Extensions;
 using LightningDB;
 using Microsoft.Extensions.Logging;
 
-namespace egregore.Logging
+namespace egregore.Logging.LightningDb
 {
     public sealed class LightningLoggingStore : LightningDataStore
     {
-#pragma warning disable CS0169 // The field 'LightningLoggingStore._index' is never used
-        private Lunr.Index _index;
-#pragma warning restore CS0169 // The field 'LightningLoggingStore._index' is never used
-
-        public LightningLoggingStore()
-        {
-            
-        }
-
-        public void Append<TState>(LogLevel logLevel, in EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        public void Append<TState>(LogLevel logLevel, in EventId eventId, TState state, Exception exception,
+            Func<TState, Exception, string> formatter)
         {
             var entry = new LoggingEntry(Guid.NewGuid(), exception)
             {
-                LogLevel = logLevel, 
-                EventId = eventId, 
+                LogLevel = logLevel,
+                EventId = eventId,
                 Message = formatter(state, exception)
             };
 
@@ -40,16 +30,16 @@ namespace egregore.Logging
             using var bw = new BinaryWriter(ms);
             var context = new LoggingSerializeContext(bw);
             entry.Serialize(context);
-            
+
             using var tx = env.Value.BeginTransaction(TransactionBeginFlags.None);
             using var db = tx.OpenDatabase(configuration: Config);
-            
+
             var id = entry.Id.ToByteArray();
             var value = ms.ToArray();
 
             // master
             tx.Put(db, id, value, PutOptions.NoOverwrite);
-            
+
             // entry-by-id => master
             tx.Put(db, Encoding.UTF8.GetBytes($"E:{entry.Id}"), id, PutOptions.NoOverwrite);
 
@@ -58,7 +48,7 @@ namespace egregore.Logging
 
             tx.Commit();
         }
-        
+
         public IEnumerable<LoggingEntry> Get(CancellationToken cancellationToken = default)
         {
             var key = Encoding.UTF8.GetBytes("E:");
@@ -102,12 +92,16 @@ namespace egregore.Logging
 
             return entries;
         }
-        
-        private unsafe LoggingEntry GetByIndex(ReadOnlySpan<byte> index, LightningTransaction parent, CancellationToken cancellationToken)
+
+        private unsafe LoggingEntry GetByIndex(ReadOnlySpan<byte> index, LightningTransaction parent,
+            CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using var tx = env.Value.BeginTransaction(parent == null ? TransactionBeginFlags.ReadOnly : TransactionBeginFlags.None);
+            using var tx =
+                env.Value.BeginTransaction(parent == null
+                    ? TransactionBeginFlags.ReadOnly
+                    : TransactionBeginFlags.None);
             using var db = tx.OpenDatabase(configuration: Config);
             using var cursor = tx.CreateCursor(db);
 
@@ -126,7 +120,7 @@ namespace egregore.Logging
                 using var ms = new UnmanagedMemoryStream(buf, buffer.Length);
                 using var br = new BinaryReader(ms);
                 var context = new LoggingDeserializeContext(br);
-                
+
                 var uuid = br.ReadGuid();
                 var entry = new LoggingEntry(uuid, context);
                 return entry;

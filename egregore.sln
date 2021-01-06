@@ -68,6 +68,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorApp1.Client", "src\Bl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorApp1.Shared", "src\BlazorApp1\Shared\BlazorApp1.Shared.csproj", "{C64D5999-67D5-460D-A9C2-633AAC32CAE1}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "egregore.Logging.LightningDb", "src\egregore.Logging.LightningDb\egregore.Logging.LightningDb.csproj", "{ABA5251D-31E5-4156-BF94-C01FCA1120F2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -150,6 +152,10 @@ Global
 		{C64D5999-67D5-460D-A9C2-633AAC32CAE1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C64D5999-67D5-460D-A9C2-633AAC32CAE1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C64D5999-67D5-460D-A9C2-633AAC32CAE1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ABA5251D-31E5-4156-BF94-C01FCA1120F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ABA5251D-31E5-4156-BF94-C01FCA1120F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ABA5251D-31E5-4156-BF94-C01FCA1120F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ABA5251D-31E5-4156-BF94-C01FCA1120F2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -174,6 +180,7 @@ Global
 		{AB1EF434-69A7-4FDE-8C8A-AD8C82257B0E} = {40D8FAD2-2FEB-41A5-98E1-84876EF10EE8}
 		{76D1BD8F-50F5-4B59-9D3A-669B8C4A4C1C} = {40D8FAD2-2FEB-41A5-98E1-84876EF10EE8}
 		{C64D5999-67D5-460D-A9C2-633AAC32CAE1} = {40D8FAD2-2FEB-41A5-98E1-84876EF10EE8}
+		{ABA5251D-31E5-4156-BF94-C01FCA1120F2} = {40D8FAD2-2FEB-41A5-98E1-84876EF10EE8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {EEFF3B3A-327F-4951-BFDA-7931BFDB52BC}

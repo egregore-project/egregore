@@ -13,7 +13,6 @@ using egregore.Events;
 using egregore.Filters;
 using egregore.Identity;
 using egregore.IO;
-using egregore.Logging;
 using egregore.Media;
 using egregore.Network;
 using egregore.Ontology;
@@ -86,9 +85,6 @@ namespace egregore
                 o.EggPath = eggPath;
             });
 
-            var o = new WebServerOptions();
-            config.Bind(o);
-
             services.AddAntiforgery(o =>
             {
                 o.Cookie.Name = $"_{serverId}_xsrf";
@@ -152,8 +148,6 @@ namespace egregore
             services.TryAdd(ServiceDescriptor.Singleton(typeof(ICacheRegion<>), typeof(InProcessCacheRegion<>)));
 
             AddIdentity(services);
-
-
             return services;
         }
 
@@ -198,8 +192,6 @@ namespace egregore
             services.AddSingleton<IMediaStore, LightningMediaStore>();
             services.AddSingleton<IRecordStore, LightningRecordStore>();
             services.AddSingleton<IPageStore, LightningPageStore>();
-
-            services.AddSingleton<LightningLoggingStore>();
         }
 
         private static void AddEvents(IServiceCollection services)
@@ -207,12 +199,10 @@ namespace egregore
             services.AddSingleton<RecordEvents>();
             services.TryAddEnumerable(ServiceDescriptor.Singleton<IRecordEventHandler, RebuildIndexOnRecordEvents>());
             services.TryAddEnumerable(ServiceDescriptor.Singleton<IRecordEventHandler, NotifyHubsWhenRecordAdded>());
-            services.TryAddEnumerable(
-                ServiceDescriptor.Singleton<IRecordEventHandler, InvalidateCachesWhenRecordAdded>());
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<IRecordEventHandler, InvalidateCachesWhenRecordAdded>());
 
             services.AddSingleton<OntologyEvents>();
-            services.TryAddEnumerable(ServiceDescriptor
-                .Singleton<IOntologyEventHandler, RebuildControllersWhenSchemaAdded>());
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<IOntologyEventHandler, RebuildControllersWhenSchemaAdded>());
             services.TryAddEnumerable(ServiceDescriptor.Singleton<IOntologyEventHandler, NotifyHubsWhenSchemaAdded>());
 
             services.AddSingleton<MediaEvents>();

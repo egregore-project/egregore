@@ -1,4 +1,5 @@
 ﻿using System.Threading;
+using egregore.Logging.LightningDb;
 using Microsoft.AspNetCore.Mvc;
 
 namespace egregore.Logging
