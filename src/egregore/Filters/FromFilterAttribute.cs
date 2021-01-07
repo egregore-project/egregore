@@ -12,8 +12,6 @@ namespace egregore.Filters
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Parameter)]
     public sealed class FromFilterAttribute : BindingBehaviorAttribute
     {
-        public FromFilterAttribute() : base(BindingBehavior.Never)
-        {
-        }
+        public FromFilterAttribute() : base(BindingBehavior.Never) { }
     }
 }

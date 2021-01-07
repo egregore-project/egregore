@@ -6,6 +6,7 @@
 
 using System;
 using System.Text;
+using egregore.Models;
 
 namespace egregore.Extensions
 {

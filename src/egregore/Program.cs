@@ -12,7 +12,6 @@ using System.IO;
 using System.Runtime.InteropServices;
 using egregore.Cryptography;
 using egregore.Extensions;
-using egregore.Models;
 
 namespace egregore
 {
@@ -27,8 +26,7 @@ namespace egregore
         [ExcludeFromCodeCoverage]
         public static void Main(params string[] args)
         {
-            // Pre-initialize libsodium as deferring causes assertion errors on Linux containers
-            Crypto.Initialize();
+            Crypto.Initialize(); // Pre-initialize libsodium as deferring causes assertion errors on Linux containers
 
             try
             {
@@ -54,10 +52,8 @@ namespace egregore
             var password = Environment.GetEnvironmentVariable(Constants.EnvVars.KeyFilePassword);
             if (string.IsNullOrWhiteSpace(password))
             {
-                Console.Error.WriteErrorLine(
-                    $"Could not locate '{Constants.EnvVars.KeyFilePassword}' variable for container deployment.");
-                Console.Out.WriteInfoLine(
-                    "To run the server interactively to input a password, use the --server argument.");
+                Console.Error.WriteErrorLine($"Could not locate '{Constants.EnvVars.KeyFilePassword}' variable for container deployment.");
+                Console.Out.WriteInfoLine("To run the server interactively to input a password, use the --server argument.");
                 Environment.Exit(-1);
             }
             else
@@ -90,11 +86,6 @@ namespace egregore
                     #endregion
 
                     #region CLI Commands
-
-                    case "--append":
-                    case "-a":
-                        Append(arguments);
-                        return false;
 
                     case "--cert":
                     case "--certs":
@@ -196,65 +187,6 @@ namespace egregore
             if (!interactive) LaunchBrowserUrl($"https://localhost:{port.GetValueOrDefault(Constants.DefaultPort)}");
 
             WebServer.Run(port, eggPath, capture, arguments.ToArray());
-        }
-
-        private static void Append(Queue<string> arguments)
-        {
-            if (arguments.EndOfSubArguments())
-            {
-                Console.Error.WriteErrorLine("Missing append command");
-                return;
-            }
-
-            var command = arguments.Dequeue();
-            switch (command)
-            {
-                case Constants.Commands.GrantRole:
-                    GrantRole(arguments);
-                    break;
-            }
-        }
-
-        private static void GrantRole(Queue<string> arguments)
-        {
-            if (arguments.EndOfSubArguments())
-            {
-                Console.Error.WriteErrorLine("Missing role data");
-                return;
-            }
-
-            var value = arguments.Dequeue();
-            if (arguments.EndOfSubArguments())
-            {
-                Console.Error.WriteErrorLine("Missing privilege");
-                return;
-            }
-
-            var authorityString = arguments.Dequeue();
-            var authority = authorityString.ToBinary();
-
-            if (arguments.EndOfSubArguments())
-            {
-                Console.Error.WriteErrorLine("Missing subject");
-                return;
-            }
-
-            var subjectString = arguments.Dequeue();
-            var subject = subjectString.ToBinary();
-
-            if (arguments.EndOfSubArguments())
-            {
-                Console.Error.WriteErrorLine("Missing signature");
-                return;
-            }
-
-            var signatureString = arguments.Dequeue();
-            var signature = signatureString.ToBinary();
-
-            var grant = new GrantRole(value, authority, subject, signature);
-            if (!grant.Verify()) Console.Error.WriteErrorLine("Invalid signature");
-
-            Console.WriteLine("TODO: append privilege to ontology");
         }
 
         public static void LaunchBrowserUrl(string url)

@@ -24,7 +24,7 @@
                connect-src https://cdn.jsdelivr.net/codemirror.spell-checker/latest/en_US.aff
                            https://cdn.jsdelivr.net/codemirror.spell-checker/latest/en_US.dic
                            'self';
-                
+
                font-src https://maxcdn.bootstrapcdn.com/font-awesome/latest/fonts/fontawesome-webfont.ttf
                         https://maxcdn.bootstrapcdn.com/font-awesome/latest/fonts/fontawesome-webfont.woff
                         https://maxcdn.bootstrapcdn.com/font-awesome/latest/fonts/fontawesome-webfont.woff2
@@ -51,13 +51,14 @@
     <link rel="stylesheet" type="text/css" href="/lib/toastr/build/toastr.min.css" />
     <link rel="stylesheet" type="text/css" href="/lib/easymde/dist/easymde.min.css" />
 
-    <link rel="stylesheet" type="text/css" href="/css/notify.css" />
     <link rel="stylesheet" type="text/css" href="/css/app.css" />
+    <link rel="stylesheet" type="text/css" href="/css/notify.css" />
     <link rel="stylesheet" type="text/css" href="/css/demo.css" />
+    <link href="egregore.Client.styles.css" rel="stylesheet" />
 </head>
 
 <body>
-    <app>Loading...</app>
+    <div id="app">Loading...</div>
 
     <div id="blazor-error-ui">
         An unhandled error has occurred.
@@ -71,14 +72,12 @@
     <script type="text/javascript" src="/lib/toastr/build/toastr.min.js"></script>
     <script type="text/javascript" src="/lib/d3/dist/d3.min.js"></script>
     <script type="text/javascript" src="/lib/dagre-d3/dist/dagre-d3.min.js"></script>
-    <script type="text/javascript" src="/lib/easymde/dist/easymde.min.js"></script>   
-
+    <script type="text/javascript" src="/lib/easymde/dist/easymde.min.js"></script>
     <script type="text/javascript" src="/js/notify.js"></script>
     <script type="text/javascript" src="/js/demo.js"></script>
     <script type="text/javascript" src="/js/md.js"></script>
-
-    <script src="_content/BlazorInputFile/inputfile.js"></script>
-    <script type="text/javascript" src="_framework/blazor.webassembly.js"></script>
+    
+    <script src="_framework/blazor.webassembly.js"></script>
 </body>
 
 </html>

@@ -57,7 +57,7 @@ namespace egregore
                         Title = "An unexpected error occurred!",
                         Status = 500,
                         Detail = detail,
-                        Instance = $"urn:myorganization:error:{Guid.NewGuid()}"
+                        Instance = $"urn:egregore:error:{Guid.NewGuid()}"
                     };
 
                     context.Response.StatusCode = 500;
@@ -73,43 +73,24 @@ namespace egregore
 
             var provider = new FileExtensionContentTypeProvider();
             provider.Mappings[".webmanifest"] = "application/manifest+json";
-            app.UseStaticFiles(new StaticFileOptions {ContentTypeProvider = provider});
-
+            app.UseStaticFiles(new StaticFileOptions { ContentTypeProvider = provider });
+            
             app.UseSecurityHeaders();
             app.UseRouting();
             app.UseAuthorization();
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapRazorPages();
+                endpoints.MapControllers();
+                endpoints.MapDefaultControllerRoute();
                 endpoints.MapHub<NotificationHub>("/notify");
                 endpoints.MapHub<LiveQueryHub>("/query");
-
-                endpoints.MapControllers();
-                endpoints.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
-                endpoints.MapRazorPages();
-
-                //endpoints.MapFallbackToFile("index.html");
-                endpoints.MapGet("/", CreateRequestDelegate(endpoints, "index.html"));
+                endpoints.MapFallbackToFile("index.html");
             });
 
             return app;
         }
 
-        private static RequestDelegate CreateRequestDelegate(IEndpointRouteBuilder endpoints, string filePath)
-        {
-            var app = endpoints.CreateApplicationBuilder();
-            app.Use(next => context =>
-            {
-                context.Request.Path = "/" + filePath;
-
-                // Set endpoint to null so the static files middleware will handle the request.
-                context.SetEndpoint(null);
-
-                return next(context);
-            });
-
-            app.UseStaticFiles();
-            return app.Build();
-        }
 
         public static void UseSecurityHeaders(this IApplicationBuilder app)
         {

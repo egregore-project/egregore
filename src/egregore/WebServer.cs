@@ -31,7 +31,7 @@ namespace egregore
         public static void Run(int? port, string eggPath, IKeyCapture capture, params string[] args)
         {
             PrintMasthead();
-            var builder = CreateHostBuilder(port, eggPath, capture, default, args);
+            var builder = CreateHostBuilder(port, eggPath, capture, args);
             var host = builder.Build();
             host.Run();
         }
@@ -60,7 +60,7 @@ namespace egregore
             Console.ResetColor();
         }
 
-        internal static IHostBuilder CreateHostBuilder(int? port, string eggPath, IKeyCapture capture, Type startupType = default, params string[] args)
+        internal static IHostBuilder CreateHostBuilder(int? port, string eggPath, IKeyCapture capture, params string[] args)
         {
             var builder = Host.CreateDefaultBuilder(args);
 
@@ -107,28 +107,29 @@ namespace egregore
                     if (context.HostingEnvironment.IsDevelopment()) // unnecessary overhead
                         loggingBuilder.AddColorConsole();
                 });
+
                 webBuilder.ConfigureServices((context, services) =>
                 {
                     services.AddWebServer(eggPath, capture, context.HostingEnvironment, context.Configuration, webBuilder);
                 });
 
-                webBuilder.Configure((context, app) => { app.UseWebServer(context.HostingEnvironment); });
+                webBuilder.Configure((context, app) =>
+                {
+                    app.UseWebServer(context.HostingEnvironment);
+                });
 
-#if DEBUG
-                // This is glue for development only, when running in the /bin folder but wwwroot is a few directories back
+                webBuilder.UseStaticWebAssets();
 
+                //var previousWebRoot = webBuilder.GetSetting(WebHostDefaults.WebRootKey);
+                //var previousContentRoot = webBuilder.GetSetting(WebHostDefaults.ContentRootKey);
+                
                 var contentRoot = Directory.GetCurrentDirectory();
                 var webRoot = Path.Combine(contentRoot, "wwwroot");
-
                 if (!File.Exists(Path.Combine(webRoot, "css", "signin.css")))
-                    webRoot = Path.Combine(contentRoot, "..", "..", "..", "wwwroot");
+                    webRoot = Path.GetFullPath(Path.Combine(contentRoot, "..", "egregore.Client", "wwwroot"));
 
                 webBuilder.UseContentRoot(contentRoot);
                 webBuilder.UseWebRoot(webRoot);
-
-#endif
-                if (startupType != default)
-                    webBuilder.UseStartup(startupType);
             });
 
             return builder;

@@ -16,13 +16,13 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace egregore
+namespace egregore.Models
 {
-    public sealed class WebServerHostedService : IHostedService, IOntologyChangeHandler, IDisposable
+    public sealed class DaemonService : IHostedService, IOntologyChangeHandler, IDisposable
     {
         private readonly PeerBus _bus;
         private readonly RecordEvents _events;
-        private readonly ILogger<WebServerHostedService> _logger;
+        private readonly ILogger<DaemonService> _logger;
         private readonly ILogStore _logs;
         private readonly IOntologyLog _ontology;
         private readonly IOptionsMonitor<WebServerOptions> _options;
@@ -31,8 +31,8 @@ namespace egregore
 
         private Timer _timer;
 
-        public WebServerHostedService(PeerBus bus, IOntologyLog ontology, ILogStore logs, IRecordStore records,
-            RecordEvents events, IOptionsMonitor<WebServerOptions> options, ILogger<WebServerHostedService> logger)
+        public DaemonService(PeerBus bus, IOntologyLog ontology, ILogStore logs, IRecordStore records,
+            RecordEvents events, IOptionsMonitor<WebServerOptions> options, ILogger<DaemonService> logger)
         {
             _bus = bus;
             _ontology = ontology;

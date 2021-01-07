@@ -45,7 +45,7 @@ namespace egregore.Filters
         public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
             // FIXME: we do not want any allocations here, and could use reflection to pull PrivateAddress/_numbers
-            var hash = context.HttpContext.Connection.RemoteIpAddress.GetAddressBytes();
+            var hash = context.HttpContext.Connection.RemoteIpAddress?.GetAddressBytes();
             var cacheKey = WyHash64.ComputeHash64(hash, Seed);
 
             var now = DateTimeOffset.UtcNow;
@@ -65,7 +65,7 @@ namespace egregore.Filters
         {
             context.HttpContext.Response.StatusCode = (int) HttpStatusCode.TooManyRequests;
             context.HttpContext.Response.Headers.TryAdd(HeaderNames.RetryAfter, retryAfter.ToString("r"));
-            context.HttpContext.Response.Headers.TryAdd(HeaderNames.RetryAfter, $"{_retryAfterDuration.Seconds}");
+            context.HttpContext.Response.Headers.TryAdd(HeaderNames.RetryAfter, _retryAfterDuration.Seconds.ToString());
         }
     }
 }

@@ -10,7 +10,7 @@ using System.Reflection;
 using egregore.Data;
 using Microsoft.Extensions.Caching.Memory;
 
-namespace egregore
+namespace egregore.Models
 {
     internal sealed class InProcessCacheRegion<TRegion> : ICacheRegion<TRegion>
     {

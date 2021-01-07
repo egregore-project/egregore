@@ -8,6 +8,7 @@ using System;
 using System.Net;
 using System.Reflection;
 using egregore.Extensions;
+using egregore.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Filters;
 using WyHash;
@@ -64,8 +65,7 @@ namespace egregore.Filters
                             addressBytes[j++] = (byte) (address[i] & 0xFF);
                         }
 
-                        var hash = BitConverter.GetBytes(
-                            WyHash64.ComputeHash64(new ReadOnlySpan<byte>(addressBytes, 16), seed));
+                        var hash = BitConverter.GetBytes(WyHash64.ComputeHash64(new ReadOnlySpan<byte>(addressBytes, 16), seed));
                         context.ActionArguments["addressHash"] = hash;
                     }
             }

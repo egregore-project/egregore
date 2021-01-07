@@ -21,6 +21,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace egregore
@@ -160,9 +161,9 @@ namespace egregore
 
         private static void AddDaemonService(IServiceCollection services)
         {
-            services.AddSingleton<WebServerHostedService>();
-            services.AddSingleton<IOntologyChangeHandler>(r => r.GetRequiredService<WebServerHostedService>());
-            services.AddHostedService(r => r.GetRequiredService<WebServerHostedService>());
+            services.AddSingleton<DaemonService>();
+            services.AddSingleton<IOntologyChangeHandler>(r => r.GetRequiredService<DaemonService>());
+            services.AddHostedService(r => r.GetRequiredService<DaemonService>());
         }
 
         private static void AddDataStores(IServiceCollection services)
@@ -173,8 +174,12 @@ namespace egregore
 
             services.AddSingleton<ILogStore, LightningLogStore>();
             services.AddSingleton<IMediaStore, LightningMediaStore>();
-            services.AddSingleton<IRecordStore, LightningRecordStore>();
             services.AddSingleton<IPageStore, LightningPageStore>();
+            services.AddSingleton<IRecordStore, LightningRecordStore>(r =>
+                new LightningRecordStore(r.GetRequiredService<IOptions<WebServerOptions>>().Value.PublicKeyString,
+                    r.GetRequiredService<ISearchIndex>(), r.GetRequiredService<RecordEvents>(),
+                    r.GetRequiredService<ILogObjectTypeProvider>(),
+                    r.GetRequiredService<ILogger<LightningRecordStore>>()));
         }
 
         private static void AddEvents(IServiceCollection services)
@@ -182,12 +187,10 @@ namespace egregore
             services.AddSingleton<RecordEvents>();
             services.TryAddEnumerable(ServiceDescriptor.Singleton<IRecordEventHandler, RebuildIndexOnRecordEvents>());
             services.TryAddEnumerable(ServiceDescriptor.Singleton<IRecordEventHandler, NotifyHubsWhenRecordAdded>());
-            services.TryAddEnumerable(
-                ServiceDescriptor.Singleton<IRecordEventHandler, InvalidateCachesWhenRecordAdded>());
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<IRecordEventHandler, InvalidateCachesWhenRecordAdded>());
 
             services.AddSingleton<OntologyEvents>();
-            services.TryAddEnumerable(ServiceDescriptor
-                .Singleton<IOntologyEventHandler, RebuildControllersWhenSchemaAdded>());
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<IOntologyEventHandler, RebuildControllersWhenSchemaAdded>());
             services.TryAddEnumerable(ServiceDescriptor.Singleton<IOntologyEventHandler, NotifyHubsWhenSchemaAdded>());
 
             services.AddSingleton<MediaEvents>();

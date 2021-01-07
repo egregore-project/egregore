@@ -12,7 +12,6 @@ namespace egregore
     internal static class Constants
     {
         public const string DefaultNamespace = "Default";
-        public const string DefaultSequence = "global";
         public const string DefaultOwnerRole = "owner";
         public const int DefaultPort = 5001;
 

@@ -6,7 +6,7 @@
 
 using System;
 
-namespace egregore
+namespace egregore.Models
 {
     // ReSharper disable once UnusedTypeParameter
     public interface ICacheRegion<TRegion>
