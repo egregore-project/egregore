@@ -9,14 +9,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using egregore.Configuration;
-using egregore.Hubs;
+using egregore.Network;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NetMQ;
 using NetMQ.Sockets;
 
-namespace egregore.Network
+namespace egregore
 {
     /// <summary>
     ///     Originally based on NetMQ beacon example: https://netmq.readthedocs.io/en/latest/beacon/

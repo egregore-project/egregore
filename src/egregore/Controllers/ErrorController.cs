@@ -6,7 +6,7 @@
 
 using System.Diagnostics;
 using System.Net;
-using egregore.Models;
+using egregore.ViewModels;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 

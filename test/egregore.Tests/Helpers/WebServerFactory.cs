@@ -7,7 +7,6 @@
 using System;
 using System.IO;
 using egregore.Cryptography;
-using egregore.IO;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Hosting;
 using Xunit;

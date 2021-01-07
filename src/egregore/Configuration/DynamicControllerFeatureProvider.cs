@@ -16,7 +16,6 @@ using System.Runtime;
 using System.Text.RegularExpressions;
 using egregore.Controllers;
 using egregore.Data;
-using egregore.Ontology;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.CodeAnalysis;

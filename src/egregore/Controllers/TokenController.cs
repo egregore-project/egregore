@@ -10,7 +10,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using egregore.Configuration;
-using egregore.Models;
+using egregore.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -21,11 +21,12 @@ namespace egregore.Controllers
 {
     public class TokenController : Controller
     {
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly SignInManager<IdentityUser> _signInManager;
         private readonly IOptionsSnapshot<WebServerOptions> _options;
+        private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly UserManager<IdentityUser> _userManager;
 
-        public TokenController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, IOptionsSnapshot<WebServerOptions> options)
+        public TokenController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager,
+            IOptionsSnapshot<WebServerOptions> options)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -66,8 +67,7 @@ namespace egregore.Controllers
                 expires: DateTime.Now.AddMinutes(30),
                 signingCredentials: signingCredentials);
 
-            return Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
-
+            return Ok(new {token = new JwtSecurityTokenHandler().WriteToken(token)});
         }
     }
 }

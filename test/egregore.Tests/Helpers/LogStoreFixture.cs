@@ -6,7 +6,6 @@
 
 using System;
 using egregore.Data;
-using egregore.Ontology;
 
 namespace egregore.Tests.Helpers
 {

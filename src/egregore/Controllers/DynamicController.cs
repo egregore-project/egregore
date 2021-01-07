@@ -11,7 +11,6 @@ using System.ServiceModel.Syndication;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using egregore.Caching;
 using egregore.Configuration;
 using egregore.Data;
 using egregore.Extensions;

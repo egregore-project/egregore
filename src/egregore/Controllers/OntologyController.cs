@@ -8,7 +8,6 @@ using System.Globalization;
 using System.Threading.Tasks;
 using egregore.Data;
 using egregore.Models;
-using egregore.Ontology;
 using Microsoft.AspNetCore.Mvc;
 
 namespace egregore.Controllers
@@ -32,11 +31,12 @@ namespace egregore.Controllers
         }
 
         [HttpPost("api/{ns}/{controller}")]
-        public async Task<IActionResult> Post([FromRoute] string controller, [FromRoute] string ns, [FromBody] object model)
+        public async Task<IActionResult> Post([FromRoute] string controller, [FromRoute] string ns,
+            [FromBody] object model)
         {
             await SaveSchemaAsync(controller, model);
 
-            return RedirectToActionPermanent(nameof(Post), "Dynamic", new { controller, ns, model });
+            return RedirectToActionPermanent(nameof(Post), "Dynamic", new {controller, ns, model});
         }
 
         [HttpGet("ontology")]

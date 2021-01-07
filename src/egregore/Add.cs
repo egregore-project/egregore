@@ -5,18 +5,13 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System.Text;
-using egregore.Caching;
 using egregore.Configuration;
 using egregore.Cryptography;
 using egregore.Data;
-using egregore.Events;
 using egregore.Filters;
 using egregore.Identity;
-using egregore.IO;
-using egregore.Media;
-using egregore.Network;
-using egregore.Ontology;
-using egregore.Pages;
+using egregore.Models;
+using egregore.Models.Events;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -34,7 +29,7 @@ namespace egregore
     {
         private static MemoryOntologyLog _ontology;
 
-        public static unsafe IServiceCollection AddWebServer(this IServiceCollection services, string eggPath,
+        public static IServiceCollection AddWebServer(this IServiceCollection services, string eggPath,
             IKeyCapture capture, IWebHostEnvironment env, IConfiguration config, IWebHostBuilder webBuilder)
         {
             services.AddCors(x => x.AddDefaultPolicy(b =>
@@ -95,7 +90,8 @@ namespace egregore
 
             var change = new DynamicActionDescriptorChangeProvider();
             services.AddSingleton(change);
-            services.AddSingleton<IActionDescriptorChangeProvider, DynamicActionDescriptorChangeProvider>(r => r.GetRequiredService<DynamicActionDescriptorChangeProvider>());
+            services.AddSingleton<IActionDescriptorChangeProvider, DynamicActionDescriptorChangeProvider>(r =>
+                r.GetRequiredService<DynamicActionDescriptorChangeProvider>());
             services.AddSingleton<ISearchIndex, LunrRecordIndex>();
             services.AddSingleton<PeerBus>();
             services.AddSingleton(r =>
@@ -141,7 +137,7 @@ namespace egregore
         private static void AddIdentity(IServiceCollection services)
         {
             // FIXME: distinguish between app and api
-            
+
             services
                 .AddIdentity<IdentityUser, IdentityRole>()
                 .AddUserStore<UserStore>()
@@ -186,10 +182,12 @@ namespace egregore
             services.AddSingleton<RecordEvents>();
             services.TryAddEnumerable(ServiceDescriptor.Singleton<IRecordEventHandler, RebuildIndexOnRecordEvents>());
             services.TryAddEnumerable(ServiceDescriptor.Singleton<IRecordEventHandler, NotifyHubsWhenRecordAdded>());
-            services.TryAddEnumerable(ServiceDescriptor.Singleton<IRecordEventHandler, InvalidateCachesWhenRecordAdded>());
+            services.TryAddEnumerable(
+                ServiceDescriptor.Singleton<IRecordEventHandler, InvalidateCachesWhenRecordAdded>());
 
             services.AddSingleton<OntologyEvents>();
-            services.TryAddEnumerable(ServiceDescriptor.Singleton<IOntologyEventHandler, RebuildControllersWhenSchemaAdded>());
+            services.TryAddEnumerable(ServiceDescriptor
+                .Singleton<IOntologyEventHandler, RebuildControllersWhenSchemaAdded>());
             services.TryAddEnumerable(ServiceDescriptor.Singleton<IOntologyEventHandler, NotifyHubsWhenSchemaAdded>());
 
             services.AddSingleton<MediaEvents>();

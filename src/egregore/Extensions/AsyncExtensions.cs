@@ -9,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using egregore.Data;
 using egregore.Media;
-using egregore.Ontology;
+using egregore.Models;
 using egregore.Pages;
 using Microsoft.Extensions.ObjectPool;
 

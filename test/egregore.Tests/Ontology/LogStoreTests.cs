@@ -7,7 +7,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using egregore.Data;
-using egregore.Ontology;
+using egregore.Models;
 using egregore.Tests.Helpers;
 using Xunit;
 

@@ -12,8 +12,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using egregore.Cryptography;
 using egregore.Extensions;
-using egregore.IO;
-using egregore.Ontology;
+using egregore.Models;
 
 namespace egregore
 {
@@ -28,8 +27,7 @@ namespace egregore
         [ExcludeFromCodeCoverage]
         public static void Main(params string[] args)
         {
-            // Pre-initialize libsodium as deferring causes
-            // assertion errors on Linux containers
+            // Pre-initialize libsodium as deferring causes assertion errors on Linux containers
             Crypto.Initialize();
 
             try

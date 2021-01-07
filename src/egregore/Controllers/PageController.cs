@@ -9,7 +9,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using egregore.Configuration;
-using egregore.Ontology;
+using egregore.Models;
 using egregore.Pages;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;

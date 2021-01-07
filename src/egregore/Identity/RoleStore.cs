@@ -53,7 +53,8 @@ namespace egregore.Identity
             throw new NotImplementedException();
         }
 
-        public async Task SetNormalizedRoleNameAsync(IdentityRole role, string normalizedName, CancellationToken cancellationToken)
+        public async Task SetNormalizedRoleNameAsync(IdentityRole role, string normalizedName,
+            CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }

@@ -6,7 +6,6 @@
 
 using System.IO;
 using egregore.Cryptography;
-using egregore.IO;
 
 namespace egregore
 {

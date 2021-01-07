@@ -6,7 +6,6 @@
 
 using System;
 using egregore.Cryptography;
-using egregore.IO;
 using Xunit;
 using Xunit.Abstractions;
 

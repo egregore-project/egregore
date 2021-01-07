@@ -1,8 +1,13 @@
-﻿using System;
+﻿// Copyright (c) The Egregore Project & Contributors. All rights reserved.
+// 
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using egregore.Data;
-using egregore.Ontology;
 using Microsoft.AspNetCore.Identity;
 
 namespace egregore.Identity
@@ -58,7 +63,8 @@ namespace egregore.Identity
             return user.UserName;
         }
 
-        public async Task SetNormalizedUserNameAsync(IdentityUser user, string normalizedName, CancellationToken cancellationToken)
+        public async Task SetNormalizedUserNameAsync(IdentityUser user, string normalizedName,
+            CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
@@ -112,7 +118,8 @@ namespace egregore.Identity
             throw new NotImplementedException();
         }
 
-        public async Task SetNormalizedEmailAsync(IdentityUser user, string normalizedEmail, CancellationToken cancellationToken)
+        public async Task SetNormalizedEmailAsync(IdentityUser user, string normalizedEmail,
+            CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
@@ -131,7 +138,8 @@ namespace egregore.Identity
             return !string.IsNullOrWhiteSpace(user.PasswordHash);
         }
 
-        public async Task SetPasswordHashAsync(IdentityUser user, string passwordHash, CancellationToken cancellationToken)
+        public async Task SetPasswordHashAsync(IdentityUser user, string passwordHash,
+            CancellationToken cancellationToken)
         {
             user.PasswordHash = passwordHash;
         }

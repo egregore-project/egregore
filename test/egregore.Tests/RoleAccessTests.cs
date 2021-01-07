@@ -6,7 +6,7 @@
 
 using System.Linq;
 using egregore.Cryptography;
-using egregore.Ontology;
+using egregore.Models;
 using egregore.Tests.Helpers;
 using Xunit;
 using Xunit.Abstractions;

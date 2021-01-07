@@ -12,10 +12,8 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using egregore.Cryptography;
 using egregore.Data;
 using egregore.Extensions;
-using egregore.Models;
 
 namespace egregore
 {
@@ -87,13 +85,15 @@ namespace egregore
                 : new CertificateRequest(distinguishedName, (ECDsa) alg, HashAlgorithmName.SHA512);
 
             // omit usage for encryption as RSA has vulnerabilities there
-            var usages = X509KeyUsageFlags.DigitalSignature; 
+            var usages = X509KeyUsageFlags.DigitalSignature;
             usages |= X509KeyUsageFlags.KeyCertSign; // identify as a CA
 
             // extend as certificate authority
             request.CertificateExtensions.Add(new X509KeyUsageExtension(usages, false));
-            request.CertificateExtensions.Add(new X509BasicConstraintsExtension(true, true, 1, true)); // identify as a CA
-            request.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension(new OidCollection {new Oid(ServerAuthenticationOid)}, false));
+            request.CertificateExtensions.Add(
+                new X509BasicConstraintsExtension(true, true, 1, true)); // identify as a CA
+            request.CertificateExtensions.Add(
+                new X509EnhancedKeyUsageExtension(new OidCollection {new Oid(ServerAuthenticationOid)}, false));
             request.CertificateExtensions.Add(sanBuilder.Build());
 
             var after = now.Timestamp.AddDays(-1).AddDays(2); // possibly annoying, but better than keeping roots around

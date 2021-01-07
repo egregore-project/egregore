@@ -32,7 +32,6 @@ namespace egregore
         public static void Run(int? port, string eggPath, IKeyCapture capture, params string[] args)
         {
             PrintMasthead();
-
             var builder = CreateHostBuilder(port, eggPath, capture, default, args);
             var host = builder.Build();
             host.Run();
@@ -62,8 +61,7 @@ namespace egregore
             Console.ResetColor();
         }
 
-        internal static IHostBuilder CreateHostBuilder(int? port, string eggPath, IKeyCapture capture,
-            Type startupType = default, params string[] args)
+        internal static IHostBuilder CreateHostBuilder(int? port, string eggPath, IKeyCapture capture, Type startupType = default, params string[] args)
         {
             var builder = Host.CreateDefaultBuilder(args);
 
@@ -96,7 +94,7 @@ namespace egregore
                 webBuilder.ConfigureLogging((context, loggingBuilder) =>
                 {
                     loggingBuilder.ClearProviders();
-                    
+
                     loggingBuilder.AddConfiguration(context.Configuration.GetSection("Logging"));
                     loggingBuilder.AddDebug();
                     loggingBuilder.AddEventSourceLogger();
@@ -107,11 +105,12 @@ namespace egregore
                     });
 
                     if (context.HostingEnvironment.IsDevelopment()) // unnecessary overhead
-                        loggingBuilder.AddColorConsole(); 
+                        loggingBuilder.AddColorConsole();
                 });
                 webBuilder.ConfigureServices((context, services) =>
                 {
-                    services.AddWebServer(eggPath, capture, context.HostingEnvironment, context.Configuration, webBuilder);
+                    services.AddWebServer(eggPath, capture, context.HostingEnvironment, context.Configuration,
+                        webBuilder);
                 });
 
                 webBuilder.Configure((context, app) => { app.UseWebServer(context.HostingEnvironment); });

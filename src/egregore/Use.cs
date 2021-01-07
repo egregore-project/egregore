@@ -10,7 +10,6 @@ using System.Linq;
 using System.Text.Json;
 using egregore.Configuration;
 using egregore.Cryptography;
-using egregore.Hubs;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
@@ -38,13 +37,9 @@ namespace egregore
                 app.ApplicationServices.GetService<IPersistedKeyCapture>()?.Dispose());
 
             if (env.IsDevelopment())
-            {
                 app.UseWebAssemblyDebugging();
-            }
             else
-            {
                 app.UseHsts();
-            }
 
             // See: https://tools.ietf.org/html/rfc7807
             app.UseExceptionHandler(a =>
@@ -56,7 +51,7 @@ namespace egregore
                 a.Run(async context =>
                 {
                     var handler = context.Features.Get<IExceptionHandlerFeature>();
-                    var detail =  handler.Error.ToString();
+                    var detail = handler.Error.ToString();
                     var problemDetails = new ProblemDetails
                     {
                         Title = "An unexpected error occurred!",
@@ -68,7 +63,8 @@ namespace egregore
                     context.Response.StatusCode = 500;
                     context.Response.ContentType = Constants.MediaTypeNames.Application.ProblemJson;
                     var options = new JsonSerializerOptions();
-                    await JsonSerializer.SerializeAsync(context.Response.Body, problemDetails, options, context.RequestAborted);
+                    await JsonSerializer.SerializeAsync(context.Response.Body, problemDetails, options,
+                        context.RequestAborted);
                 });
             });
 
@@ -92,7 +88,7 @@ namespace egregore
                 endpoints.MapRazorPages();
 
                 //endpoints.MapFallbackToFile("index.html");
-                endpoints.MapGet("/",CreateRequestDelegate(endpoints, "index.html"));
+                endpoints.MapGet("/", CreateRequestDelegate(endpoints, "index.html"));
             });
 
             return app;

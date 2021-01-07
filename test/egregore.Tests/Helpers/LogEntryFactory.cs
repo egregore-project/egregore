@@ -6,7 +6,7 @@
 
 using egregore.Cryptography;
 using egregore.Data;
-using egregore.Ontology;
+using egregore.Models;
 
 namespace egregore.Tests.Helpers
 {

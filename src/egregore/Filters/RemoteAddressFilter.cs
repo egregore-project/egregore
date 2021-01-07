@@ -7,7 +7,6 @@
 using System;
 using System.Net;
 using System.Reflection;
-using egregore.Caching;
 using egregore.Extensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Filters;

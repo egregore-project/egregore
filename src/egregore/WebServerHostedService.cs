@@ -12,8 +12,6 @@ using System.Threading.Tasks;
 using egregore.Configuration;
 using egregore.Cryptography;
 using egregore.Data;
-using egregore.Network;
-using egregore.Ontology;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;

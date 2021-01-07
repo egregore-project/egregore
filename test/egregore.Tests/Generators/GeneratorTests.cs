@@ -6,7 +6,7 @@
 
 using egregore.Data;
 using egregore.Generators;
-using egregore.Ontology;
+using egregore.Models;
 using Xunit;
 using Xunit.Abstractions;
 

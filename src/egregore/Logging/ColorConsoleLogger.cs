@@ -21,8 +21,15 @@ namespace egregore.Logging
             _config = config;
         }
 
-        public IDisposable BeginScope<TState>(TState state) => null;
-        public bool IsEnabled(LogLevel logLevel) => true;
+        public IDisposable BeginScope<TState>(TState state)
+        {
+            return null;
+        }
+
+        public bool IsEnabled(LogLevel logLevel)
+        {
+            return true;
+        }
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception,
             Func<TState, Exception, string> formatter)
@@ -40,7 +47,7 @@ namespace egregore.Logging
                 Console.Write($@"{alias}: ");
                 Console.ForegroundColor = ConsoleColor.Gray;
                 Console.WriteLine($@"{_category}[{eventId.Id}]");
-                
+
                 Console.Write(@"      "); // alignment
                 var message = formatter(state, exception);
                 Console.WriteLine(message);
