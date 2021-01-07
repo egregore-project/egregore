@@ -6,9 +6,9 @@
 
 using System.Text;
 
-namespace egregore.Generators
+namespace egregore.CodeGeneration
 {
-    internal sealed class IndentAwareStringBuilder : IStringBuilder
+    public sealed class IndentAwareStringBuilder : IStringBuilder
     {
         private readonly StringBuilder _inner;
 

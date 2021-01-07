@@ -9,58 +9,20 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using egregore.Generators;
+using egregore.CodeGeneration;
 using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace egregore.Tests.Helpers
+namespace egregore.Data.Tests.Generators
 {
     public class GenerateTimeZoneMapping
     {
+        private readonly ITestOutputHelper _output;
+
         public GenerateTimeZoneMapping(ITestOutputHelper output)
         {
             _output = output;
-        }
-
-        private readonly ITestOutputHelper _output;
-
-        // ReSharper disable once IdentifierTypo
-        public sealed class CldrFile
-        {
-            public Supplemental Supplemental { get; set; }
-        }
-
-        public sealed class Supplemental
-        {
-            public Version Version { get; set; }
-            public WindowsZones WindowsZones { get; set; }
-        }
-
-        public sealed class Version
-        {
-            [JsonProperty("_unicodeVersion")] public string UnicodeVersion { get; set; }
-
-            [JsonProperty("_cldrVersion")] public string CldrVersion { get; set; }
-        }
-
-        public sealed class WindowsZones
-        {
-            public MapTimeZone[] MapTimeZones { get; set; }
-        }
-
-        public sealed class MapTimeZone
-        {
-            public MapZone MapZone { get; set; }
-        }
-
-        public sealed class MapZone
-        {
-            [JsonProperty("_other")] public string Other { get; set; }
-
-            [JsonProperty("_type")] public string Type { get; set; }
-
-            [JsonProperty("_territory")] public string Territory { get; set; }
         }
 
         [Fact]
@@ -187,6 +149,44 @@ namespace egregore.Tests.Helpers
             sb.AppendLine("    }"); // class
             sb.AppendLine("}"); // namespace
             _output.WriteLine(sb.ToString());
+        }
+
+        // ReSharper disable once IdentifierTypo
+        public sealed class CldrFile
+        {
+            public Supplemental Supplemental { get; set; }
+        }
+
+        public sealed class Supplemental
+        {
+            public Version Version { get; set; }
+            public WindowsZones WindowsZones { get; set; }
+        }
+
+        public sealed class Version
+        {
+            [JsonProperty("_unicodeVersion")] public string UnicodeVersion { get; set; }
+
+            [JsonProperty("_cldrVersion")] public string CldrVersion { get; set; }
+        }
+
+        public sealed class WindowsZones
+        {
+            public MapTimeZone[] MapTimeZones { get; set; }
+        }
+
+        public sealed class MapTimeZone
+        {
+            public MapZone MapZone { get; set; }
+        }
+
+        public sealed class MapZone
+        {
+            [JsonProperty("_other")] public string Other { get; set; }
+
+            [JsonProperty("_type")] public string Type { get; set; }
+
+            [JsonProperty("_territory")] public string Territory { get; set; }
         }
     }
 }

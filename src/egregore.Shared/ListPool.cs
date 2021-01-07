@@ -7,7 +7,7 @@
 using System.Collections.Generic;
 using Microsoft.Extensions.ObjectPool;
 
-namespace egregore.Pooling
+namespace egregore
 {
     public static class ListPool<T>
     {

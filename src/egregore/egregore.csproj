@@ -76,6 +76,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\egregore.CodeGeneration\egregore.CodeGeneration.csproj" />
     <ProjectReference Include="..\..\lib\lunr-core\LunrCore\LunrCore.csproj" />
     <ProjectReference Include="..\..\submodules\noise\Noise\Noise.csproj" />
     <ProjectReference Include="..\egregore.Client\egregore.Client.csproj" />

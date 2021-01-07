@@ -7,9 +7,8 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using egregore.Tests.Data;
 
-namespace egregore.Tests.Helpers
+namespace egregore.Data.Tests.Fixtures
 {
     public sealed class SqliteProjectionFixture : IDisposable
     {

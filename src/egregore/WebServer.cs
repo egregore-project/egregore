@@ -98,19 +98,19 @@ namespace egregore
                     loggingBuilder.AddConfiguration(context.Configuration.GetSection("Logging"));
                     loggingBuilder.AddDebug();
                     loggingBuilder.AddEventSourceLogger();
-                    loggingBuilder.AddLightning(() =>
-                    {
-                        throw new NotImplementedException("configuring WebServerOptions needs to be higher");
-                        // return Path.Combine(Constants.DefaultRootPath, $"{options.Value.PublicKeyString}_logs.egg");
-                    });
+                    
+                    //loggingBuilder.AddLightning(() =>
+                    //{
+                    //    throw new NotImplementedException("configuring WebServerOptions needs to be higher");
+                    //    // return Path.Combine(Constants.DefaultRootPath, $"{options.Value.PublicKeyString}_logs.egg");
+                    //});
 
                     if (context.HostingEnvironment.IsDevelopment()) // unnecessary overhead
                         loggingBuilder.AddColorConsole();
                 });
                 webBuilder.ConfigureServices((context, services) =>
                 {
-                    services.AddWebServer(eggPath, capture, context.HostingEnvironment, context.Configuration,
-                        webBuilder);
+                    services.AddWebServer(eggPath, capture, context.HostingEnvironment, context.Configuration, webBuilder);
                 });
 
                 webBuilder.Configure((context, app) => { app.UseWebServer(context.HostingEnvironment); });

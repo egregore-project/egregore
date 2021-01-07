@@ -5,12 +5,10 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System;
-using egregore.Network;
-using egregore.Tests.Helpers;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace egregore.Tests.Network
+namespace egregore.Network.Tests
 {
     [Collection("Serial")]
     public class SocketTests

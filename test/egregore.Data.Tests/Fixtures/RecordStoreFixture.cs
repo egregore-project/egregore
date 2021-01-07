@@ -5,15 +5,15 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System;
-using egregore.Data;
 
-namespace egregore.Tests.Helpers
+namespace egregore.Data.Tests.Fixtures
 {
     public sealed class RecordStoreFixture : IDisposable
     {
         public RecordStoreFixture()
         {
-            var store = new LightningRecordStore(Guid.NewGuid().ToString(), new NoSearchIndex(), new RecordEvents(), new LogObjectTypeProvider());
+            var store = new LightningRecordStore(Guid.NewGuid().ToString(), new NoSearchIndex(), new RecordEvents(),
+                new LogObjectTypeProvider());
             store.Init($"{Guid.NewGuid()}.egg");
             Store = store;
         }

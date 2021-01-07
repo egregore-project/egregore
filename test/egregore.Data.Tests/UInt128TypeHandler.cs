@@ -6,9 +6,8 @@
 
 using System.Data;
 using Dapper;
-using egregore.Data;
 
-namespace egregore.Tests.Data
+namespace egregore.Data.Tests
 {
     internal sealed class UInt128TypeHandler : SqlMapper.TypeHandler<UInt128?>
     {

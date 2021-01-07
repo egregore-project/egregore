@@ -13,7 +13,7 @@ using System.Xml;
 using egregore.Data;
 using WyHash;
 
-namespace egregore.Generators
+namespace egregore.Models
 {
     internal sealed class SyndicationGenerator
     {

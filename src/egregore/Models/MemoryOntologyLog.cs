@@ -10,9 +10,9 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using egregore.CodeGeneration;
 using egregore.Cryptography;
 using egregore.Data;
-using egregore.Generators;
 using egregore.Models.Exceptions;
 
 namespace egregore.Models

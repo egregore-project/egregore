@@ -6,13 +6,11 @@
 
 using System;
 using egregore.Cryptography;
-using egregore.Network;
-using egregore.Tests.Helpers;
 using Noise;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace egregore.Tests.Network
+namespace egregore.Network.Tests
 {
     [Collection("Serial")]
     public class NoiseTests

@@ -15,7 +15,7 @@ using egregore.Configuration;
 using egregore.Data;
 using egregore.Extensions;
 using egregore.Filters;
-using egregore.Generators;
+using egregore.Models;
 using Lunr;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
@@ -81,8 +81,7 @@ namespace egregore.Controllers
         }
 
         [NonAction]
-        private async Task<(IEnumerable<T>, ulong)> QueryAsync(string type, string ns, ulong rs, string query = default,
-            CancellationToken cancellationToken = default)
+        private async Task<(IEnumerable<T>, ulong)> QueryAsync(string type, string ns, ulong rs, string query = default, CancellationToken cancellationToken = default)
         {
             IEnumerable<Record> records;
             ulong total;
@@ -120,13 +119,9 @@ namespace egregore.Controllers
         #region Syndication
 
         [AcceptCharset]
-        [Accepts(Constants.MediaTypeNames.Application.RssXml, Constants.MediaTypeNames.Application.AtomXml,
-            Constants.MediaTypeNames.Text.Xml)]
+        [Accepts(Constants.MediaTypeNames.Application.RssXml, Constants.MediaTypeNames.Application.AtomXml, Constants.MediaTypeNames.Text.Xml)]
         [HttpGet("api/{ns}/v{rs}/[controller]")]
-        public async Task<IActionResult> GetSyndicationFeed([FromRoute] string controller,
-            [FromHeader(Name = Constants.HeaderNames.Accept)]
-            string contentType, [FromFilter] Encoding encoding, [FromRoute] string ns, [FromRoute] ulong rs,
-            [FromQuery(Name = "q")] string query = default)
+        public async Task<IActionResult> GetSyndicationFeed([FromRoute] string controller, [FromHeader(Name = Constants.HeaderNames.Accept)] string contentType, [FromFilter] Encoding encoding, [FromRoute] string ns, [FromRoute] ulong rs, [FromQuery(Name = "q")] string query = default)
         {
             var mediaType = contentType?.ToLowerInvariant().Trim();
             var charset = encoding.WebName;
@@ -152,8 +147,7 @@ namespace egregore.Controllers
         }
 
         [NonAction]
-        private IActionResult ServeFeed(string cacheKey, byte[] stream, string mediaType, string charset,
-            DateTimeOffset? lastModified)
+        private IActionResult ServeFeed(string cacheKey, byte[] stream, string mediaType, string charset, DateTimeOffset? lastModified)
         {
             Response.Headers.TryAdd(HeaderNames.LastModified, $"{lastModified:R}");
             Response.AppendETags(_feeds, cacheKey, stream);

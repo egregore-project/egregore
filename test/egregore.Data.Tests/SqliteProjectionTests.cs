@@ -5,15 +5,13 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using Dapper;
-using egregore.Data;
-using egregore.Tests.Helpers;
+using egregore.Data.Tests.Fixtures;
 using Xunit;
-using Record = egregore.Data.Record;
 
 // ReSharper disable ClassNeverInstantiated.Local
 // ReSharper disable UnusedAutoPropertyAccessor.Local
 
-namespace egregore.Tests.Data
+namespace egregore.Data.Tests
 {
     [Collection("Serial")]
     public class SqliteProjectionTests
@@ -29,11 +27,6 @@ namespace egregore.Tests.Data
             var customers = db.Query<CustomerV1>("SELECT * FROM 'Customer_V1'").AsList();
             Assert.Single(customers);
             Assert.Equal(123, customers[0].Order);
-        }
-
-        private class CustomerV1
-        {
-            public int Order { get; set; }
         }
 
         private static void Create_customer_v2_record(SqliteProjectionFixture fixture)
@@ -54,12 +47,6 @@ namespace egregore.Tests.Data
             Assert.Equal("Bobby Tables", v2[1].Name);
         }
 
-        private class CustomerV2
-        {
-            public string Name { get; set; }
-            public int Order { get; set; }
-        }
-
         private static void Create_customer_v3_record(SqliteProjectionFixture fixture)
         {
             var record = new Record {Type = "Customer"};
@@ -74,11 +61,6 @@ namespace egregore.Tests.Data
             Assert.Equal("ABC", v3[0].Name);
             Assert.Equal("Bobby Tables", v3[1].Name);
             Assert.Equal("Bobby Fables", v3[2].Name);
-        }
-
-        private class CustomerV3
-        {
-            public string Name { get; set; }
         }
 
         private static void Create_customer_v4_record(SqliteProjectionFixture fixture)
@@ -106,12 +88,6 @@ namespace egregore.Tests.Data
             Assert.Equal("ABC123", v4[3].Order);
         }
 
-        private class CustomerV4
-        {
-            public string Name { get; set; }
-            public string Order { get; set; }
-        }
-
         [Fact]
         public void Can_project_data_structure_changes_over_time()
         {
@@ -128,6 +104,28 @@ namespace egregore.Tests.Data
 
             // CustomerV4 (Name TEXT, Order TEXT)
             Create_customer_v4_record(fixture);
+        }
+
+        private class CustomerV1
+        {
+            public int Order { get; set; }
+        }
+
+        private class CustomerV2
+        {
+            public string Name { get; set; }
+            public int Order { get; set; }
+        }
+
+        private class CustomerV3
+        {
+            public string Name { get; set; }
+        }
+
+        private class CustomerV4
+        {
+            public string Name { get; set; }
+            public string Order { get; set; }
         }
     }
 }

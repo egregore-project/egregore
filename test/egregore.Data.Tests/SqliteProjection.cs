@@ -11,14 +11,12 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using Dapper;
-using egregore.Data;
 using Microsoft.Data.Sqlite;
 using Xunit;
-using Record = egregore.Data.Record;
 
 #pragma warning disable 649
 
-namespace egregore.Tests.Data
+namespace egregore.Data.Tests
 {
     [Collection("Serial")]
     public class SqliteProjection

@@ -5,10 +5,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System;
-using egregore.Data;
-using egregore.Network;
 
-namespace egregore.Tests.Helpers
+namespace egregore.Data.Tests.Fixtures
 {
     public class SequenceFixture : IDisposable
     {

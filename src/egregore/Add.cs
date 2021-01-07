@@ -56,7 +56,7 @@ namespace egregore
                             $"{env.EnvironmentName}:" +
                             $"{webBuilder.GetSetting("https_port")}";
 
-            var serverId = Crypto.Fingerprint(appString, publicKey);
+            var serverId = Crypto.Fingerprint(publicKey, appString);
 
             services.Configure<WebServerOptions>(config.GetSection("WebServer"));
             services.Configure<WebServerOptions>(o =>

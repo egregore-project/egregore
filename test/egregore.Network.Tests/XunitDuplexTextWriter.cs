@@ -8,7 +8,7 @@ using System.IO;
 using System.Text;
 using Xunit.Abstractions;
 
-namespace egregore.Tests.Helpers
+namespace egregore.Network.Tests
 {
     internal sealed class XunitDuplexTextWriter : TextWriter
     {

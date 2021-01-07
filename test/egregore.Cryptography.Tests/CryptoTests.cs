@@ -6,12 +6,10 @@
 
 using System.Linq;
 using System.Text;
-using egregore.Cryptography;
-using egregore.Cryptography.Tests;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace egregore.Tests
+namespace egregore.Cryptography.Tests
 {
     [Collection("Serial")]
     public class CryptoTests

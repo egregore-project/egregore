@@ -7,12 +7,10 @@
 using System;
 using System.Threading.Tasks;
 using Dapper;
-using egregore.Data;
-using egregore.Tests.Helpers;
+using egregore.Data.Tests.Fixtures;
 using Xunit;
-using Record = egregore.Data.Record;
 
-namespace egregore.Tests.Data
+namespace egregore.Data.Tests
 {
     [Collection("Serial")]
     public class RecordStoreTests

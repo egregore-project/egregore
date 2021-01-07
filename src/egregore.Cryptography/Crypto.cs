@@ -118,13 +118,13 @@ namespace egregore.Cryptography
             }
         }
 
-        public static string Fingerprint(string appString, ReadOnlySpan<byte> publicKey)
+        public static string Fingerprint(this ReadOnlySpan<byte> publicKey, string value)
         {
             unsafe
             {
                 var buffer = new byte[8];
 
-                var app = Encoding.UTF8.GetBytes(appString);
+                var app = Encoding.UTF8.GetBytes(value);
 
                 fixed (byte* pk = publicKey)
                 fixed (byte* id = buffer)

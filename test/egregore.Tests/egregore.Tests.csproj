@@ -13,12 +13,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="TestData\windowsZones.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
     <EmbeddedResource Include="dotnet_library_license.txt" />
     <EmbeddedResource Include="Microsoft Azure DocumentDB SDK for .NET Core - RTM.docx" />
   </ItemGroup>
@@ -53,6 +47,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\egregore\egregore.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Network\" />
   </ItemGroup>
 
 </Project>
