@@ -46,6 +46,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\egregore.CodeGeneration\egregore.CodeGeneration.csproj" />
     <ProjectReference Include="..\..\src\egregore\egregore.csproj" />
   </ItemGroup>
 

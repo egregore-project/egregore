@@ -1,6 +1,6 @@
 ﻿using BenchmarkDotNet.Running;
 
-namespace egregore.Logging.LightningDb.Benchmarks
+namespace egregore.Network.Benchmarks
 {
     internal class Program
     {

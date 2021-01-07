@@ -74,15 +74,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "egregore.Cryptography.Tests
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "egregore.Logging.LightningDb.Tests", "test\egregore.Logging.LightningDb.Tests\egregore.Logging.LightningDb.Tests.csproj", "{23F16A80-43B1-4213-BD59-84CEB7141D11}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "egregore.Data", "src\egregore.Data\egregore.Data.csproj", "{3E2DA989-D3E9-4051-81E5-ABD1A2664730}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "egregore.Data", "src\egregore.Data\egregore.Data.csproj", "{3E2DA989-D3E9-4051-81E5-ABD1A2664730}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "egregore.Network", "src\egregore.Network\egregore.Network.csproj", "{0BB6B6D2-D248-4EEE-A85B-7799132D539D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "egregore.Network", "src\egregore.Network\egregore.Network.csproj", "{0BB6B6D2-D248-4EEE-A85B-7799132D539D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "egregore.Data.Tests", "test\egregore.Data.Tests\egregore.Data.Tests.csproj", "{6A4CFD91-BFA9-4AD3-8454-010333009DAC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "egregore.Data.Tests", "test\egregore.Data.Tests\egregore.Data.Tests.csproj", "{6A4CFD91-BFA9-4AD3-8454-010333009DAC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "egregore.CodeGeneration", "egregore.CodeGeneration\egregore.CodeGeneration.csproj", "{DCDC626A-27C7-4885-85E2-E7D5CC5F1461}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "egregore.Network.Tests", "test\egregore.Network.Tests\egregore.Network.Tests.csproj", "{CEE343B3-2F0D-4F84-BCD1-E94B4E85C0E1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "egregore.Network.Tests", "test\egregore.Network.Tests\egregore.Network.Tests.csproj", "{CEE343B3-2F0D-4F84-BCD1-E94B4E85C0E1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "egregore.CodeGeneration", "src\egregore.CodeGeneration\egregore.CodeGeneration.csproj", "{86A2020C-AC45-4048-8C3D-81B1FD1D6A12}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -190,14 +190,14 @@ Global
 		{6A4CFD91-BFA9-4AD3-8454-010333009DAC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6A4CFD91-BFA9-4AD3-8454-010333009DAC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6A4CFD91-BFA9-4AD3-8454-010333009DAC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DCDC626A-27C7-4885-85E2-E7D5CC5F1461}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DCDC626A-27C7-4885-85E2-E7D5CC5F1461}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DCDC626A-27C7-4885-85E2-E7D5CC5F1461}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DCDC626A-27C7-4885-85E2-E7D5CC5F1461}.Release|Any CPU.Build.0 = Release|Any CPU
 		{CEE343B3-2F0D-4F84-BCD1-E94B4E85C0E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{CEE343B3-2F0D-4F84-BCD1-E94B4E85C0E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CEE343B3-2F0D-4F84-BCD1-E94B4E85C0E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CEE343B3-2F0D-4F84-BCD1-E94B4E85C0E1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{86A2020C-AC45-4048-8C3D-81B1FD1D6A12}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{86A2020C-AC45-4048-8C3D-81B1FD1D6A12}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{86A2020C-AC45-4048-8C3D-81B1FD1D6A12}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{86A2020C-AC45-4048-8C3D-81B1FD1D6A12}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -228,8 +228,8 @@ Global
 		{3E2DA989-D3E9-4051-81E5-ABD1A2664730} = {40D8FAD2-2FEB-41A5-98E1-84876EF10EE8}
 		{0BB6B6D2-D248-4EEE-A85B-7799132D539D} = {40D8FAD2-2FEB-41A5-98E1-84876EF10EE8}
 		{6A4CFD91-BFA9-4AD3-8454-010333009DAC} = {124121A4-4A18-4475-BF10-515C52925515}
-		{DCDC626A-27C7-4885-85E2-E7D5CC5F1461} = {40D8FAD2-2FEB-41A5-98E1-84876EF10EE8}
 		{CEE343B3-2F0D-4F84-BCD1-E94B4E85C0E1} = {124121A4-4A18-4475-BF10-515C52925515}
+		{86A2020C-AC45-4048-8C3D-81B1FD1D6A12} = {40D8FAD2-2FEB-41A5-98E1-84876EF10EE8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {EEFF3B3A-327F-4951-BFDA-7931BFDB52BC}
