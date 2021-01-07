@@ -7,7 +7,7 @@
 using System;
 using System.IO;
 
-namespace egregore.Logging.LightningDb
+namespace egregore.Logging
 {
     public sealed class LoggingSerializeContext
     {

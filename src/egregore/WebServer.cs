@@ -11,7 +11,6 @@ using System.Runtime.InteropServices;
 using System.Security.Authentication;
 using egregore.Cryptography;
 using egregore.Logging;
-using egregore.Logging.LightningDb;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;

@@ -83,7 +83,7 @@
     <ProjectReference Include="..\egregore.CodeGeneration\egregore.CodeGeneration.csproj" />
     <ProjectReference Include="..\egregore.Cryptography\egregore.Cryptography.csproj" />
     <ProjectReference Include="..\egregore.Data\egregore.Data.csproj" />
-    <ProjectReference Include="..\egregore.Logging.LightningDb\egregore.Logging.LightningDb.csproj" />
+    <ProjectReference Include="..\egregore.Logging\egregore.Logging.csproj" />
     <ProjectReference Include="..\egregore.Network\egregore.Network.csproj" />
     <ProjectReference Include="..\egregore.Shared\egregore.Shared.csproj" />
   </ItemGroup>

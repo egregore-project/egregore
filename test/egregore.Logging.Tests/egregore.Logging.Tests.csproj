@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\egregore.Logging.LightningDb\egregore.Logging.LightningDb.csproj" />
+    <ProjectReference Include="..\..\src\egregore.Logging\egregore.Logging.csproj" />
   </ItemGroup>
 
 </Project>

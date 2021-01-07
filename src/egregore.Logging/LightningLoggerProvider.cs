@@ -8,7 +8,7 @@ using System;
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 
-namespace egregore.Logging.LightningDb
+namespace egregore.Logging
 {
     public sealed class LightningLoggerProvider : ILoggerProvider
     {

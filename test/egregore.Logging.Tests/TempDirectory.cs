@@ -8,7 +8,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 
-namespace egregore.Logging.LightningDb.Tests
+namespace egregore.Logging.Tests
 {
     public class TempDirectory : IDisposable
     {

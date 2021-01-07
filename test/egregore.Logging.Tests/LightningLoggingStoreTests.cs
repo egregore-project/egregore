@@ -3,7 +3,7 @@ using System.Threading;
 using Microsoft.Extensions.Logging;
 using Xunit;
 
-namespace egregore.Logging.LightningDb.Tests
+namespace egregore.Logging.Tests
 {
     [Collection(nameof(TempDirectory))]
     public sealed class LightningLoggingStoreTests : IDisposable

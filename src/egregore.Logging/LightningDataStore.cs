@@ -9,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using LightningDB;
 
-namespace egregore.Logging.LightningDb
+namespace egregore.Logging
 {
     public abstract class LightningDataStore : IDisposable
     {

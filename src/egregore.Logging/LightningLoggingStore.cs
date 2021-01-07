@@ -12,7 +12,7 @@ using System.Threading;
 using LightningDB;
 using Microsoft.Extensions.Logging;
 
-namespace egregore.Logging.LightningDb
+namespace egregore.Logging
 {
     public sealed class LightningLoggingStore : LightningDataStore
     {

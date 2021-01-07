@@ -5,7 +5,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System.Threading;
-using egregore.Logging.LightningDb;
 using Microsoft.AspNetCore.Mvc;
 
 namespace egregore.Logging

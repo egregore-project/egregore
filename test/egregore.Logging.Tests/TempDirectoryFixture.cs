@@ -6,7 +6,7 @@
 
 using Xunit;
 
-namespace egregore.Logging.LightningDb.Tests
+namespace egregore.Logging.Tests
 {
     [CollectionDefinition(nameof(TempDirectory))]
     public class TempDirectoryFixture : ICollectionFixture<TempDirectory> { }

@@ -6,7 +6,7 @@
 
 using System;
 
-namespace egregore.Logging.LightningDb
+namespace egregore.Logging
 {
     public sealed class LoggingException
     {
