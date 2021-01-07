@@ -6,6 +6,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using egregore.Data;
 using egregore.Extensions;
 using egregore.Hubs;
 using egregore.Ontology;

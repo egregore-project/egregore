@@ -5,9 +5,9 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System;
-using egregore.Extensions;
+using egregore.Data;
 
-namespace egregore.Ontology
+namespace egregore.Pages
 {
     public sealed class Page : ILogSerialized
     {

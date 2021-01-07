@@ -7,6 +7,7 @@
 using System;
 using System.Threading.Tasks;
 using egregore.Cryptography;
+using egregore.Data;
 using egregore.IO;
 using egregore.Ontology;
 using egregore.Ontology.Exceptions;

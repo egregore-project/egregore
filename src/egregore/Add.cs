@@ -17,7 +17,6 @@ using egregore.Media;
 using egregore.Network;
 using egregore.Ontology;
 using egregore.Pages;
-using egregore.Search;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;

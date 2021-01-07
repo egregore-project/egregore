@@ -7,6 +7,8 @@
 using System.Threading.Tasks;
 using egregore.Configuration;
 using egregore.Cryptography;
+using egregore.Data;
+using egregore.Pages;
 using Microsoft.Extensions.Options;
 
 namespace egregore.Ontology
@@ -19,7 +21,7 @@ namespace egregore.Ontology
 
         private readonly IOntologyChangeHandler _changeHandler;
         private readonly IOptions<WebServerOptions> _options;
-
+        
         public OntologyWriter(ILogStore store, ILogObjectTypeProvider typeProvider, ILogEntryHashProvider hashProvider,
             IOntologyChangeHandler changeHandler, IOptions<WebServerOptions> options)
         {

@@ -6,6 +6,7 @@
 
 using System;
 using egregore.Cryptography;
+using egregore.Data;
 using egregore.Extensions;
 
 namespace egregore.Ontology

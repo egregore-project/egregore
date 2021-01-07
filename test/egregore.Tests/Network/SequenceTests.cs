@@ -6,6 +6,7 @@
 
 using System;
 using System.Threading.Tasks;
+using egregore.Data;
 using egregore.Network;
 using egregore.Tests.Helpers;
 using Xunit;

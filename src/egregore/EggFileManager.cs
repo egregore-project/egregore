@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using egregore.Cryptography;
+using egregore.Data;
 using egregore.Extensions;
 using egregore.Ontology;
 using LightningDB;

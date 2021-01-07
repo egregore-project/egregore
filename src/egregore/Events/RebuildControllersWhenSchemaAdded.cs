@@ -7,6 +7,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using egregore.Configuration;
+using egregore.Data;
 using egregore.Ontology;
 
 namespace egregore.Events

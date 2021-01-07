@@ -18,7 +18,8 @@ namespace egregore.Logging.LightningDb
         {
             builder.AddConfiguration();
             builder.Services.AddSingleton<LightningLoggingStore>();
-            builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<ILoggerProvider, LightningLoggerProvider>(r => new LightningLoggerProvider(r.GetRequiredService<LightningLoggingStore>(), getPathFunc)));
+            builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<ILoggerProvider, LightningLoggerProvider>(r =>
+                new LightningLoggerProvider(r.GetRequiredService<LightningLoggingStore>(), getPathFunc)));
             return builder;
         }
     }

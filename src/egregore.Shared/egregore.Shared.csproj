@@ -7,4 +7,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="5.0.1" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\egregore.Data\egregore.Data.csproj" />
+  </ItemGroup>
 </Project>

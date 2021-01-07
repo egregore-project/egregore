@@ -16,7 +16,8 @@ namespace egregore.Logging.LightningDb
 {
     public sealed class LightningLoggingStore : LightningDataStore
     {
-        public void Append<TState>(LogLevel logLevel, in EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        public void Append<TState>(LogLevel logLevel, in EventId eventId, TState state, Exception exception,
+            Func<TState, Exception, string> formatter)
         {
             var entry = new LoggingEntry(Guid.NewGuid(), exception)
             {
@@ -92,7 +93,8 @@ namespace egregore.Logging.LightningDb
             return entries;
         }
 
-        private unsafe LoggingEntry GetByIndex(ReadOnlySpan<byte> index, LightningTransaction parent, CancellationToken cancellationToken)
+        private unsafe LoggingEntry GetByIndex(ReadOnlySpan<byte> index, LightningTransaction parent,
+            CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 

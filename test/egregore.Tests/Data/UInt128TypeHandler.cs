@@ -6,6 +6,7 @@
 
 using System.Data;
 using Dapper;
+using egregore.Data;
 
 namespace egregore.Tests.Data
 {

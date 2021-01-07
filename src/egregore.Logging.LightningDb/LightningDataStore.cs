@@ -5,7 +5,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using LightningDB;
@@ -81,7 +80,7 @@ namespace egregore.Logging.LightningDb
             var count = tx.GetEntriesCount(db); // entries also contains handles to databases
             return Task.FromResult(count);
         }
-        
+
         protected virtual void Dispose(bool disposing)
         {
             if (!disposing)

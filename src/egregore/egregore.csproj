@@ -80,7 +80,12 @@
     <ProjectReference Include="..\..\submodules\noise\Noise\Noise.csproj" />
     <ProjectReference Include="..\egregore.Client\egregore.Client.csproj" />
     <ProjectReference Include="..\egregore.Cryptography\egregore.Cryptography.csproj" />
+    <ProjectReference Include="..\egregore.Data\egregore.Data.csproj" />
     <ProjectReference Include="..\egregore.Logging.LightningDb\egregore.Logging.LightningDb.csproj" />
+    <ProjectReference Include="..\egregore.Network\egregore.Network.csproj" />
     <ProjectReference Include="..\egregore.Shared\egregore.Shared.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Search\" />
   </ItemGroup>
 </Project>
