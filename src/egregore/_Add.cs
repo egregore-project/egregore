@@ -88,14 +88,18 @@ namespace egregore
 
         public static IServiceCollection AddDynamicControllers(this IServiceCollection services, IWebHostEnvironment env)
         {
-            var mvc = services.AddControllersWithViews(x => { x.Conventions.Add(new DynamicControllerModelConvention()); });
             var change = new DynamicActionDescriptorChangeProvider();
             services.AddSingleton(change);
-            services.AddSingleton<IActionDescriptorChangeProvider, DynamicActionDescriptorChangeProvider>(r =>
-                r.GetRequiredService<DynamicActionDescriptorChangeProvider>());
+            services.AddSingleton<IActionDescriptorChangeProvider, DynamicActionDescriptorChangeProvider>(r => r.GetRequiredService<DynamicActionDescriptorChangeProvider>());
 
             // FIXME: bad practice
             var sp = services.BuildServiceProvider();
+
+            var mvc = services.AddControllersWithViews(x =>
+            {
+                x.Conventions.Add(new DynamicControllerModelConvention());
+            });
+            
             mvc.ConfigureApplicationPartManager(x =>
             {
                 var logger = sp.GetRequiredService<ILogger<DynamicControllerFeatureProvider>>();
@@ -103,12 +107,14 @@ namespace egregore
                 var provider = new DynamicControllerFeatureProvider(ontology, logger);
                 x.FeatureProviders.Add(provider);
             });
-            if (env.IsDevelopment())
-                mvc.AddRazorRuntimeCompilation(o => { });
-            mvc = services.AddRazorPages();
-            if (env.IsDevelopment())
-                mvc.AddRazorRuntimeCompilation(o => { }); // FIXME do we need this twice?
 
+            if (env.IsDevelopment())
+            {
+                mvc.AddRazorRuntimeCompilation(o => { });
+            }
+
+            services.AddRazorPages();
+            
             return services;
         }
 
