@@ -60,12 +60,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "egregore.Logging", "src\egr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "egregore.Logging.Tests", "test\egregore.Logging.Tests\egregore.Logging.Tests.csproj", "{28520F82-EF20-4C6B-9B66-F42A4BE50E4C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorApp1.Server", "BlazorApp1\Server\BlazorApp1.Server.csproj", "{3E4C00AB-68BC-496E-BE7D-B6E2C85CBCCF}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorApp1.Client", "BlazorApp1\Client\BlazorApp1.Client.csproj", "{D2D2AF9D-C7DC-4678-A748-F97D61837E7F}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorApp1.Shared", "BlazorApp1\Shared\BlazorApp1.Shared.csproj", "{8FAB0F86-4E6A-4BA6-B3BF-9383911A7010}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -144,18 +138,6 @@ Global
 		{28520F82-EF20-4C6B-9B66-F42A4BE50E4C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{28520F82-EF20-4C6B-9B66-F42A4BE50E4C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{28520F82-EF20-4C6B-9B66-F42A4BE50E4C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3E4C00AB-68BC-496E-BE7D-B6E2C85CBCCF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3E4C00AB-68BC-496E-BE7D-B6E2C85CBCCF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3E4C00AB-68BC-496E-BE7D-B6E2C85CBCCF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3E4C00AB-68BC-496E-BE7D-B6E2C85CBCCF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D2D2AF9D-C7DC-4678-A748-F97D61837E7F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D2D2AF9D-C7DC-4678-A748-F97D61837E7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D2D2AF9D-C7DC-4678-A748-F97D61837E7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D2D2AF9D-C7DC-4678-A748-F97D61837E7F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8FAB0F86-4E6A-4BA6-B3BF-9383911A7010}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8FAB0F86-4E6A-4BA6-B3BF-9383911A7010}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8FAB0F86-4E6A-4BA6-B3BF-9383911A7010}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8FAB0F86-4E6A-4BA6-B3BF-9383911A7010}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

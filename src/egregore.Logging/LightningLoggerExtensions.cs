@@ -12,9 +12,9 @@ using Microsoft.Extensions.Logging.Configuration;
 
 namespace egregore.Logging
 {
-    public static class LightningLoggerExtensions
+    public static class LoggingExtensions
     {
-        public static ILoggingBuilder AddLightning(this ILoggingBuilder builder, Func<string> getPathFunc)
+        public static ILoggingBuilder AddLogging(this ILoggingBuilder builder, Func<string> getPathFunc)
         {
             builder.AddConfiguration();
             builder.Services.AddSingleton<LightningLoggingStore>();

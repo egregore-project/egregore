@@ -30,17 +30,23 @@ namespace egregore
     {
         private static MemoryOntologyLog _ontology;
 
-        public static IServiceCollection AddWebServer(this IServiceCollection services, string eggPath,
-            IKeyCapture capture, IWebHostEnvironment env, IConfiguration config, IWebHostBuilder webBuilder)
+        public static IServiceCollection AddWebServer(this IServiceCollection services, string eggPath, int port, IKeyCapture capture, IWebHostEnvironment env, IConfiguration config)
         {
-            services.AddCors(x => x.AddDefaultPolicy(b =>
+            var publicKeyString = AddPublicKeyIdentifier(services, eggPath, port, capture, env, config);
+
+            services.AddAntiforgery(o =>
             {
-                b.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
-                b.DisallowCredentials(); // credentials are invalid when origin is *
-            }));
+                o.Cookie.Name = $"_{publicKeyString}_xsrf";
+                o.Cookie.HttpOnly = true;
+                o.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                o.HeaderName = "X-XSRF-Token";
+            });
+            
+            return services;
+        }
 
-            services.AddSignalR();
-
+        public static string AddPublicKeyIdentifier(this IServiceCollection services, string eggPath, int port, IKeyCapture capture, IWebHostEnvironment env, IConfiguration config)
+        {
             var keyFileService = new ServerKeyFileService();
             services.AddSingleton<IKeyFileService>(keyFileService);
 
@@ -55,53 +61,38 @@ namespace egregore
 
             var appString = $"{env.ApplicationName}:" +
                             $"{env.EnvironmentName}:" +
-                            $"{webBuilder.GetSetting("https_port")}";
+                            $"{port}";
 
             var serverId = Crypto.Fingerprint(publicKey, appString);
+            var publicKeyString = Crypto.ToHexString(publicKey);
 
             services.Configure<WebServerOptions>(config.GetSection("WebServer"));
             services.Configure<WebServerOptions>(o =>
             {
                 o.PublicKey = publicKey;
-                o.PublicKeyString = Crypto.ToHexString(publicKey);
+                o.ServerPort = port;
+                o.PublicKeyString = publicKeyString;
                 o.ServerId = serverId;
                 o.EggPath = eggPath;
             });
 
-            services.AddAntiforgery(o =>
-            {
-                o.Cookie.Name = $"_{serverId}_xsrf";
-                o.Cookie.HttpOnly = true;
-                o.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-                o.HeaderName = "X-XSRF-Token";
-            });
+            return publicKeyString;
+        }
 
-            var mvc = services.AddControllersWithViews(x =>
-            {
-                x.Conventions.Add(new DynamicControllerModelConvention());
-            });
+        public static IServiceCollection AddCacheRegions(this IServiceCollection services)
+        {
+            services.AddMemoryCache(x => { });
+            services.TryAdd(ServiceDescriptor.Singleton(typeof(ICacheRegion<>), typeof(InProcessCacheRegion<>)));
+            return services;
+        }
 
-            AddEvents(services);
-
-            AddDataStores(services);
-
-            AddFilters(services);
-
-            AddDaemonService(services);
-
+        public static IServiceCollection AddDynamicControllers(this IServiceCollection services, IWebHostEnvironment env)
+        {
+            var mvc = services.AddControllersWithViews(x => { x.Conventions.Add(new DynamicControllerModelConvention()); });
             var change = new DynamicActionDescriptorChangeProvider();
             services.AddSingleton(change);
             services.AddSingleton<IActionDescriptorChangeProvider, DynamicActionDescriptorChangeProvider>(r =>
                 r.GetRequiredService<DynamicActionDescriptorChangeProvider>());
-            services.AddSingleton<ISearchIndex, LunrRecordIndex>();
-            services.AddSingleton<PeerBus>();
-            services.AddSingleton(r =>
-            {
-                // This is static because the hosted service is called on its own thread, which would otherwise duplicate the log
-                _ontology ??= new MemoryOntologyLog(r.GetRequiredService<OntologyEvents>(), publicKey);
-                return _ontology;
-            });
-            services.AddTransient<IOntologyLog>(r => r.GetRequiredService<MemoryOntologyLog>());
 
             // FIXME: bad practice
             var sp = services.BuildServiceProvider();
@@ -110,32 +101,18 @@ namespace egregore
                 var logger = sp.GetRequiredService<ILogger<DynamicControllerFeatureProvider>>();
                 var ontology = sp.GetRequiredService<IOntologyLog>();
                 var provider = new DynamicControllerFeatureProvider(ontology, logger);
-
                 x.FeatureProviders.Add(provider);
             });
-
             if (env.IsDevelopment())
                 mvc.AddRazorRuntimeCompilation(o => { });
-
             mvc = services.AddRazorPages();
             if (env.IsDevelopment())
-                mvc.AddRazorRuntimeCompilation(o => { });
+                mvc.AddRazorRuntimeCompilation(o => { }); // FIXME do we need this twice?
 
-            services.AddRouting(x =>
-            {
-                x.AppendTrailingSlash = true;
-                x.LowercaseUrls = true;
-                x.LowercaseQueryStrings = false;
-            });
-
-            services.AddMemoryCache(x => { });
-            services.TryAdd(ServiceDescriptor.Singleton(typeof(ICacheRegion<>), typeof(InProcessCacheRegion<>)));
-
-            AddIdentity(services);
             return services;
         }
 
-        private static void AddIdentity(IServiceCollection services)
+        public static IServiceCollection AddIdentity(this IServiceCollection services)
         {
             // FIXME: distinguish between app and api
 
@@ -157,16 +134,28 @@ namespace egregore
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("0123456789abcdef"))
                     };
                 });
+
+            return services;
         }
 
-        private static void AddDaemonService(IServiceCollection services)
+        public static IServiceCollection AddDaemonServices(this IServiceCollection services)
         {
             services.AddSingleton<DaemonService>();
             services.AddSingleton<IOntologyChangeHandler>(r => r.GetRequiredService<DaemonService>());
             services.AddHostedService(r => r.GetRequiredService<DaemonService>());
+
+            services.AddSingleton<PeerBus>();
+            services.AddSingleton(r =>
+            {
+                // This is static because the hosted service is called on its own thread, which would otherwise duplicate the log
+                _ontology ??= new MemoryOntologyLog(r.GetRequiredService<OntologyEvents>(), r.GetRequiredService<IOptions<WebServerOptions>>().Value.PublicKey);
+                return _ontology;
+            });
+            services.AddTransient<IOntologyLog>(r => r.GetRequiredService<MemoryOntologyLog>());
+            return services;
         }
 
-        private static void AddDataStores(IServiceCollection services)
+        public static IServiceCollection AddDataStores(this IServiceCollection services)
         {
             services.AddSingleton<ILogObjectTypeProvider, LogObjectTypeProvider>();
             services.AddSingleton<ILogEntryHashProvider, LogEntryHashProvider>();
@@ -180,9 +169,11 @@ namespace egregore
                     r.GetRequiredService<ISearchIndex>(), r.GetRequiredService<RecordEvents>(),
                     r.GetRequiredService<ILogObjectTypeProvider>(),
                     r.GetRequiredService<ILogger<LightningRecordStore>>()));
+
+            return services;
         }
 
-        private static void AddEvents(IServiceCollection services)
+        public static IServiceCollection AddEvents(this IServiceCollection services)
         {
             services.AddSingleton<RecordEvents>();
             services.TryAddEnumerable(ServiceDescriptor.Singleton<IRecordEventHandler, RebuildIndexOnRecordEvents>());
@@ -198,14 +189,24 @@ namespace egregore
 
             services.AddSingleton<PageEvents>();
             services.TryAddEnumerable(ServiceDescriptor.Singleton<IPageEventHandler, NotifyHubsWhenPageAdded>());
+
+            return services;
         }
 
-        private static void AddFilters(IServiceCollection services)
+        public static IServiceCollection AddFilters(this IServiceCollection services)
         {
             services.AddSingleton<ThrottleFilter>();
             services.AddSingleton<OntologyFilter>();
             services.AddSingleton<RemoteAddressFilter>();
             services.AddScoped<BaseViewModelFilter>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddSearchIndexes(this IServiceCollection services)
+        {
+            services.AddSingleton<ISearchIndex, LunrRecordIndex>();
+            return services;
         }
     }
 }

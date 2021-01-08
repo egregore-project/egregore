@@ -10,8 +10,18 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Security.Authentication;
+using egregore.Configuration;
 using egregore.Cryptography;
 using egregore.Extensions;
+using egregore.Logging;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace egregore
 {
@@ -37,8 +47,9 @@ namespace egregore
                 };
 
                 var arguments = new Queue<string>(args);
+
                 if (ProcessCommandLineArguments(arguments))
-                    NonInteractiveStartup(_port, args, arguments);
+                    NonInteractiveStartup(_port, arguments);
             }
             finally
             {
@@ -46,7 +57,7 @@ namespace egregore
             }
         }
 
-        private static void NonInteractiveStartup(int? port, string[] args, Queue<string> arguments)
+        private static void NonInteractiveStartup(int? port, Queue<string> arguments)
         {
             Console.Out.WriteInfoLine("Starting server in non-interactive mode.");
             var password = Environment.GetEnvironmentVariable(Constants.EnvVars.KeyFilePassword);
@@ -184,9 +195,79 @@ namespace egregore
 
             capture?.Reset();
 
-            if (!interactive) LaunchBrowserUrl($"https://localhost:{port.GetValueOrDefault(Constants.DefaultPort)}");
+            if (!interactive)
+                LaunchBrowserUrl($"https://localhost:{port.GetValueOrDefault(Constants.DefaultPort)}");
 
-            WebServer.Run(port, eggPath, capture, arguments.ToArray());
+            PrintMasthead();
+            var builder = CreateHostBuilder(port, eggPath, capture, arguments.ToArray());
+            var host = builder.Build();
+            host.Run();
+        }
+        
+        internal static IHostBuilder CreateHostBuilder(int? port, string eggPath, IKeyCapture capture, params string[] args)
+        {
+            var builder = Host.CreateDefaultBuilder(args);
+
+            builder.ConfigureWebHostDefaults(webBuilder =>
+            {
+                Activity.DefaultIdFormat = ActivityIdFormat.W3C;
+
+                webBuilder.ConfigureAppConfiguration((context, configBuilder) =>
+                {
+                    configBuilder.AddEnvironmentVariables();
+                });
+
+                webBuilder.ConfigureKestrel((context, options) =>
+                {
+                    var x509 = CertificateBuilder.GetOrCreateSelfSignedCert(Console.Out);
+
+                    options.AddServerHeader = false;
+                    options.ListenLocalhost(port.GetValueOrDefault(Constants.DefaultPort), x =>
+                    {
+                        x.Protocols = HttpProtocols.Http1AndHttp2;
+                        x.UseHttps(a =>
+                        {
+                            a.SslProtocols = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                                ? SslProtocols.Tls12
+                                : SslProtocols.Tls13;
+                            a.ServerCertificate = x509;
+                        });
+                    });
+                });
+
+                webBuilder.ConfigureLogging((context, loggingBuilder) =>
+                {
+                    loggingBuilder.ClearProviders();
+
+                    loggingBuilder.AddConfiguration(context.Configuration.GetSection("Logging"));
+                    loggingBuilder.AddDebug();
+                    loggingBuilder.AddEventSourceLogger();
+                    loggingBuilder.AddLogging(() =>
+                    {
+                        var serviceProvider = loggingBuilder.Services.BuildServiceProvider();
+                        return Path.Combine(Constants.DefaultRootPath, $"{serviceProvider.GetRequiredService<IOptions<WebServerOptions>>().Value.PublicKeyString}_logs.egg");
+                    });
+
+                    if (context.HostingEnvironment.IsDevelopment()) 
+                        loggingBuilder.AddColorConsole(); // unnecessary overhead
+                });
+
+                webBuilder.ConfigureServices((context, services) =>
+                {
+                    services.AddWebServer(eggPath, port.GetValueOrDefault(Constants.DefaultPort), capture, context.HostingEnvironment, context.Configuration);
+                });
+
+                webBuilder.UseStartup<Startup>();
+                
+                var contentRoot = Directory.GetCurrentDirectory();
+                var webRoot = Path.Combine(contentRoot, "wwwroot");
+                if (!File.Exists(Path.Combine(webRoot, "css", "signin.css")))
+                    webRoot = Path.GetFullPath(Path.Combine(contentRoot, "..", "egregore.Client", "wwwroot"));
+                webBuilder.UseContentRoot(contentRoot);
+                webBuilder.UseWebRoot(webRoot);
+            });
+
+            return builder;
         }
 
         public static void LaunchBrowserUrl(string url)
@@ -195,7 +276,33 @@ namespace egregore
                 Process.Start(new ProcessStartInfo(url) {UseShellExecute = true});
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 Process.Start("xdg-open", url);
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) Process.Start("open", url);
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                Process.Start("open", url);
         }
+        
+        private static void PrintMasthead()
+        {
+            Console.ResetColor();
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine(@"                                        
+                       @@@@             
+                  @   @@@@@@            
+                  @@@   @@    @@@@      
+                   .@@@@@@@@@@@@@@@     
+        @@@@@@@@@@@@  @@@@@@@@@         
+       @@@@@@@@@@@@@@      %@@@@&       
+        .@/       @@@   .@@@@@@@@@@@    
+           @@  @@@@@   @@@@@@     %@@   
+   @       @@@@@@@    @@@@@@       @@@  
+   @@      @@@@@@@@@@@@@@@         @@@  
+   @@              @@@  @         @@@@  
+    @@@            @@@@ @@@@@@@@@@@@@   
+    .@@@@@      @@@@@@/  @@@@@@@@@@@    
+      @@@@@@@@@@@@@@@      @@@@@@       
+         @@@@@@@@@@                     
+");
+            Console.ResetColor();
+        }
+
     }
 }

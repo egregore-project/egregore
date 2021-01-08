@@ -120,12 +120,11 @@ namespace egregore.Cryptography
 
         public static string Fingerprint(this ReadOnlySpan<byte> publicKey, string value)
         {
+            var buffer = new byte[8];
+            var app = Encoding.UTF8.GetBytes(value);
+
             unsafe
             {
-                var buffer = new byte[8];
-
-                var app = Encoding.UTF8.GetBytes(value);
-
                 fixed (byte* pk = publicKey)
                 fixed (byte* id = buffer)
                 fixed (byte* key = app)
@@ -309,10 +308,6 @@ namespace egregore.Cryptography
                     $"{callerMemberName}: Cannot load key file at path '{keyFilePath}'");
             return sk;
         }
-
-        #endregion
-
-        #region Helper Functions
 
         #endregion
     }
