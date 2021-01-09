@@ -97,7 +97,7 @@ jobs:
         run: dotnet nuget push ./artifacts/egregore.${{env.NBGV_NuGetPackageVersion}}.nupkg -k ${{secrets.NUGET_API_KEY}} -s https://api.nuget.org/v3/index.json --skip-duplicate
 
       - name: Set git short hash
-        run: echo ${{env.NBGV_GitCommitIdShort}} > commit.txt
+        run: echo ${{env.NBGV_GitCommitIdShort}}> commit.txt
         shell: cmd
 
       - name: Upload git short hash
@@ -132,7 +132,8 @@ jobs:
           name: commit.txt
 
       - name: Set git short hash
-        run: chmod 0755 commit.txt && echo $(cat commit.txt) > VERSION
+        id: githash
+        run: chmod 0755 commit.txt && echo "::set-output name=version::$(cat commit.txt)"
 
       - name: Install libman tool
         run: dotnet tool install --global Microsoft.Web.LibraryManager.Cli
@@ -142,7 +143,9 @@ jobs:
         run: libman restore
 
       - name: Publish win-x64
-        run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r win-x64 -p:LibraryRestore=false -p:PublishReadyToRun=true -p:PublishReadyToRunShowWarnings=true -p:PublishSingleFile=true -p:PublishTrimmed=true -o "dist/win-x64-$(cat VERSION)"
+        env:
+          DIST_VERSION: ${{steps.githash.outputs.version}}
+        run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r win-x64 -p:LibraryRestore=false -p:PublishReadyToRun=true -p:PublishReadyToRunShowWarnings=true -p:PublishSingleFile=true -p:PublishTrimmed=true -o "dist/win-x64-${{env.DIST_VERSION}}"
     
       - name: Download minisign 0.9
         run: "(New-Object System.Net.WebClient).DownloadFile('https://github.com/jedisct1/minisign/releases/download/0.9/minisign-win64.zip', './minisign-win64.zip')"
@@ -169,14 +172,18 @@ jobs:
         shell: cmd
 
       - name: Sign executable
-        run: chmod 0755 ./dist/win-x64-$(cat VERSION) && minisign -Sm ./dist/win-x64-$$(cat VERSION) -s minisign.key -t "git commit hash = $(cat VERSION)" < cleartext.txt            
+        env:
+          DIST_VERSION: ${{steps.githash.outputs.version}}
+        run: chmod 0755 "./dist/win-x64-${{env.DIST_VERSION}}/egregore.exe" && minisign -Sm "./dist/win-x64-${{env.DIST_VERSION}}/egregore.exe" -s minisign.key -t "git commit hash = ${{env.DIST_VERSION}}" < cleartext.txt            
         shell: cmd
 
       - name: Upload win-x64
         uses: actions/upload-artifact@main
+        env:
+          DIST_VERSION: ${{steps.githash.outputs.version}}
         with:
-          name: win-x64-$(cat VERSION)
-          path: dist/win-x64-$(cat VERSION)
+          name: "win-x64-${{env.DIST_VERSION}}"
+          path: "dist/win-x64-${{env.DIST_VERSION}}"
 
   deploy-linux-x64:
     runs-on: ubuntu-latest
@@ -204,7 +211,8 @@ jobs:
           name: commit.txt
 
       - name: Set git short hash
-        run: chmod 0755 commit.txt && echo $(cat commit.txt) > VERSION
+        id: githash
+        run: chmod 0755 commit.txt && echo "::set-output name=version::$(cat commit.txt)"
 
       - name: Install libman tool
         run: dotnet tool install --global Microsoft.Web.LibraryManager.Cli
@@ -214,13 +222,43 @@ jobs:
         run: libman restore
 
       - name: Publish linux-x64
-        run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r linux-x64 -p:LibraryRestore=false -p:PublishReadyToRun=true -p:PublishReadyToRunShowWarnings=true -p:PublishSingleFile=true -p:PublishTrimmed=true -o "dist/linux-x64-$(cat VERSION)" 
+        env:
+          DIST_VERSION: ${{steps.githash.outputs.version}}
+        run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r linux-x64 -p:LibraryRestore=false -p:PublishReadyToRun=true -p:PublishReadyToRunShowWarnings=true -p:PublishSingleFile=true -p:PublishTrimmed=true -o "dist/linux-x64-${{env.DIST_VERSION}}"
+   
+      - name: Download minisign 0.9
+        run: wget https://github.com/jedisct1/minisign/releases/download/0.9/minisign-0.9.tar.gz
+      
+      - name: Download minisign 0.9 signature
+        run: wget https://github.com/jedisct1/minisign/releases/download/0.9/minisign-0.9.tar.gz.minisig
+
+      - name: Unzip minisign-0.9.tar.gz
+        run: tar -zxvf ./minisign-0.9.tar.gz
+
+      - name: Verify minisign 0.9
+        run: minisign -Vm ./minisign-0.9.tar.gz -P "RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3"
+
+      - name: Prepare minisign key
+        run: (echo ${{secrets.MINISIGN_UNTRUSTED_COMMENT}} & echo ${{secrets.MINISIGN_KEY}}) > minisign.key
+
+      - name: Prepare minisign password
+        run: (echo ${{secrets.MINISIGN_PASSWORD}}& echo.) > cleartext.txt
+
+      - name: Sign executable
+        env:
+          DIST_VERSION: ${{steps.githash.outputs.version}}
+        run: chmod 0755 "./dist/linux-x64-${{env.DIST_VERSION}}/egregore.exe" && minisign -Sm "./dist/linux-x64-${{env.DIST_VERSION}}/egregore.exe" -s minisign.key -t "git commit hash = ${{env.DIST_VERSION}}" < cleartext.txt                    
+
+      - name: Delete key materials
+        run: del minisign.key && del cleartext.txt      
    
       - name: Upload linux-x64
         uses: actions/upload-artifact@main
+        env:
+          DIST_VERSION: ${{ steps.githash.outputs.version }}
         with:
-          name: linux-x64-$(cat VERSION)
-          path: dist/linux-x64-$(cat VERSION)
+          name: "linux-x64-${{env.DIST_VERSION}}"
+          path: "dist/linux-x64-${{env.DIST_VERSION}}"
 
   deploy-osx-x64:
     runs-on: macos-latest
@@ -241,13 +279,13 @@ jobs:
         with:
           dotnet-version: 3.1.x
       - name: Download git short hash
-        id: download
         uses: actions/download-artifact@main
         with:
           name: commit.txt
 
       - name: Set git short hash
-        run: chmod 0755 commit.txt && echo $(cat commit.txt) > VERSION
+        id: githash
+        run: chmod 0755 commit.txt && echo "::set-output name=version::$(cat commit.txt)"
         
       - name: Install libman tool
         run: dotnet tool install --global Microsoft.Web.LibraryManager.Cli
@@ -257,13 +295,40 @@ jobs:
         run: libman restore
 
       - name: Publish osx-x64
-        run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r osx-x64 -p:LibraryRestore=false -p:PublishReadyToRun=true -p:PublishSingleFile=true -p:PublishTrimmed=true -o "dist/osx-x64-$(cat VERSION)" 
+        env:
+          DIST_VERSION: ${{ steps.githash.outputs.version }}
+        run: dotnet publish ./src/egregore/egregore.csproj --configuration Release -r osx-x64 -p:LibraryRestore=false -p:PublishReadyToRun=true -p:PublishSingleFile=true -p:PublishTrimmed=true -o "dist/osx-x64-${{env.DIST_VERSION}}"
 
       - name: Download minisign 0.9
         run: wget https://github.com/jedisct1/minisign/releases/download/0.9/minisign-osx.zip
+      
+      - name: Download minisign 0.9 signature
+        run: wget https://github.com/jedisct1/minisign/releases/download/0.9/minisign-osx.zip.minisig
+
+      - name: Unzip minisign-osx.zip        
+        run: unzip ./minisign-osx.zip -d ./
+
+      - name: Verify minisign 0.9
+        run: minisign -Vm ./minisign-osx.zip -P "RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3"
+
+      - name: Prepare minisign key
+        run: (echo ${{secrets.MINISIGN_UNTRUSTED_COMMENT}} & echo ${{secrets.MINISIGN_KEY}}) > minisign.key
+
+      - name: Prepare minisign password
+        run: (echo ${{secrets.MINISIGN_PASSWORD}}& echo.) > cleartext.txt
+
+      - name: Sign executable
+        env:
+          DIST_VERSION: ${{steps.githash.outputs.version}}
+        run: chmod 0755 "./dist/osx-x64-${{env.DIST_VERSION}}/egregore.exe" && minisign -Sm "./dist/osx-x64-${{env.DIST_VERSION}}/egregore.exe" -s minisign.key -t "git commit hash = ${{env.DIST_VERSION}}" < cleartext.txt                    
+
+      - name: Delete key materials
+        run: del minisign.key && del cleartext.txt          
 
       - name: Upload osx-x64
         uses: actions/upload-artifact@main
+        env:
+          DIST_VERSION: ${{ steps.githash.outputs.version }}
         with:
-          name: osx-x64-$(cat VERSION)
-          path: dist/osx-x64-$(cat VERSION)
+          name: "osx-x64-${{env.DIST_VERSION}}"
+          path: "dist/osx-x64-${{env.DIST_VERSION}}"
