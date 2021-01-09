@@ -1,0 +1,39 @@
+﻿@page "/ui/{model}"
+@using egregore.Models
+@using egregore.Data
+
+<h1>@Model</h1>
+
+<table>
+    <tbody>
+    @foreach (var property in Ontology?.Schemas?.Single(x => x.Name.ToLowerInvariant() == Model).Properties ??
+                              Enumerable.Empty<SchemaProperty>())
+    {
+        <td>@property.Name</td>}
+    </tbody>
+</table>
+
+
+@code {
+    [Parameter]
+    public string Model { get; set; }
+
+    [CascadingParameter]
+    public OntologyViewModel Ontology { get; set; }
+
+    [Inject]
+    public HttpClient Http { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Ontology == null)
+        {
+            Ontology = await Http.GetFromJsonAsync<OntologyViewModel>("ontology");
+        }
+    }
+
+    protected override Task OnInitializedAsync()
+    {
+        return base.OnInitializedAsync();
+    }
+}

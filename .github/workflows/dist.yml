@@ -22,7 +22,7 @@ jobs:
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: 3.1.x
+          dotnet-version: 5.0.x
 
       # BEGIN (Source: https://gist.github.com/fredeil/26df20ef664b46f5ced338d5a8d8e8e9)
 

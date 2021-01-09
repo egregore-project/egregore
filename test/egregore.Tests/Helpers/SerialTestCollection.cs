@@ -9,5 +9,7 @@ using Xunit;
 namespace egregore.Tests.Helpers
 {
     [CollectionDefinition("Serial", DisableParallelization = true)]
-    internal sealed class SerialTestCollection { }
+    internal sealed class SerialTestCollection
+    {
+    }
 }

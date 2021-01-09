@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+	<IsPackable>false</IsPackable>
+	<IsPublishable>false</IsPublishable>
+  </PropertyGroup>
+
+  <ItemGroup>
+
+    <PackageReference Include="libsodium" Version="1.0.18">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+
+    <PackageReference Include="BenchmarkDotNet" Version="0.12.1" />
+  </ItemGroup>
+
+</Project>

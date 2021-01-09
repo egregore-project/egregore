@@ -6,14 +6,14 @@
 
 using System;
 using System.IO;
-using egregore.IO;
+using egregore.Cryptography;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Hosting;
 using Xunit;
 
 namespace egregore.Tests.Helpers
 {
-    public sealed class WebServerFactory : WebApplicationFactory<WebServer>
+    public sealed class WebServerFactory : WebApplicationFactory<Startup>
     {
         protected override IHostBuilder CreateHostBuilder()
         {
@@ -31,7 +31,7 @@ namespace egregore.Tests.Helpers
             Program.keyFilePath = keyFilePath;
             Program.keyFileStream = new FileStream(Program.keyFilePath, FileMode.Open, FileAccess.Read, FileShare.None);
 
-            return WebServer.CreateHostBuilder(null, eggPath, capture);
+            return Program.CreateHostBuilder(null, eggPath, capture);
         }
     }
 }

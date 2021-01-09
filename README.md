@@ -4,7 +4,6 @@ The reference implementation of the Egregore project.
 
 ![Build & Test](https://github.com/egregore-project/egregore/workflows/Build%20&%20Test/badge.svg)
 
-
 #### CLI commands
 
 - `--cert|--certs|-c [--fresh]`: Generate a new self-signed root certificate, and prompt the user for trust. Automatically recycles expired root certificates, which expire after 24 hours. Passing the optional `--fresh` parameter will first remove any existing certificates, regardless if they have expired, before creating the new one.
@@ -17,9 +16,9 @@ The reference implementation of the Egregore project.
 
 #### Running Unattended
 
-For deployments, running unattended is necessary to avoid prompting for a password for the key file. To run unatteded, pass no arguments, or limit arguments to:
+For deployments, running unattended is necessary to avoid prompting for a password for the key file. To run unattended, pass no arguments, or limit arguments to:
 
-- `--nolock`: This flag prevents the server attempting to obtain an exclusive lock on the keyfile prior to booting. This should not be used except when testing multiple servers instances in development environment, as not-obtaining an exclusive lock on the file allows others to modify or remove the file while the server is running.
+- `--nolock`: This flag prevents the server attempting to obtain an exclusive lock on the keyfile prior to booting. This should not be used except when testing multiple server instances in a development environment, as not obtaining an exclusive lock on the file allows others to modify or remove the file while the server is running.
 
 - `--port`: Specified the port the server listens on for incoming requests. Defaults to `5001`.
 

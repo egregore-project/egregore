@@ -4,28 +4,73 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-using egregore.Configuration;
+using System.Globalization;
+using System.Threading.Tasks;
+using egregore.Data;
+using egregore.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 
 namespace egregore.Controllers
 {
     public class OntologyController : Controller
     {
-        private readonly IOptionsSnapshot<WebServerOptions> _options;
+        private readonly IOntologyLog _ontology;
+        private readonly OntologyWriter _writer;
 
-        public OntologyController(IOptionsSnapshot<WebServerOptions> options)
+        public OntologyController(IOntologyLog ontology, OntologyWriter writer)
         {
-            _options = options;
+            _ontology = ontology;
+            _writer = writer;
         }
 
-        [HttpGet("whois")]
-        public IActionResult WhoIs()
+        [HttpOptions("api/{ns}/v{rs}")]
+        public IActionResult Options([FromRoute] string ns, [FromRoute] ulong rs)
         {
-            return Ok(new
+            var schemas = _ontology.GetSchemas(ns, rs);
+            return Ok(schemas);
+        }
+
+        [HttpPost("api/{ns}/{controller}")]
+        public async Task<IActionResult> Post([FromRoute] string controller, [FromRoute] string ns,
+            [FromBody] object model)
+        {
+            await SaveSchemaAsync(controller, model);
+
+            return RedirectToActionPermanent(nameof(Post), "Dynamic", new {controller, ns, model});
+        }
+
+        [HttpGet("ontology")]
+        public IActionResult GetOntology()
+        {
+            var schemas = _ontology.GetSchemas("default");
+            return Ok(new OntologyViewModel {Schemas = schemas});
+        }
+
+        [HttpPost("schema")]
+        public async Task<IActionResult> AddSchema()
+        {
+            var schema = new Schema {Name = "Customer"};
+            var property = new SchemaProperty {Name = "Name", Type = "string", IsRequired = true};
+            schema.Properties.Add(property);
+
+            await _writer.SaveAsync(schema);
+            return Ok(schema);
+        }
+
+        private async Task SaveSchemaAsync(string controller, object model)
+        {
+            var schema = new Schema
             {
-                PublicKey = Crypto.ToHexString(_options.Value.PublicKey)
-            });
+                Name = CultureInfo.InvariantCulture.TextInfo.ToTitleCase(controller)
+            };
+            var type = model.GetType();
+            foreach (var p in type.GetProperties())
+            {
+                var property = new SchemaProperty {Type = p.PropertyType.Name, Name = p.Name, IsRequired = false};
+                schema.Properties.Add(property);
+            }
+
+            await _writer.SaveAsync(schema);
         }
     }
 }

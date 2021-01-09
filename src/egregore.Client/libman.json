@@ -1,0 +1,85 @@
+{
+  "version": "1.0",
+  "defaultProvider": "unpkg",
+  "libraries": [
+    {
+      "library": "jquery@3.5.1",
+      "destination": "wwwroot/lib/jquery/",
+      "files": [
+        "LICENSE.txt",
+        "dist/jquery.min.js",
+        "dist/jquery.min.map"
+      ]
+    },
+    {
+      "library": "bootstrap@4.5.0",
+      "destination": "wwwroot/lib/bootstrap/",
+      "files": [
+        "LICENSE",
+        "dist/css/bootstrap.min.css",
+        "dist/css/bootstrap.min.css.map",
+        "dist/js/bootstrap.bundle.min.js",
+        "dist/js/bootstrap.bundle.min.js.map"
+      ]
+    },
+    {
+      "library": "toastr@2.1.4",
+      "destination": "wwwroot/lib/toastr/",
+      "files": [
+        "build/toastr.css",
+        "build/toastr.js.map",
+        "build/toastr.min.css",
+        "build/toastr.min.js"
+      ]
+    },
+    {
+      "library": "@microsoft/signalr@3.1.6",
+      "destination": "wwwroot/lib/microsoft/signalr/",
+      "files": [
+        "dist/browser/signalr.min.js.map",
+        "dist/browser/signalr.min.js",
+        "dist/browser/signalr.js.map",
+        "dist/browser/signalr.js"
+      ]
+    },
+    {
+      "library": "dagre-d3@0.6.4",
+      "destination": "wwwroot/lib/dagre-d3/",
+      "files": [
+        "LICENSE",
+        "README.md",
+        "dist/dagre-d3.core.js",
+        "dist/dagre-d3.core.min.js",
+        "dist/dagre-d3.core.min.js.map",
+        "dist/dagre-d3.js",
+        "dist/dagre-d3.min.js",
+        "dist/dagre-d3.min.js.map"
+      ]
+    },
+    {
+      "library": "d3@5.16.0",
+      "destination": "wwwroot/lib/d3/",
+      "files": [
+        "README.md",
+        "LICENSE",
+        "CHANGES.md",
+        "dist/d3.js",
+        "dist/d3.min.js",
+        "dist/d3.node.js",
+        "dist/package.js"
+      ]
+    }
+  ,
+{
+  "library": "easymde@2.11.0",
+  "destination": "wwwroot/lib/easymde/",
+  "files": [
+    "dist/easymde.min.css",
+    "dist/easymde.min.js",
+    "CHANGELOG.md",
+    "LICENSE",
+    "README.md"
+  ]
+}
+]
+}

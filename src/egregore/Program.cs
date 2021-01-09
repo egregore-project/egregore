@@ -10,9 +10,18 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Security.Authentication;
+using egregore.Configuration;
+using egregore.Cryptography;
 using egregore.Extensions;
-using egregore.IO;
-using egregore.Ontology;
+using egregore.Logging;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace egregore
 {
@@ -27,9 +36,7 @@ namespace egregore
         [ExcludeFromCodeCoverage]
         public static void Main(params string[] args)
         {
-            // Pre-initialize libsodium as deferring causes
-            // assertion errors on Linux containers
-            Crypto.Initialize();
+            Crypto.Initialize(); // Pre-initialize libsodium as deferring causes assertion errors on Linux containers
 
             try
             {
@@ -40,8 +47,9 @@ namespace egregore
                 };
 
                 var arguments = new Queue<string>(args);
+
                 if (ProcessCommandLineArguments(arguments))
-                    NonInteractiveStartup(_port, args, arguments);
+                    NonInteractiveStartup(_port, arguments);
             }
             finally
             {
@@ -49,16 +57,14 @@ namespace egregore
             }
         }
 
-        private static void NonInteractiveStartup(int? port, string[] args, Queue<string> arguments)
+        private static void NonInteractiveStartup(int? port, Queue<string> arguments)
         {
             Console.Out.WriteInfoLine("Starting server in non-interactive mode.");
             var password = Environment.GetEnvironmentVariable(Constants.EnvVars.KeyFilePassword);
             if (string.IsNullOrWhiteSpace(password))
             {
-                Console.Error.WriteErrorLine(
-                    $"Could not locate '{Constants.EnvVars.KeyFilePassword}' variable for container deployment.");
-                Console.Out.WriteInfoLine(
-                    "To run the server interactively to input a password, use the --server argument.");
+                Console.Error.WriteErrorLine($"Could not locate '{Constants.EnvVars.KeyFilePassword}' variable for container deployment.");
+                Console.Out.WriteInfoLine("To run the server interactively to input a password, use the --server argument.");
                 Environment.Exit(-1);
             }
             else
@@ -91,11 +97,6 @@ namespace egregore
                     #endregion
 
                     #region CLI Commands
-
-                    case "--append":
-                    case "-a":
-                        Append(arguments);
-                        return false;
 
                     case "--cert":
                     case "--certs":
@@ -194,68 +195,79 @@ namespace egregore
 
             capture?.Reset();
 
-            if (!interactive) LaunchBrowserUrl($"https://localhost:{port.GetValueOrDefault(Constants.DefaultPort)}");
+            if (!interactive)
+                LaunchBrowserUrl($"https://localhost:{port.GetValueOrDefault(Constants.DefaultPort)}");
 
-            WebServer.Run(port, eggPath, capture, arguments.ToArray());
+            PrintMasthead();
+            var builder = CreateHostBuilder(port, eggPath, capture, arguments.ToArray());
+            var host = builder.Build();
+            host.Run();
         }
-
-        private static void Append(Queue<string> arguments)
+        
+        internal static IHostBuilder CreateHostBuilder(int? port, string eggPath, IKeyCapture capture, params string[] args)
         {
-            if (arguments.EndOfSubArguments())
+            var builder = Host.CreateDefaultBuilder(args);
+
+            builder.ConfigureWebHostDefaults(webBuilder =>
             {
-                Console.Error.WriteErrorLine("Missing append command");
-                return;
-            }
+                Activity.DefaultIdFormat = ActivityIdFormat.W3C;
 
-            var command = arguments.Dequeue();
-            switch (command)
-            {
-                case Constants.Commands.GrantRole:
-                    GrantRole(arguments);
-                    break;
-            }
-        }
+                webBuilder.ConfigureAppConfiguration((context, configBuilder) =>
+                {
+                    configBuilder.AddEnvironmentVariables();
+                });
 
-        private static void GrantRole(Queue<string> arguments)
-        {
-            if (arguments.EndOfSubArguments())
-            {
-                Console.Error.WriteErrorLine("Missing role data");
-                return;
-            }
+                webBuilder.ConfigureKestrel((context, options) =>
+                {
+                    var x509 = CertificateBuilder.GetOrCreateSelfSignedCert(Console.Out);
 
-            var value = arguments.Dequeue();
-            if (arguments.EndOfSubArguments())
-            {
-                Console.Error.WriteErrorLine("Missing privilege");
-                return;
-            }
+                    options.AddServerHeader = false;
+                    options.ListenLocalhost(port.GetValueOrDefault(Constants.DefaultPort), x =>
+                    {
+                        x.Protocols = HttpProtocols.Http1AndHttp2;
+                        x.UseHttps(a =>
+                        {
+                            a.SslProtocols = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                                ? SslProtocols.Tls12
+                                : SslProtocols.Tls13;
+                            a.ServerCertificate = x509;
+                        });
+                    });
+                });
 
-            var authorityString = arguments.Dequeue();
-            var authority = authorityString.ToBinary();
+                webBuilder.ConfigureLogging((context, loggingBuilder) =>
+                {
+                    loggingBuilder.ClearProviders();
 
-            if (arguments.EndOfSubArguments())
-            {
-                Console.Error.WriteErrorLine("Missing subject");
-                return;
-            }
+                    loggingBuilder.AddConfiguration(context.Configuration.GetSection("Logging"));
+                    loggingBuilder.AddDebug();
+                    loggingBuilder.AddEventSourceLogger();
+                    loggingBuilder.AddLogging(() =>
+                    {
+                        var serviceProvider = loggingBuilder.Services.BuildServiceProvider();
+                        return Path.Combine(Constants.DefaultRootPath, $"{serviceProvider.GetRequiredService<IOptions<WebServerOptions>>().Value.PublicKeyString}_logs.egg");
+                    });
 
-            var subjectString = arguments.Dequeue();
-            var subject = subjectString.ToBinary();
+                    if (context.HostingEnvironment.IsDevelopment()) 
+                        loggingBuilder.AddColorConsole(); // unnecessary overhead
+                });
 
-            if (arguments.EndOfSubArguments())
-            {
-                Console.Error.WriteErrorLine("Missing signature");
-                return;
-            }
+                webBuilder.ConfigureServices((context, services) =>
+                {
+                    services.AddWebServer(eggPath, port.GetValueOrDefault(Constants.DefaultPort), capture, context.HostingEnvironment, context.Configuration);
+                });
 
-            var signatureString = arguments.Dequeue();
-            var signature = signatureString.ToBinary();
+                webBuilder.UseStartup<Startup>();
+                
+                var contentRoot = Directory.GetCurrentDirectory();
+                var webRoot = Path.Combine(contentRoot, "wwwroot");
+                if (!File.Exists(Path.Combine(webRoot, "css", "signin.css")))
+                    webRoot = Path.GetFullPath(Path.Combine(contentRoot, "..", "egregore.Client", "wwwroot"));
+                webBuilder.UseContentRoot(contentRoot);
+                webBuilder.UseWebRoot(webRoot);
+            });
 
-            var grant = new GrantRole(value, authority, subject, signature);
-            if (!grant.Verify()) Console.Error.WriteErrorLine("Invalid signature");
-
-            Console.WriteLine("TODO: append privilege to ontology");
+            return builder;
         }
 
         public static void LaunchBrowserUrl(string url)
@@ -264,7 +276,33 @@ namespace egregore
                 Process.Start(new ProcessStartInfo(url) {UseShellExecute = true});
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 Process.Start("xdg-open", url);
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) Process.Start("open", url);
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                Process.Start("open", url);
         }
+        
+        private static void PrintMasthead()
+        {
+            Console.ResetColor();
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine(@"                                        
+                       @@@@             
+                  @   @@@@@@            
+                  @@@   @@    @@@@      
+                   .@@@@@@@@@@@@@@@     
+        @@@@@@@@@@@@  @@@@@@@@@         
+       @@@@@@@@@@@@@@      %@@@@&       
+        .@/       @@@   .@@@@@@@@@@@    
+           @@  @@@@@   @@@@@@     %@@   
+   @       @@@@@@@    @@@@@@       @@@  
+   @@      @@@@@@@@@@@@@@@         @@@  
+   @@              @@@  @         @@@@  
+    @@@            @@@@ @@@@@@@@@@@@@   
+    .@@@@@      @@@@@@/  @@@@@@@@@@@    
+      @@@@@@@@@@@@@@@      @@@@@@       
+         @@@@@@@@@@                     
+");
+            Console.ResetColor();
+        }
+
     }
 }

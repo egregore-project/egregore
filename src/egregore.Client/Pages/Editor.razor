@@ -1,0 +1,100 @@
+﻿@page "/editor"
+
+@using System.ComponentModel
+@using System.Text.Json
+@using egregore.Pages
+@using Markdig
+
+    <div class="container">
+        <h2>
+            @if (_editing)
+            {
+                <input type="text" @bind="@Title" @onfocusout="CancelEditing">
+                <button type="button" class="btn btn-link" @onclick="EndEditing">
+                    <i class="oi oi-check" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="btn btn-link" @onclick="CancelEditing">
+                    <i class="oi oi-x" aria-hidden="true"></i>
+                </button>
+            }
+            else
+            {
+                <a style="text-underline-position: below; cursor: pointer" href="" @onclick="StartEditing" @onclick:preventDefault>
+                    @Title
+                </a>
+            }
+        </h2>
+        <textarea id="mde"></textarea>
+        <button class="btn btn-primary" @onclick="@SaveMarkdown">Save</button>
+    </div>
+
+@code {
+
+    private MarkdownPipeline _pipeline;
+    private bool _editing = false;
+    private string _lastTitle;
+
+    [Inject]
+    public HttpClient Http { get; set; }
+
+    [Inject]
+    public IJSRuntime Js { get; set; }
+
+    [Parameter]
+    public string Title { get; set; }
+
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if(firstRender)
+            Js.InvokeVoidAsync(Constants.Functions.InitMarkdownEditor);
+
+        return base.OnAfterRenderAsync(firstRender);
+    }
+
+    protected override Task OnInitializedAsync()
+    {
+        Title = "New Page";
+
+        _pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
+
+        return base.OnInitializedAsync();
+    }
+
+    private async Task StartEditing()
+    {
+        _editing = true;
+        _lastTitle = Title;
+    }
+
+    private async Task EndEditing()
+    {
+        _editing = false;
+        _lastTitle = default;
+        StateHasChanged();
+    }
+
+    private async Task CancelEditing()
+    {
+        _editing = false;
+        Title = _lastTitle;
+        StateHasChanged();
+    }
+
+    private async Task SaveMarkdown()
+    {
+        var body = await Js.InvokeAsync<string>(Constants.Functions.GetMarkdownEditorContent);
+
+        var page = new Page
+        {
+            Title = Title,
+            Body = body,
+            BodyPlainText = Markdown.ToPlainText(body, _pipeline),
+            BodyHtml = Markdown.ToHtml(body, _pipeline)
+        };
+
+        Console.WriteLine(JsonSerializer.Serialize(page));
+
+        var response = await Http.PostAsJsonAsync("pages", page);
+    }
+}
+

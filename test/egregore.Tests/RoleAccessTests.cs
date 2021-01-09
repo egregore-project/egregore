@@ -5,8 +5,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System.Linq;
-using egregore.IO;
-using egregore.Ontology;
+using egregore.Cryptography;
+using egregore.Models;
 using egregore.Tests.Helpers;
 using Xunit;
 using Xunit.Abstractions;

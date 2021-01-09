@@ -2,17 +2,19 @@
   "profiles": {
     "egregore": {
       "commandName": "Project",
-      "launchBrowser": true,
+      "launchBrowser": false,
+      "inspectUri": "{wsProtocol}://{url.hostname}:{url.port}/_framework/debug/ws-proxy?browser={browserInspectUri}",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "EGREGORE_KEY_FILE_PASSWORD": "test123!"
       },
-      "commandLineArgs": "--port 5001" 
+      "commandLineArgs": "--port 5001"
     },
     "Docker": {
       "commandName": "Docker",
-      "launchBrowser": true,
+      "launchBrowser": false,
       "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
+      "inspectUri": "{wsProtocol}://{url.hostname}:{url.port}/_framework/debug/ws-proxy?browser={browserInspectUri}",
       "publishAllPorts": true,
       "useSSL": true
     }

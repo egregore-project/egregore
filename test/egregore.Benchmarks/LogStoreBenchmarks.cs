@@ -8,6 +8,7 @@ using System;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
+using egregore.Cryptography;
 using egregore.Ontology;
 
 namespace egregore.Benchmarks
@@ -27,9 +28,9 @@ namespace egregore.Benchmarks
         [GlobalSetup]
         public void Setup()
         {
-            _store = new LightningLogStore($"{Guid.NewGuid()}");
             _typeProvider = new LogObjectTypeProvider();
             _hashProvider = new LogEntryHashProvider(_typeProvider);
+            _store = new LightningLogStore(_typeProvider);
             _previousHash = default;
         }
 

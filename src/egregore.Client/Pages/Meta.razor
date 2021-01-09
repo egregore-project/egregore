@@ -1,0 +1,11 @@
+﻿@inject NavigationManager nav
+@page "/meta"
+<h1>Meta</h1>
+<ul>
+    <li>
+        <a href="https://securityheaders.io/?q=@nav.BaseUri&amp;hide=on&amp;followRedirects=on">Security scan</a>
+    </li>
+    <li>
+        <a href="https://html5.validator.nu/?doc=@nav.BaseUri">W3C HTML 5 validation</a>
+    </li>
+</ul>

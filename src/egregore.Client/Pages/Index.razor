@@ -1,0 +1,36 @@
+﻿@page "/"
+@using System.Text
+
+<h1>Hello, world!</h1>
+
+Welcome to your new app.
+
+<SurveyPrompt Title="How is Blazor working for you?" />
+
+<button class="btn btn-primary" @onclick="AddSchema">Add Schema</button>
+
+<div class="container">
+    <svg id="svg-canvas" width="960" height="600"></svg>
+</div>
+
+@code {
+
+    [Inject]
+    public HttpClient Http { get; set; }
+
+    [Inject]
+    public IJSRuntime Js { get; set; }
+
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        Js.InvokeVoidAsync("runDemo");
+        
+        return base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task AddSchema()
+    {
+        await Http.PostAsync("schema", new StringContent(string.Empty, Encoding.UTF8, "application/json"));
+    }
+}
+

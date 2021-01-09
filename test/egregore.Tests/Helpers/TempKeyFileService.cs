@@ -8,6 +8,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
+using egregore.Cryptography;
 
 namespace egregore.Tests.Helpers
 {

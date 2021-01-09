@@ -6,38 +6,41 @@
 
 using System.Diagnostics;
 using System.Net;
+using egregore.Configuration;
+using egregore.Data;
+using egregore.Filters;
 using egregore.Models;
+using egregore.ViewModels;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace egregore.Controllers
 {
+    [ServiceFilter(typeof(BaseViewModelFilter))]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly IOptionsSnapshot<WebServerOptions> _options;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(IOptionsSnapshot<WebServerOptions> options, ILogger<HomeController> logger)
         {
+            _options = options;
             _logger = logger;
         }
 
-        [HttpGet("/")]
-        public IActionResult Index()
+        [HttpGet("whois")]
+        public IActionResult WhoIs()
         {
-            return View();
-        }
+            var model = new WhoIsModel
+            {
+                PublicKey = _options.Value.PublicKeyString,
+                ServerId = _options.Value.ServerId,
+                TimeZone = TimeZoneLookup.Now.TimeZone
+            };
 
-        [HttpGet("privacy")]
-        public IActionResult Privacy()
-        {
-            return View();
-        }
-
-        [HttpGet("meta")]
-        public IActionResult Meta()
-        {
-            return View();
+            return Ok(model);
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

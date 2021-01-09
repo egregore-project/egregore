@@ -1,0 +1,48 @@
+﻿@page "/logs"
+@using egregore.Logging
+
+<h3>Logs</h3>
+
+<table class="table w-auto">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Level</th>
+            <th>Event ID</th>
+            <th>Event Name</th>
+            <th>Message</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var entry in _entries ?? Enumerable.Empty<LoggingEntry>())
+    {
+        <tr>
+            <td>@entry.Id</td>
+            <td>@entry.LogLevel</td>
+            <td>@entry.EventId.Id</td>
+            <td>@entry.EventId.Name</td>
+            <td>@entry.Message</td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+@code {
+    [Inject]
+    public HttpClient Http { get; set; }
+
+    [Inject]
+    public IJSRuntime Js { get; set; }
+
+    private IEnumerable<LoggingEntry> _entries;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _entries = await Http.GetFromJsonAsync<IEnumerable<LoggingEntry>>("api/logs");
+    }
+
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        return base.OnAfterRenderAsync(firstRender);
+    }
+}

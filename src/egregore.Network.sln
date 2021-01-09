@@ -1,0 +1,49 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30204.135
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "egregore.Network", "egregore.Network\egregore.Network.csproj", "{E1951323-1314-4451-AD0F-F120989425C2}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "egregore.Network.Tests", "..\test\egregore.Network.Tests\egregore.Network.Tests.csproj", "{0425234E-000C-47DE-B72C-BBBDBD9F7D5A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "egregore.Network.Benchmarks", "..\test\egregore.Network.Benchmarks\egregore.Network.Benchmarks.csproj", "{4CB923D5-489F-4E62-86C2-EDEB8C99863A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "egregore.Cryptography", "egregore.Cryptography\egregore.Cryptography.csproj", "{9298AC10-0A03-4E2A-B67A-4A0469378CB2}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Noise", "..\submodules\noise\Noise\Noise.csproj", "{27302D8A-ED64-4F1E-A5D1-838D20C92726}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E1951323-1314-4451-AD0F-F120989425C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E1951323-1314-4451-AD0F-F120989425C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E1951323-1314-4451-AD0F-F120989425C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E1951323-1314-4451-AD0F-F120989425C2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0425234E-000C-47DE-B72C-BBBDBD9F7D5A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0425234E-000C-47DE-B72C-BBBDBD9F7D5A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0425234E-000C-47DE-B72C-BBBDBD9F7D5A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0425234E-000C-47DE-B72C-BBBDBD9F7D5A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4CB923D5-489F-4E62-86C2-EDEB8C99863A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4CB923D5-489F-4E62-86C2-EDEB8C99863A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4CB923D5-489F-4E62-86C2-EDEB8C99863A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4CB923D5-489F-4E62-86C2-EDEB8C99863A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9298AC10-0A03-4E2A-B67A-4A0469378CB2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9298AC10-0A03-4E2A-B67A-4A0469378CB2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9298AC10-0A03-4E2A-B67A-4A0469378CB2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9298AC10-0A03-4E2A-B67A-4A0469378CB2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{27302D8A-ED64-4F1E-A5D1-838D20C92726}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{27302D8A-ED64-4F1E-A5D1-838D20C92726}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{27302D8A-ED64-4F1E-A5D1-838D20C92726}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{27302D8A-ED64-4F1E-A5D1-838D20C92726}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {EEFF3B3A-327F-4951-BFDA-7931BFDB52BC}
+	EndGlobalSection
+EndGlobal
