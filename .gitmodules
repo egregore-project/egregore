@@ -6,4 +6,4 @@
 	url = git@github.com:danielcrenna/blowdart-ui
 [submodule "lib/lunr-core"]
 	path = lib/lunr-core
-	url = git@github.com:danielcrenna/lunr-core
+	url = git@github.com:bleroy/lunr-core
