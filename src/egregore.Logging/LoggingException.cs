@@ -10,6 +10,9 @@ namespace egregore.Logging
 {
     public sealed class LoggingException
     {
+        // ReSharper disable once UnusedMember.Global (needed for deserialization)
+        public LoggingException() { }
+
         public LoggingException(Exception exception)
         {
             Message = exception.Message;

@@ -2,30 +2,35 @@
 @inherits LayoutComponentBase
 @inject HttpClient http
 
-<div class="sidebar">
-    <NavMenu />
-</div>
-
-<div class="main">
-    <TopBar></TopBar>
-
-    <div class="content px-4">
-        @Body
+<div class="page">
+    <div class="sidebar">
+        <NavMenu />
     </div>
 
-    <footer class="content px-4 border-top footer text-muted">
-        <NavLink href="/privacy">Privacy</NavLink> | 
-        <NavLink href="/meta">Meta</NavLink> | 
-        <span>Server ID: @_whoIs?.ServerId</span> | 
-        <span>@_whoIs?.TimeZone</span>
-    </footer>
+    <div class="main">
+        <div class="top-row px-4">
+            <a href="http://blazor.net" target="_blank" class="ml-md-auto">About</a>
+        </div>
+
+        <div class="content px-4">
+            @Body
+        </div>
+
+        <footer class="content px-4 border-top footer text-muted">
+            <NavLink href="/privacy">Privacy</NavLink> |
+            <NavLink href="/meta">Meta</NavLink> |
+            <span>Server ID: @_whoIs?.ServerId</span> |
+            <span>@_whoIs?.TimeZone</span>
+        </footer>
+    </div>
 </div>
+
 
 @code {
 
     private WhoIsModel _whoIs;
 
-    
+
     protected override async Task OnInitializedAsync()
     {
         _whoIs = await http.GetFromJsonAsync<WhoIsModel>("whois");
