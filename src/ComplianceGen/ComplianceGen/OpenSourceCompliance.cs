@@ -13,15 +13,13 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AngleSharp.Html.Parser;
-using egregore.Extensions;
 using NuGet.Packaging.Core;
 
-namespace egregore.Tests.Compliance
+namespace ComplianceGen
 {
     internal static class OpenSourceCompliance
     {
-        public static async Task<IEnumerable<LicenseEntry>> ShallowLicenseScan(string[] packageIds, string[] versions,
-            TextWriter @out)
+        public static async Task<IEnumerable<LicenseEntry>> ShallowLicenseScan(string[] packageIds, string[] versions, TextWriter @out)
         {
             var result = new List<LicenseEntry>();
 
@@ -34,8 +32,10 @@ namespace egregore.Tests.Compliance
                     dependencySources = dependencySources.OrderByDescending(x => x.Identity.Version)
                         .Where(x => x.Listed).Take(1);
                 else
-                    dependencySources = dependencySources.Where(x => x.Identity.Version.ToString() == versions[i])
-                        .Take(1);
+                {
+                    var index = i;
+                    dependencySources = dependencySources.Where(x => x.Identity.Version.ToString() == versions[index]).Take(1);
+                }
 
                 var dependencies = new HashSet<PackageDependency>();
                 var licenseUrls = new HashSet<Uri>();
@@ -44,14 +44,14 @@ namespace egregore.Tests.Compliance
                 {
                     var line = $"{dependencySource.Identity.Id} {dependencySource.Identity.Version}";
 
-                    @out.WriteLine();
-                    @out.WriteLine(line);
+                    await @out.WriteLineAsync();
+                    await @out.WriteLineAsync(line);
                     WriteDashes(line.Length, @out.WriteLine);
 
                     foreach (var dependencyGroup in dependencySource.DependencyGroups)
                     foreach (var package in dependencyGroup.Packages)
                     {
-                        @out.WriteLine($"{package.Id} ({package.VersionRange.MinVersion})");
+                        await @out.WriteLineAsync($"{package.Id} ({package.VersionRange.MinVersion})");
 
                         if (!dependencies.Contains(package))
                         {
@@ -212,15 +212,15 @@ an issue on GitHub.
                     var line2 = $"License was downloaded from {url}";
                     var line3 = $"License was downloaded on {now.ToLongDateString()} {now.ToLongTimeString()}";
 
-                    sw.WriteLine();
-                    sw.WriteLine();
+                    await sw.WriteLineAsync();
+                    await sw.WriteLineAsync();
                     WriteDashes(Math.Max(line1.Length, Math.Max(line2.Length, line3.Length)), sw.WriteLine);
-                    sw.WriteLine(line1);
-                    sw.WriteLine(line2);
-                    sw.WriteLine(line3);
+                    await sw.WriteLineAsync(line1);
+                    await sw.WriteLineAsync(line2);
+                    await sw.WriteLineAsync(line3);
                     WriteDashes(Math.Max(line1.Length, Math.Max(line2.Length, line3.Length)), sw.WriteLine);
-                    sw.WriteLine();
-                    sw.WriteLine(licenseText);
+                    await sw.WriteLineAsync();
+                    await sw.WriteLineAsync(licenseText);
                 }
                 catch (Exception e)
                 {
@@ -229,11 +229,11 @@ an issue on GitHub.
 
             if (unlicensed.Count > 0)
             {
-                sw.WriteLine();
-                sw.WriteLine("Unlicensed Dependencies:");
-                sw.WriteLine("------------------------");
+                await sw.WriteLineAsync();
+                await sw.WriteLineAsync("Unlicensed Dependencies:");
+                await sw.WriteLineAsync("------------------------");
                 foreach (var item in unlicensed)
-                    sw.WriteLine(
+                    await sw.WriteLineAsync(
                         $"{item.PackageDependency.Id} {item.PackageDependency.VersionRange.ToNormalizedString()}");
             }
         }

@@ -8,16 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Compliance\dotnet_library_license.txt" />
-    <None Remove="Compliance\Microsoft Azure DocumentDB SDK for .NET Core - RTM.docx" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="dotnet_library_license.txt" />
-    <EmbeddedResource Include="Microsoft Azure DocumentDB SDK for .NET Core - RTM.docx" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Microsoft.Data.Sqlite" Version="5.0.1" />
     <PackageReference Include="Dapper" Version="2.0.78">
       <PrivateAssets>all</PrivateAssets>
@@ -37,12 +27,6 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="AngleSharp" Version="0.14.0" />
-    <PackageReference Include="NuGet.Protocol" Version="5.8.0" />
-    <PackageReference Include="NuGet.Packaging" Version="5.8.0" />
   </ItemGroup>
 
   <ItemGroup>

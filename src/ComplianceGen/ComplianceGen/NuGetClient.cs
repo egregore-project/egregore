@@ -18,7 +18,7 @@ using NuGet.Packaging.Core;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
 
-namespace egregore.Tests.Compliance
+namespace ComplianceGen
 {
     public static class NuGetClient
     {

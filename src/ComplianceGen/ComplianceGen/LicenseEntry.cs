@@ -7,7 +7,7 @@
 using System;
 using NuGet.Packaging.Core;
 
-namespace egregore.Tests.Compliance
+namespace ComplianceGen
 {
     public struct LicenseEntry
     {
