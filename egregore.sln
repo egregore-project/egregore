@@ -70,6 +70,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ComplianceGen", "src\ComplianceGen\ComplianceGen\ComplianceGen.csproj", "{5BE39DA7-6634-4F3D-B65D-AD66A5609DE7}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{03E0EEC1-8601-4770-9929-00514082DA46}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\dist.yml = .github\workflows\dist.yml
+		.github\workflows\dotnet-core.yml = .github\workflows\dotnet-core.yml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
