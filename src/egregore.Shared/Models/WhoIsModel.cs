@@ -5,13 +5,12 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System.ComponentModel;
-using egregore.Data;
 
 namespace egregore.Models
 {
     public class WhoIsModel : BaseViewModel
     {
         [ReadOnly(true)] public string PublicKey { get; set; }
-        public IsoTimeZoneString TimeZone { get; set; }
+        [ReadOnly(true)] public string TimeZone { get; set; }
     }
 }

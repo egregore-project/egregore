@@ -19,6 +19,7 @@ namespace egregore.Data
 {
     /// <summary>
     /// Source: https://github.com/unicode-cldr/cldr-core/blob/master/supplemental/windowsZones.json
+    /// Last Updated: Apr 22, 2020
     /// Unicode Version: 13.0.0
     /// CLDR Version: 37
     /// </summary>

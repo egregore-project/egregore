@@ -14,7 +14,7 @@ namespace egregore.Cryptography.Tests
     {
         private static readonly object Sync = new object();
 
-        internal static byte[] GenerateKeyFile(ITestOutputHelper output, IKeyCapture capture, IKeyFileService service)
+        public static byte[] GenerateKeyFile(ITestOutputHelper output, IKeyCapture capture, IKeyFileService service)
         {
             lock (Sync)
             {

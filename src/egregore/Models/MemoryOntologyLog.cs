@@ -160,7 +160,8 @@ namespace egregore.Models
                 {
                     var revision = revisionSet.Key;
 
-                    foreach (var schema in revisionSet.Value) generator.Generate(sb, ns, revision, schema);
+                    foreach (var schema in revisionSet.Value)
+                        generator.Generate(sb, ns, revision, schema);
                 }
             }
 

@@ -60,6 +60,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "egregore.Logging", "src\egr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "egregore.Logging.Tests", "test\egregore.Logging.Tests\egregore.Logging.Tests.csproj", "{28520F82-EF20-4C6B-9B66-F42A4BE50E4C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "egregore.Web", "src\egregore.Web\egregore.Web.csproj", "{6D55BBCD-DC09-436F-B9F0-963E72EC7A4F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -138,6 +140,10 @@ Global
 		{28520F82-EF20-4C6B-9B66-F42A4BE50E4C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{28520F82-EF20-4C6B-9B66-F42A4BE50E4C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{28520F82-EF20-4C6B-9B66-F42A4BE50E4C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6D55BBCD-DC09-436F-B9F0-963E72EC7A4F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6D55BBCD-DC09-436F-B9F0-963E72EC7A4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6D55BBCD-DC09-436F-B9F0-963E72EC7A4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6D55BBCD-DC09-436F-B9F0-963E72EC7A4F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -161,6 +167,7 @@ Global
 		{86A2020C-AC45-4048-8C3D-81B1FD1D6A12} = {40D8FAD2-2FEB-41A5-98E1-84876EF10EE8}
 		{CC81529C-D816-4109-86E0-83AC428E52E4} = {40D8FAD2-2FEB-41A5-98E1-84876EF10EE8}
 		{28520F82-EF20-4C6B-9B66-F42A4BE50E4C} = {124121A4-4A18-4475-BF10-515C52925515}
+		{6D55BBCD-DC09-436F-B9F0-963E72EC7A4F} = {40D8FAD2-2FEB-41A5-98E1-84876EF10EE8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {EEFF3B3A-327F-4951-BFDA-7931BFDB52BC}

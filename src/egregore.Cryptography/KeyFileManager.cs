@@ -28,6 +28,8 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.MemoryMappedFiles;
 
+using static egregore.Cryptography.NativeMethods;
+
 namespace egregore.Cryptography
 {
     /// <summary>
@@ -80,24 +82,21 @@ namespace egregore.Cryptography
             return true;
         }
 
-        public static unsafe bool TryCapturePassword(string instructions, IPersistedKeyCapture @in, TextWriter @out,
-            TextWriter error, out byte* password, out int passwordLength)
+        public static unsafe bool TryCapturePassword(string instructions, IPersistedKeyCapture @in, TextWriter @out, TextWriter error, out byte* password, out int passwordLength)
         {
             if (@in.TryReadPersisted(out password, out passwordLength))
                 return true;
-            var result = TryCapturePassword(instructions, @in as IKeyCapture, @out, error, out password,
-                out passwordLength);
+            var result = TryCapturePassword(instructions, @in as IKeyCapture, @out, error, out password, out passwordLength);
             if (result)
                 @in.Sink(password, passwordLength);
             return result;
         }
 
-        public static unsafe bool TryCapturePassword(string instructions, IKeyCapture @in, TextWriter @out,
-            TextWriter error, out byte* password, out int passwordLength)
+        public static unsafe bool TryCapturePassword(string instructions, IKeyCapture @in, TextWriter @out, TextWriter error, out byte* password, out int passwordLength)
         {
             const int passwordMaxBytes = 1024;
-            password = (byte*) NativeMethods.sodium_malloc(passwordMaxBytes);
-            var passwordConfirm = NativeMethods.sodium_malloc(passwordMaxBytes);
+            password = (byte*) sodium_malloc(passwordMaxBytes);
+            var passwordConfirm = sodium_malloc(passwordMaxBytes);
             passwordLength = 0;
 
             try
@@ -179,7 +178,7 @@ namespace egregore.Cryptography
                 {
                     passwordLength = -1;
                     error.WriteErrorLine(Strings.InvalidPasswordLength);
-                    NativeMethods.sodium_free(password);
+                    sodium_free(password);
                     password = default;
                     return false;
                 }
@@ -188,15 +187,15 @@ namespace egregore.Cryptography
                 {
                     passwordLength = -1;
                     error.WriteErrorLine(Strings.PasswordMismatch);
-                    NativeMethods.sodium_free(password);
+                    sodium_free(password);
                     password = default;
                     return false;
                 }
 
-                if (NativeMethods.sodium_memcmp(password, passwordConfirm, passwordLength) != 0)
+                if (sodium_memcmp(password, passwordConfirm, passwordLength) != 0)
                 {
                     error.WriteErrorLine(Strings.PasswordMismatch);
-                    NativeMethods.sodium_free(password);
+                    sodium_free(password);
                     password = default;
                     return false;
                 }
@@ -205,13 +204,13 @@ namespace egregore.Cryptography
             {
                 Trace.TraceError(ex.ToString());
                 error.WriteErrorLine(Strings.PasswordFailure);
-                NativeMethods.sodium_free(password);
+                sodium_free(password);
                 password = default;
                 return false;
             }
             finally
             {
-                NativeMethods.sodium_free(passwordConfirm);
+                sodium_free(passwordConfirm);
                 Console.ResetColor();
             }
 
@@ -220,7 +219,7 @@ namespace egregore.Cryptography
 
         public static unsafe byte* Xor(byte* dst, byte* src, uint len)
         {
-            var xor = (byte*) NativeMethods.sodium_malloc(len);
+            var xor = (byte*) sodium_malloc(len);
             for (var i = 0U; i < len; i++)
             {
                 var a = dst[i];
@@ -240,32 +239,32 @@ namespace egregore.Cryptography
                 out var passwordLength))
                 return false;
 
-            var sk = (byte*) NativeMethods.sodium_malloc(Crypto.SecretKeyBytes);
+            var sk = (byte*) sodium_malloc(Crypto.SecretKeyBytes);
             try
             {
-                var pk = (byte*) NativeMethods.sodium_malloc(Crypto.PublicKeyBytes);
+                var pk = (byte*) sodium_malloc(Crypto.PublicKeyBytes);
 
                 try
                 {
                     // Create a new signing key pair:
-                    if (NativeMethods.crypto_sign_keypair(pk, sk) != 0)
-                        throw new InvalidOperationException(nameof(NativeMethods.crypto_sign_keypair));
+                    if (crypto_sign_keypair(pk, sk) != 0)
+                        throw new InvalidOperationException(nameof(crypto_sign_keypair));
                 }
                 finally
                 {
-                    NativeMethods.sodium_free(pk);
+                    sodium_free(pk);
                 }
 
                 // Create key number to mix with the checksum:
-                var keyNumber = (byte*) NativeMethods.sodium_malloc(KeyNumBytes);
+                var keyNumber = (byte*) sodium_malloc(KeyNumBytes);
 
                 // Checksum = Blake2B(SigAlg || KeyNumber || SecretKey):
                 var offset = 0;
-                var checksumInput = (byte*) NativeMethods.sodium_malloc(ChecksumInputBytes);
-                var checksum = (byte*) NativeMethods.sodium_malloc(ChecksumBytes);
+                var checksumInput = (byte*) sodium_malloc(ChecksumInputBytes);
+                var checksum = (byte*) sodium_malloc(ChecksumBytes);
                 try
                 {
-                    NativeMethods.randombytes_buf(keyNumber, KeyNumBytes);
+                    randombytes_buf(keyNumber, KeyNumBytes);
 
                     fixed (byte* src = SigAlg)
                     {
@@ -278,18 +277,18 @@ namespace egregore.Cryptography
                     for (var i = 0; i < Crypto.SecretKeyBytes; i++)
                         checksumInput[offset++] = sk[i];
 
-                    if (NativeMethods.crypto_generichash(checksum, ChecksumBytes, checksumInput, ChecksumInputBytes,
+                    if (crypto_generichash(checksum, ChecksumBytes, checksumInput, ChecksumInputBytes,
                         null, 0) != 0)
-                        throw new InvalidOperationException(nameof(NativeMethods.crypto_generichash));
+                        throw new InvalidOperationException(nameof(crypto_generichash));
                 }
                 finally
                 {
-                    NativeMethods.sodium_free(checksumInput);
+                    sodium_free(checksumInput);
                 }
 
                 //
                 // Prepare cipher block for encryption: (KeyNum || SecretKey || Checksum)
-                var cipher = (byte*) NativeMethods.sodium_malloc(CipherBytes);
+                var cipher = (byte*) sodium_malloc(CipherBytes);
                 try
                 {
                     offset = 0;
@@ -302,7 +301,7 @@ namespace egregore.Cryptography
                 }
                 finally
                 {
-                    NativeMethods.sodium_free(sk);
+                    sodium_free(sk);
                 }
 
                 @out.Write(Strings.EncryptionInProgressMessage);
@@ -312,31 +311,31 @@ namespace egregore.Cryptography
                 // SecretKey ^ crypto_pwhash_scryptsalsa208sha256(password || salt || opsLimit || memLimit)):
                 const ulong opsLimit = KdfOpsLimit;
                 const int memLimit = KdfMemLimit;
-                var kdfSalt = (byte*) NativeMethods.sodium_malloc(KdfSaltBytes);
-                var stream = (byte*) NativeMethods.sodium_malloc(CipherBytes);
+                var kdfSalt = (byte*) sodium_malloc(KdfSaltBytes);
+                var stream = (byte*) sodium_malloc(CipherBytes);
                 byte* xor;
                 try
                 {
-                    NativeMethods.randombytes_buf(kdfSalt, KdfSaltBytes);
+                    randombytes_buf(kdfSalt, KdfSaltBytes);
 
-                    if (NativeMethods.crypto_pwhash_scryptsalsa208sha256(stream, CipherBytes, password,
+                    if (crypto_pwhash_scryptsalsa208sha256(stream, CipherBytes, password,
                         (ulong) passwordLength, kdfSalt, opsLimit, memLimit) != 0)
-                        throw new InvalidOperationException(nameof(NativeMethods.crypto_pwhash_scryptsalsa208sha256));
+                        throw new InvalidOperationException(nameof(crypto_pwhash_scryptsalsa208sha256));
 
                     xor = Xor(cipher, stream, CipherBytes);
                 }
                 finally
                 {
-                    NativeMethods.sodium_free(password);
-                    NativeMethods.sodium_free(cipher);
-                    NativeMethods.sodium_free(stream);
+                    sodium_free(password);
+                    sodium_free(cipher);
+                    sodium_free(stream);
                 }
 
                 @out.WriteLine(Strings.EncryptionCompleteMessage);
 
                 // 
                 // Write key file: (SigAlg || KdfAlg || ChkAlg || KeyNum || KdfSalt || OpsLimit || MemLimit || Cipher || Checksum)
-                var file = (byte*) NativeMethods.sodium_malloc(KeyFileBytes);
+                var file = (byte*) sodium_malloc(KeyFileBytes);
                 try
                 {
                     offset = 0;
@@ -382,16 +381,16 @@ namespace egregore.Cryptography
                     if (offset != KeyFileBytes)
                     {
                         error.WriteErrorLine(Strings.InvalidKeyFileBuffer);
-                        NativeMethods.sodium_free(file);
+                        sodium_free(file);
                         return false;
                     }
                 }
                 finally
                 {
-                    NativeMethods.sodium_free(keyNumber);
-                    NativeMethods.sodium_free(kdfSalt);
-                    NativeMethods.sodium_free(checksum);
-                    NativeMethods.sodium_free(xor);
+                    sodium_free(keyNumber);
+                    sodium_free(kdfSalt);
+                    sodium_free(checksum);
+                    sodium_free(xor);
                 }
 
                 try
@@ -405,7 +404,7 @@ namespace egregore.Cryptography
                 }
                 finally
                 {
-                    NativeMethods.sodium_free(file);
+                    sodium_free(file);
                 }
 
                 return true;
@@ -418,40 +417,34 @@ namespace egregore.Cryptography
             }
         }
 
-        public static unsafe bool TryLoadKeyFile(FileStream keyFileStream, TextWriter @out, TextWriter error,
-            out byte* secretKey, IPersistedKeyCapture capture)
+        public static unsafe bool TryLoadKeyFile(FileStream keyFileStream, TextWriter @out, TextWriter error, out byte* secretKey, IPersistedKeyCapture capture)
         {
             if (capture == default)
                 throw new InvalidOperationException(Strings.InvalidKeyCapture);
             secretKey = default;
-            return TryCapturePassword(Strings.LoadKeyInstructions, capture, @out, error, out var password,
-                       out var passwordLength) &&
+            return TryCapturePassword(Strings.LoadKeyInstructions, capture, @out, error, out var password, out var passwordLength) &&
                    TryLoadKeyFile(keyFileStream, @out, error, ref secretKey, password, passwordLength, true);
         }
 
-        public static unsafe bool TryLoadKeyFile(FileStream keyFileStream, TextWriter @out, TextWriter error,
-            out byte* secretKey, IKeyCapture capture)
+        public static unsafe bool TryLoadKeyFile(FileStream keyFileStream, TextWriter @out, TextWriter error, out byte* secretKey, IKeyCapture capture)
         {
             if (capture == default)
                 throw new InvalidOperationException(Strings.InvalidKeyCapture);
             secretKey = default;
-            return TryCapturePassword(Strings.LoadKeyInstructions, capture, @out, error, out var password,
-                       out var passwordLength) &&
+            return TryCapturePassword(Strings.LoadKeyInstructions, capture, @out, error, out var password, out var passwordLength) && 
                    TryLoadKeyFile(keyFileStream, @out, error, ref secretKey, password, passwordLength, false);
         }
 
-        private static unsafe bool TryLoadKeyFile(FileStream keyFileStream, TextWriter @out, TextWriter error,
-            ref byte* secretKey, byte* password, int passwordLength, bool leaveOpen)
+        private static unsafe bool TryLoadKeyFile(FileStream keyFileStream, TextWriter @out, TextWriter error, ref byte* secretKey, byte* password, int passwordLength, bool leaveOpen)
         {
             // 
             // Read key file: (SigAlg || KdfAlg || ChkAlg || KeyNum || KdfSalt || OpsLimit || MemLimit || Cipher || Checksum)
             try
             {
-                using var mmf = MemoryMappedFile.CreateFromFile(keyFileStream, null, KeyFileBytes,
-                    MemoryMappedFileAccess.Read, HandleInheritability.None, true);
+                using var mmf = MemoryMappedFile.CreateFromFile(keyFileStream, null, KeyFileBytes, MemoryMappedFileAccess.Read, HandleInheritability.None, true);
                 using var uvs = mmf.CreateViewStream(0, KeyFileBytes, MemoryMappedFileAccess.Read);
 
-                var sigAlg = NativeMethods.sodium_malloc(SigAlgBytes);
+                var sigAlg = sodium_malloc(SigAlgBytes);
                 try
                 {
                     var buffer = (byte*) sigAlg;
@@ -460,7 +453,7 @@ namespace egregore.Cryptography
 
                     fixed (void* src = SigAlg)
                     {
-                        if (NativeMethods.sodium_memcmp(sigAlg, src, SigAlg.Length) != 0)
+                        if (sodium_memcmp(sigAlg, src, SigAlg.Length) != 0)
                         {
                             error.WriteErrorLine(Strings.InvalidSignatureAlgorithm);
                             return false;
@@ -469,10 +462,10 @@ namespace egregore.Cryptography
                 }
                 finally
                 {
-                    NativeMethods.sodium_free(sigAlg); // since we only have one, we can toss this
+                    sodium_free(sigAlg); // since we only have one, we can toss this
                 }
 
-                var kdfAlg = NativeMethods.sodium_malloc(KdfAlgBytes);
+                var kdfAlg = sodium_malloc(KdfAlgBytes);
                 try
                 {
                     var buffer = (byte*) kdfAlg;
@@ -481,7 +474,7 @@ namespace egregore.Cryptography
 
                     fixed (void* src = KdfAlg)
                     {
-                        if (NativeMethods.sodium_memcmp(kdfAlg, src, KdfAlgBytes) != 0)
+                        if (sodium_memcmp(kdfAlg, src, KdfAlgBytes) != 0)
                         {
                             error.WriteErrorLine(Strings.InvalidKeyDerivationFunction);
                             return false;
@@ -490,10 +483,10 @@ namespace egregore.Cryptography
                 }
                 finally
                 {
-                    NativeMethods.sodium_free(kdfAlg); // since we only have one, we can toss this
+                    sodium_free(kdfAlg); // since we only have one, we can toss this
                 }
 
-                var chkAlg = NativeMethods.sodium_malloc(ChkAlgBytes);
+                var chkAlg = sodium_malloc(ChkAlgBytes);
                 try
                 {
                     var buffer = (byte*) chkAlg;
@@ -502,7 +495,7 @@ namespace egregore.Cryptography
 
                     fixed (void* src = ChkAlg)
                     {
-                        if (NativeMethods.sodium_memcmp(chkAlg, src, ChkAlgBytes) != 0)
+                        if (sodium_memcmp(chkAlg, src, ChkAlgBytes) != 0)
                         {
                             error.WriteErrorLine(Strings.InvalidChecksumFunction);
                             return false;
@@ -511,34 +504,34 @@ namespace egregore.Cryptography
                 }
                 finally
                 {
-                    NativeMethods.sodium_free(chkAlg); // since we only have one, we can toss this
+                    sodium_free(chkAlg); // since we only have one, we can toss this
                 }
 
-                var fileKeyNumber = (byte*) NativeMethods.sodium_malloc(KeyNumBytes);
+                var fileKeyNumber = (byte*) sodium_malloc(KeyNumBytes);
                 for (var i = 0; i < KeyNumBytes; i++)
                     fileKeyNumber[i] = (byte) uvs.ReadByte();
 
-                var kdfSalt = (byte*) NativeMethods.sodium_malloc(KdfSaltBytes);
+                var kdfSalt = (byte*) sodium_malloc(KdfSaltBytes);
                 for (var i = 0; i < KdfSaltBytes; i++)
                     kdfSalt[i] = (byte) uvs.ReadByte();
 
-                var opsLimitData = (byte*) NativeMethods.sodium_malloc(KdfOpsLimitBytes);
+                var opsLimitData = (byte*) sodium_malloc(KdfOpsLimitBytes);
                 for (var i = 0; i < KdfOpsLimitBytes; i++)
                     opsLimitData[i] = (byte) uvs.ReadByte();
                 var opsLimit = BitConverter.ToUInt64(new ReadOnlySpan<byte>(opsLimitData, KdfOpsLimitBytes));
-                NativeMethods.sodium_free(opsLimitData);
+                sodium_free(opsLimitData);
 
-                var memLimitData = (byte*) NativeMethods.sodium_malloc(KdfMemLimitBytes);
+                var memLimitData = (byte*) sodium_malloc(KdfMemLimitBytes);
                 for (var i = 0; i < KdfMemLimitBytes; i++)
                     memLimitData[i] = (byte) uvs.ReadByte();
                 var memLimit = BitConverter.ToInt32(new ReadOnlySpan<byte>(memLimitData, KdfMemLimitBytes));
-                NativeMethods.sodium_free(memLimitData);
+                sodium_free(memLimitData);
 
-                var fileCipher = (byte*) NativeMethods.sodium_malloc(CipherBytes);
+                var fileCipher = (byte*) sodium_malloc(CipherBytes);
                 for (var i = 0; i < CipherBytes; i++)
                     fileCipher[i] = (byte) uvs.ReadByte();
 
-                var fileChecksum = (byte*) NativeMethods.sodium_malloc(ChecksumBytes);
+                var fileChecksum = (byte*) sodium_malloc(ChecksumBytes);
                 for (var i = 0; i < ChecksumBytes; i++)
                     fileChecksum[i] = (byte) uvs.ReadByte();
 
@@ -551,33 +544,31 @@ namespace egregore.Cryptography
 
                 @out.Write(Strings.DecryptionInProgressMessage);
 
-                var stream = (byte*) NativeMethods.sodium_malloc(CipherBytes);
+                var stream = (byte*) sodium_malloc(CipherBytes);
                 byte* xor;
                 try
                 {
-                    if (NativeMethods.crypto_pwhash_scryptsalsa208sha256(stream, CipherBytes, password,
-                        (ulong) passwordLength,
-                        kdfSalt, opsLimit, memLimit) != 0)
-                        throw new InvalidOperationException(nameof(NativeMethods.crypto_pwhash_scryptsalsa208sha256));
+                    if (crypto_pwhash_scryptsalsa208sha256(stream, CipherBytes, password, (ulong) passwordLength, kdfSalt, opsLimit, memLimit) != 0)
+                        throw new InvalidOperationException(nameof(crypto_pwhash_scryptsalsa208sha256));
 
                     xor = Xor(fileCipher, stream, CipherBytes);
                 }
                 finally
                 {
                     if (!leaveOpen)
-                        NativeMethods.sodium_free(password);
-                    NativeMethods.sodium_free(kdfSalt);
-                    NativeMethods.sodium_free(fileCipher);
-                    NativeMethods.sodium_free(stream);
+                        sodium_free(password);
+                    sodium_free(kdfSalt);
+                    sodium_free(fileCipher);
+                    sodium_free(stream);
                 }
 
                 @out.WriteLine(Strings.DecryptionCompleteMessage);
 
                 //
                 // Deconstruct cipher block for checksum: (KeyNum || SecretKey || Checksum)
-                var fileCipherKeyNumber = (byte*) NativeMethods.sodium_malloc(KeyNumBytes);
-                var sk = (byte*) NativeMethods.sodium_malloc(Crypto.SecretKeyBytes);
-                var fileCipherChecksum = (byte*) NativeMethods.sodium_malloc(ChecksumBytes);
+                var fileCipherKeyNumber = (byte*) sodium_malloc(KeyNumBytes);
+                var sk = (byte*) sodium_malloc(Crypto.SecretKeyBytes);
+                var fileCipherChecksum = (byte*) sodium_malloc(ChecksumBytes);
                 var offset = 0;
                 try
                 {
@@ -588,32 +579,32 @@ namespace egregore.Cryptography
                     for (var i = 0; i < ChecksumBytes; i++)
                         fileCipherChecksum[i] = xor[offset++];
 
-                    if (NativeMethods.sodium_memcmp(fileCipherChecksum, fileChecksum, ChecksumBytes) != 0)
+                    if (sodium_memcmp(fileCipherChecksum, fileChecksum, ChecksumBytes) != 0)
                     {
-                        NativeMethods.sodium_free(sk);
+                        sodium_free(sk);
                         error.WriteErrorLine(Strings.InvalidDecryptionPassword);
                         return false;
                     }
 
-                    if (NativeMethods.sodium_memcmp(fileCipherKeyNumber, fileKeyNumber, KeyNumBytes) != 0)
+                    if (sodium_memcmp(fileCipherKeyNumber, fileKeyNumber, KeyNumBytes) != 0)
                     {
-                        NativeMethods.sodium_free(sk);
+                        sodium_free(sk);
                         error.WriteErrorLine(Strings.InvalidKeyFileKeyNumber);
                         return false;
                     }
                 }
                 finally
                 {
-                    NativeMethods.sodium_free(fileKeyNumber);
-                    NativeMethods.sodium_free(fileChecksum);
-                    NativeMethods.sodium_free(xor);
+                    sodium_free(fileKeyNumber);
+                    sodium_free(fileChecksum);
+                    sodium_free(xor);
                 }
 
                 //
                 // Checksum = Blake2B(SigAlg || KeyNumber || SecretKey):
                 offset = 0;
-                var checksumInput = (byte*) NativeMethods.sodium_malloc(ChecksumInputBytes);
-                var checksum = (byte*) NativeMethods.sodium_malloc(ChecksumBytes);
+                var checksumInput = (byte*) sodium_malloc(ChecksumInputBytes);
+                var checksum = (byte*) sodium_malloc(ChecksumBytes);
                 try
                 {
                     fixed (byte* src = SigAlg)
@@ -627,24 +618,22 @@ namespace egregore.Cryptography
                     for (var i = 0; i < Crypto.SecretKeyBytes; i++)
                         checksumInput[offset++] = sk[i];
 
-                    if (NativeMethods.crypto_generichash(checksum, ChecksumBytes, checksumInput, ChecksumInputBytes,
-                            null, 0) !=
-                        0)
-                        throw new InvalidOperationException(nameof(NativeMethods.crypto_generichash));
+                    if (crypto_generichash(checksum, ChecksumBytes, checksumInput, ChecksumInputBytes, null, 0) != 0)
+                        throw new InvalidOperationException(nameof(crypto_generichash));
 
-                    if (NativeMethods.sodium_memcmp(checksum, fileCipherChecksum, ChecksumBytes) != 0)
+                    if (sodium_memcmp(checksum, fileCipherChecksum, ChecksumBytes) != 0)
                     {
-                        NativeMethods.sodium_free(sk);
+                        sodium_free(sk);
                         error.WriteErrorLine(Strings.InvalidKeyFileChecksum);
                         return false;
                     }
                 }
                 finally
                 {
-                    NativeMethods.sodium_free(fileCipherKeyNumber);
-                    NativeMethods.sodium_free(fileCipherChecksum);
-                    NativeMethods.sodium_free(checksum);
-                    NativeMethods.sodium_free(checksumInput);
+                    sodium_free(fileCipherKeyNumber);
+                    sodium_free(fileCipherChecksum);
+                    sodium_free(checksum);
+                    sodium_free(checksumInput);
                 }
 
                 secretKey = sk;

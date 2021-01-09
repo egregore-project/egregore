@@ -13,7 +13,7 @@ an issue on GitHub.
 ------------------------------------------------------------------------------------------------------
 egregore-project uses Microsoft.Web.LibraryManager.Build 1.0.113
 License was downloaded from https://raw.githubusercontent.com/aspnet/LibraryManager/master/LICENSE.txt
-License was downloaded on January 7, 2021 4:09:30 AM
+License was downloaded on January 8, 2021 3:35:13 PM
 ------------------------------------------------------------------------------------------------------
 
 Copyright (c) .NET Foundation. All rights reserved.

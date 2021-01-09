@@ -8,18 +8,13 @@ using System.Text;
 using egregore.Configuration;
 using egregore.Cryptography;
 using egregore.Data;
-using egregore.Filters;
-using egregore.Identity;
 using egregore.Models;
 using egregore.Models.Events;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -78,57 +73,11 @@ namespace egregore
 
             return publicKeyString;
         }
-
-        public static IServiceCollection AddCacheRegions(this IServiceCollection services)
+        
+        public static IServiceCollection AddAuth(this IServiceCollection services)
         {
-            services.AddMemoryCache(x => { });
-            services.TryAdd(ServiceDescriptor.Singleton(typeof(ICacheRegion<>), typeof(InProcessCacheRegion<>)));
-            return services;
-        }
-
-        public static IServiceCollection AddDynamicControllers(this IServiceCollection services, IWebHostEnvironment env)
-        {
-            var change = new DynamicActionDescriptorChangeProvider();
-            services.AddSingleton(change);
-            services.AddSingleton<IActionDescriptorChangeProvider, DynamicActionDescriptorChangeProvider>(r => r.GetRequiredService<DynamicActionDescriptorChangeProvider>());
-
-            // FIXME: bad practice
-            var sp = services.BuildServiceProvider();
-
-            var mvc = services.AddControllersWithViews(x =>
-            {
-                x.Conventions.Add(new DynamicControllerModelConvention());
-            });
-            
-            mvc.ConfigureApplicationPartManager(x =>
-            {
-                var logger = sp.GetRequiredService<ILogger<DynamicControllerFeatureProvider>>();
-                var ontology = sp.GetRequiredService<IOntologyLog>();
-                var provider = new DynamicControllerFeatureProvider(ontology, logger);
-                x.FeatureProviders.Add(provider);
-            });
-
-            if (env.IsDevelopment())
-            {
-                mvc.AddRazorRuntimeCompilation(o => { });
-            }
-
-            services.AddRazorPages();
-            
-            return services;
-        }
-
-        public static IServiceCollection AddIdentity(this IServiceCollection services)
-        {
-            // FIXME: distinguish between app and api
-
             services
-                .AddIdentity<IdentityUser, IdentityRole>()
-                .AddUserStore<UserStore>()
-                .AddRoleStore<RoleStore>()
-                .AddDefaultTokenProviders();
-
-            services.AddAuthentication()
+                .AddAuthentication()
                 .AddJwtBearer(x =>
                 {
                     x.RequireHttpsMetadata = false;
@@ -198,17 +147,7 @@ namespace egregore
 
             return services;
         }
-
-        public static IServiceCollection AddFilters(this IServiceCollection services)
-        {
-            services.AddSingleton<ThrottleFilter>();
-            services.AddSingleton<OntologyFilter>();
-            services.AddSingleton<RemoteAddressFilter>();
-            services.AddScoped<BaseViewModelFilter>();
-
-            return services;
-        }
-
+        
         public static IServiceCollection AddSearchIndexes(this IServiceCollection services)
         {
             services.AddSingleton<ISearchIndex, LunrRecordIndex>();

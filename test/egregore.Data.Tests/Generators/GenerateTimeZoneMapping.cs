@@ -28,10 +28,10 @@ namespace egregore.Data.Tests.Generators
         [Fact]
         public void Can_generate_time_zone_LUT()
         {
-            const string source =
-                "https://github.com/unicode-cldr/cldr-core/blob/master/supplemental/windowsZones.json";
+            const string source = "https://github.com/unicode-cldr/cldr-core/blob/master/supplemental/windowsZones.json";
+            const string lastUpdated = "Apr 22, 2020";
 
-            var json = File.ReadAllText("TestData\\WindowsZones.json");
+            var json = File.ReadAllText("TestData\\windowsZones.json");
             var cldr = JsonConvert.DeserializeObject<CldrFile>(json);
 
             Assert.NotNull(cldr.Supplemental);
@@ -51,13 +51,13 @@ namespace egregore.Data.Tests.Generators
             sb.AppendLine("{");
             sb.AppendLine("    /// <summary>");
             sb.AppendLine($"    /// Source: {source}");
+            sb.AppendLine($"    /// Last Updated: {lastUpdated}");
             sb.AppendLine($"    /// Unicode Version: {cldr.Supplemental.Version.UnicodeVersion}");
             sb.AppendLine($"    /// CLDR Version: {cldr.Supplemental.Version.CldrVersion}");
             sb.AppendLine("    /// </summary>");
             sb.AppendLine("    public static class TimeZoneLookup");
             sb.AppendLine("    {");
-            sb.AppendLine(
-                "        /// <summary> Determines the wall time and time zone for the current server. </summary>");
+            sb.AppendLine("        /// <summary> Determines the wall time and time zone for the current server. </summary>");
             sb.AppendLine("        public static IsoTimeZoneString Now");
             sb.AppendLine("        {");
             sb.AppendLine("            get");
@@ -78,8 +78,7 @@ namespace egregore.Data.Tests.Generators
             sb.AppendLine("        }");
             sb.AppendLine();
             sb.AppendLine("        [ExcludeFromCodeCoverage]");
-            sb.AppendLine(
-                "        private static IsoTimeZoneString Lookup(DateTimeOffset now, RegionInfo region, string regionName, TimeZoneInfo localTimeZone)");
+            sb.AppendLine("        private static IsoTimeZoneString Lookup(DateTimeOffset now, RegionInfo region, string regionName, TimeZoneInfo localTimeZone)");
             sb.AppendLine("        {");
             sb.AppendLine("            #region LUT");
             sb.AppendLine();
@@ -104,8 +103,8 @@ namespace egregore.Data.Tests.Generators
                 sb.AppendLine("                {");
                 sb.AppendLine("                    switch(region.TwoLetterISORegionName)");
                 sb.AppendLine("                    {");
-                foreach (var tuple in v
-                    .Reverse())
+
+                foreach (var tuple in v.Reverse())
                 {
                     var key = tuple.Key == "001" ? "default" : $"case \"{tuple.Key}\"";
                     sb.AppendLine($"                            {key}:");
@@ -119,19 +118,16 @@ namespace egregore.Data.Tests.Generators
                         foreach (var value in values)
                         {
                             sb.AppendLine($"                                case \"{value}\":");
-                            sb.AppendLine(
-                                $"                                    return new IsoTimeZoneString(now, \"{value}\");");
+                            sb.AppendLine($"                                    return new IsoTimeZoneString(now, \"{value}\");");
                         }
 
                         sb.AppendLine("                                default:");
-                        sb.AppendLine(
-                            $"                                    return new IsoTimeZoneString(now, \"{values[0]}\");");
+                        sb.AppendLine($"                                    return new IsoTimeZoneString(now, \"{values[0]}\");");
                         sb.AppendLine("                            }");
                     }
                     else
                     {
-                        sb.AppendLine(
-                            $"                                return new IsoTimeZoneString(now, \"{tuple.Value}\");");
+                        sb.AppendLine($"                                return new IsoTimeZoneString(now, \"{tuple.Value}\");");
                     }
                 }
 
@@ -140,8 +136,7 @@ namespace egregore.Data.Tests.Generators
             }
 
             sb.AppendLine("                    default:");
-            sb.AppendLine(
-                "                        throw new NotSupportedException($\"Missing time zone map from '{localTimeZone.DisplayName}'\");");
+            sb.AppendLine("                        throw new NotSupportedException($\"Missing time zone map from '{localTimeZone.DisplayName}'\");");
             sb.AppendLine("                }"); // switch
             sb.AppendLine();
             sb.AppendLine("            #endregion");
@@ -151,7 +146,6 @@ namespace egregore.Data.Tests.Generators
             _output.WriteLine(sb.ToString());
         }
 
-        // ReSharper disable once IdentifierTypo
         public sealed class CldrFile
         {
             public Supplemental Supplemental { get; set; }
@@ -165,9 +159,11 @@ namespace egregore.Data.Tests.Generators
 
         public sealed class Version
         {
-            [JsonProperty("_unicodeVersion")] public string UnicodeVersion { get; set; }
+            [JsonProperty("_unicodeVersion")]
+            public string UnicodeVersion { get; set; }
 
-            [JsonProperty("_cldrVersion")] public string CldrVersion { get; set; }
+            [JsonProperty("_cldrVersion")]
+            public string CldrVersion { get; set; }
         }
 
         public sealed class WindowsZones
@@ -182,11 +178,14 @@ namespace egregore.Data.Tests.Generators
 
         public sealed class MapZone
         {
-            [JsonProperty("_other")] public string Other { get; set; }
+            [JsonProperty("_other")]
+            public string Other { get; set; }
 
-            [JsonProperty("_type")] public string Type { get; set; }
+            [JsonProperty("_type")]
+            public string Type { get; set; }
 
-            [JsonProperty("_territory")] public string Territory { get; set; }
+            [JsonProperty("_territory")]
+            public string Territory { get; set; }
         }
     }
 }

@@ -23,9 +23,9 @@ namespace egregore.Data.Tests
             var record = new Record {Type = "Customer"};
             record.Columns.Add(new RecordColumn(0, "Order", "int", "123", "0"));
 
-            var next = await fixture.Store.AddRecordAsync(record);
+            var current = await fixture.Store.AddRecordAsync(record);
             Assert.Equal(0UL, record.Index);
-            Assert.Equal(1UL, next);
+            Assert.Equal(0UL, current);
 
             var count = await fixture.Store.GetLengthByTypeAsync("Customer");
             Assert.Equal(1UL, count);
@@ -39,16 +39,16 @@ namespace egregore.Data.Tests
         }
 
         [Fact]
-        public async Task Can_search_for_record_by_column_value()
+        public async Task Can_get_record_by_column_value()
         {
             using var fixture = new RecordStoreFixture();
 
             var record = new Record {Type = "Customer"};
             record.Columns.Add(new RecordColumn(0, "Order", "int", "123", "0"));
 
-            var next = await fixture.Store.AddRecordAsync(record);
+            var current = await fixture.Store.AddRecordAsync(record);
             Assert.Equal(0UL, record.Index);
-            Assert.Equal(1UL, next);
+            Assert.Equal(0UL, current);
 
             var count = await fixture.Store.GetLengthByTypeAsync("Customer");
             Assert.Equal(1UL, count);

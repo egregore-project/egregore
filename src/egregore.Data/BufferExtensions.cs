@@ -9,7 +9,7 @@ using System.IO;
 
 namespace egregore.Data
 {
-    internal static class BufferExtensions
+    public static class BufferExtensions
     {
         #region Sugar
 

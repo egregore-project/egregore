@@ -6,8 +6,8 @@
 
 using egregore.Configuration;
 using egregore.Cryptography;
-using egregore.Filters;
 using egregore.ViewModels;
+using egregore.Web.Filters;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;

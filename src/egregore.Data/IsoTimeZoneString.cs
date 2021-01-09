@@ -10,7 +10,7 @@ using System.Diagnostics;
 namespace egregore.Data
 {
     [DebuggerDisplay("{" + nameof(ToString) + "()}")]
-    public struct IsoTimeZoneString : IEquatable<IsoTimeZoneString>
+    public readonly struct IsoTimeZoneString : IEquatable<IsoTimeZoneString>
     {
         public DateTimeOffset Timestamp { get; }
         public string TimeZone { get; }
@@ -33,7 +33,7 @@ namespace egregore.Data
             if (string.IsNullOrWhiteSpace(tz) || tz.Length < 3)
                 throw new FormatException("invalid time zone");
 
-            TimeZone = tz.Substring(0, tz.Length - 1);
+            TimeZone = tz[..^1];
         }
 
         public IsoTimeZoneString(DateTimeOffset timestamp, string timeZone)

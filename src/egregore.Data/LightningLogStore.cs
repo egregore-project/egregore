@@ -28,8 +28,7 @@ namespace egregore.Data
             _sequence = new LogStoreSequenceProvider(this);
         }
 
-        public async Task<ulong> AddEntryAsync(LogEntry entry, byte[] secretKey = null,
-            CancellationToken cancellationToken = default)
+        public async Task<ulong> AddEntryAsync(LogEntry entry, byte[] secretKey = null, CancellationToken cancellationToken = default)
         {
             if (cancellationToken.IsCancellationRequested)
                 return 0UL;

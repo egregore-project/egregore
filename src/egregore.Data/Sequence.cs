@@ -23,6 +23,9 @@ namespace egregore.Data
         public Sequence(string baseDirectory, string name, long startWith = -1, long incrementBy = 1)
         {
             _baseDirectory = baseDirectory;
+            if (string.IsNullOrWhiteSpace(_baseDirectory))
+                _baseDirectory = Directory.GetCurrentDirectory();
+
             _name = name;
             _startWith = startWith;
             _incrementBy = incrementBy;

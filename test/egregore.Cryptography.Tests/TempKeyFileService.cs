@@ -11,7 +11,7 @@ using System.Runtime.CompilerServices;
 
 namespace egregore.Cryptography.Tests
 {
-    internal sealed class TempKeyFileService : IKeyFileService
+    public sealed class TempKeyFileService : IKeyFileService
     {
         private readonly string _filePath;
         private readonly FileStream _fileStream;

@@ -3,6 +3,8 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <IsPackable>false</IsPackable>
+    <IsPublishable>false</IsPublishable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,7 +19,8 @@
 
   <ItemGroup>
     <PackageReference Include="Dapper" Version="2.0.78" />
-    <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="5.0.1" />
+    <PackageReference Include="libsodium" Version="1.0.18" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="5.0.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.3" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
@@ -33,6 +36,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\egregore.CodeGeneration\egregore.CodeGeneration.csproj" />
     <ProjectReference Include="..\..\src\egregore.Data\egregore.Data.csproj" />
+    <ProjectReference Include="..\egregore.Cryptography.Tests\egregore.Cryptography.Tests.csproj" />
   </ItemGroup>
 
 </Project>

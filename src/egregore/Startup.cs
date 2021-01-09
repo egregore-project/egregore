@@ -7,6 +7,8 @@
 using System;
 using System.Text.Json;
 using egregore.Cryptography;
+using egregore.Filters;
+using egregore.Web;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
@@ -36,25 +38,20 @@ namespace egregore
                 b.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
                 b.DisallowCredentials(); // credentials are invalid when origin is *
             }));
-
             services.AddSignalR();
 
             services.AddEvents();
             services.AddDataStores();
-            services.AddFilters();
             services.AddDaemonServices();
+            services.AddAuthentication();
+            services.AddSearchIndexes();
+            services.AddScoped<BaseViewModelFilter>();
 
-            services.AddRouting(x =>
-            {
-                x.AppendTrailingSlash = true;
-                x.LowercaseUrls = true;
-                x.LowercaseQueryStrings = false;
-            });
-
+            services.AddCanonicalRoutes();
             services.AddDynamicControllers(Environment);
             services.AddCacheRegions();
-            services.AddIdentity();
-            services.AddSearchIndexes();
+            services.AddMetadataCaching();
+            services.AddPublicFilters();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -101,7 +98,7 @@ namespace egregore
             app.UseBlazorFrameworkFiles();
 
             var provider = new FileExtensionContentTypeProvider();
-            provider.Mappings[".webmanifest"] = "application/manifest+json";
+            provider.Mappings[".webmanifest"] = Constants.MediaTypeNames.Application.ManifestJson;
             app.UseStaticFiles(new StaticFileOptions { ContentTypeProvider = provider });
             
             app.UseSecurityHeaders();

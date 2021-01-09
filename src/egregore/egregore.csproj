@@ -85,6 +85,7 @@
     <ProjectReference Include="..\egregore.Logging\egregore.Logging.csproj" />
     <ProjectReference Include="..\egregore.Network\egregore.Network.csproj" />
     <ProjectReference Include="..\egregore.Shared\egregore.Shared.csproj" />
+    <ProjectReference Include="..\egregore.Web\egregore.Web.csproj" />
   </ItemGroup>
 
 </Project>

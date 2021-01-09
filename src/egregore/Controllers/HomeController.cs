@@ -37,7 +37,7 @@ namespace egregore.Controllers
             {
                 PublicKey = _options.Value.PublicKeyString,
                 ServerId = _options.Value.ServerId,
-                TimeZone = TimeZoneLookup.Now
+                TimeZone = TimeZoneLookup.Now.TimeZone
             };
 
             return Ok(model);

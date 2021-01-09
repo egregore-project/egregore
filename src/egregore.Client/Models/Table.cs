@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 
-namespace egregore.Client.Shared
+namespace egregore.Client.Models
 {
     public sealed class Table : ComponentBase, IDisposable
     {

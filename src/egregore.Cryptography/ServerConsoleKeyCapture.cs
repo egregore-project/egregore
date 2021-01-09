@@ -14,19 +14,11 @@ namespace egregore.Cryptography
         private unsafe byte* _password;
         private int _passwordLength;
 
-        public ConsoleKeyInfo ReadKey()
-        {
-            return Console.ReadKey(true);
-        }
+        public ConsoleKeyInfo ReadKey() => Console.ReadKey(true);
 
-        public void Reset()
-        {
-            Console.Clear();
-        }
+        public void Reset() => Console.Clear();
 
-        public void OnKeyRead(TextWriter @out)
-        {
-        }
+        public void OnKeyRead(TextWriter @out) { }
 
         public unsafe void Sink(byte* password, int passwordLength)
         {
